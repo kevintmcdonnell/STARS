@@ -1,0 +1,70 @@
+.text %% "tests/testFile.txt" 3
+main: %% "tests/testFile.txt" 4
+#comment
+jal label %% "tests/testFile.txt" 6
+
+li	$v0, 0x4	# comment %% "tests/testFile.txt" 8
+la	$a0, msg1 %% "tests/testFile.txt" 9
+syscall %% "tests/testFile.txt" 10
+
+la $t0, w %% "tests/testFile.txt" 12
+lw $t0, 0($t0) %% "tests/testFile.txt" 13
+li	$v0,5 %% "tests/testFile.txt" 14
+syscall %% "tests/testFile.txt" 15
+move	$t0,$v0 %% "tests/testFile.txt" 16
+
+li	$v0,4 %% "tests/testFile.txt" 18
+la	$a0, msg2 %% "tests/testFile.txt" 19
+syscall %% "tests/testFile.txt" 20
+
+li	$v0,5 %% "tests/testFile.txt" 22
+syscall %% "tests/testFile.txt" 23
+move	$t1,$v0 %% "tests/testFile.txt" 24
+
+li $t7 4 %% "tests/testFile.txt" 26
+li $t8 4 %% "tests/testFile.txt" 27
+
+add	$t0, $t0, $t1 %% "tests/testFile.txt" 29
+
+
+li	$v0, 4 %% "tests/testFile.txt" 32
+la	$a0, msg3 %% "tests/testFile.txt" 33
+syscall %% "tests/testFile.txt" 34
+
+
+li	$v0,1 %% "tests/testFile.txt" 37
+move	$a0, $t0 %% "tests/testFile.txt" 38
+syscall %% "tests/testFile.txt" 39
+
+li	$v0, 4 %% "tests/testFile.txt" 41
+la	$a0, newline %% "tests/testFile.txt" 42
+syscall %% "tests/testFile.txt" 43
+
+
+
+li $a0, 0x10000000 %% "tests/testFile.txt" 47
+addi $a1, $a0, 28 %% "tests/testFile.txt" 48
+li	$v0,30 %% "tests/testFile.txt" 49
+syscall %% "tests/testFile.txt" 50
+
+li $v0,10 %% "tests/testFile.txt" 52
+syscall %% "tests/testFile.txt" 53
+.text @% "tests/test2.txt" 1
+label: %% "tests/test2.txt" 2
+li $a0, 0x10000008 %% "tests/test2.txt" 3
+addi $a1, $a0, 12 %% "tests/test2.txt" 4
+li $v0, 30 %% "tests/test2.txt" 5
+syscall %% "tests/test2.txt" 6
+jr $ra %% "tests/test2.txt" 7
+li $v0, 10 %% "tests/test2.txt" 8
+syscall %% "tests/test2.txt" 9
+.data %% "tests/test2.txt" 10
+.space 8 %% "tests/test2.txt" 11
+.data %% "tests/testFile.txt" 55
+w: .word 2157882611 %% "tests/testFile.txt" 56
+msg1:	.asciiz	"Enter A:   " %% "tests/testFile.txt" 57
+msg2:	.asciiz	"Enter B:   " %% "tests/testFile.txt" 58
+msg3:	.asciiz	"A + B = " %% "tests/testFile.txt" 59
+newline: .asciiz "\n" %% "tests/testFile.txt" 60
+.asciiz "ajsdf" %% "tests/testFile.txt" 61
+nums: .byte 1, 2, 'c', 4 %% "tests/testFile.txt" 62
