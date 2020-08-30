@@ -51,7 +51,7 @@ main:
     syscall
 
 yeet:
-    li $a0, 0x10000000
+    li $a0, 0x10010000
     addi $a1, $a0, 28
     li	$v0,30
 	syscall
