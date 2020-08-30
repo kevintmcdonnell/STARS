@@ -10,18 +10,21 @@ from instructions import overflow_detect
 from memory import Memory
 
 
-def getString(addr: int, mem: Memory, num: int = -1) -> Union[None, str]:
+# Get a string starting from a specified address until null terminator is hit or
+# a certain number of chars are read
+def getString(addr: int, mem: Memory, num_chars: int = -1) -> Union[None, str]:
     name = ""
     c = mem.getByte(addr, signed=False)
 
-    while c != 0 and num != 0:
+    while c != 0 and num_chars != 0:
         if (c < 32 and (c != 10 and c != 9)) or c >= 127:
-            return None
+            raise ex.InvalidCharacter(f'Character with ASCII code {c} can\'t be read.')
 
         name += chr(c)
         addr += 1
+
         c = mem.getByte(addr, signed=False)
-        num -= 1
+        num_chars -= 1
 
     return name
 
@@ -251,7 +254,7 @@ def writeFile(reg: Dict[str, int], mem: Memory) -> None:
     if reg['$a0'] not in mem.fileTable.keys():
         reg['$v0'] = -1
         return
-    s = getString(reg['$a1'], mem, num=reg['$a2'])
+    s = getString(reg['$a1'], mem, num_chars=reg['$a2'])
 
     mem.fileTable[reg['$a0']].write(s)
     reg['$v0'] = len(s)
