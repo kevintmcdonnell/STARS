@@ -5,7 +5,6 @@ from constants import FILE_MARKER, LINE_MARKER
 from sly.lex import Lexer
 from typing import List, Tuple, Dict
 
-# list of token regex names in MipsLexer that are restricted words
 eq = re.compile(r'[.]eqv (.*?)? (.*)')
 fi = re.compile(r'[.]include "(.*?)"')
 
@@ -89,10 +88,29 @@ def preprocess(filename: str, lexer: Lexer) -> Tuple[str, Dict[str, List[str]]]:
         line = line.strip()
 
         for e in eqv:
-            if not re.search('eqv', line) and not re.search(r'".*?' + e[0] + r'.*?"', line) and not re.search(r'#.*?' + e[0] + r'.*?', line):
-                line = re.sub(e[0], e[1], line)
+            def replace_func(match):
+                # Get the index of the capture group that was matched
+                group = match.lastindex
+
+                # If it's the desired word and it's not in comments or strings, do the substitution
+                if group == 4:
+                    return e[1]
+
+                # Otherwise, just ignore it
+                else:
+                    return match.group(group)
+
+            # 1st group: Capture anything inside of double quotes
+            # 2nd group: Capture anything after #
+            # 3rd group: Capture anything after line marker
+            # 4th group: Capture the word to replace
+            # We don't actually care about the first 3 groups. We just have it so that we can exclude them from eqv substitution.
+            eqv_pattern = r'("[^"]+")|(#.*)|(\x81.*)|(\bword\b)'
+
+            # Do the substitution. We provide a custom substitution function.
+            line = re.sub(eqv_pattern, replace_func, line)
 
         newText += (line + "\n")
 
-    newText = newText[:-2]  # removes 2 lingering newlines
+    newText = newText.strip()
     return newText, lines
