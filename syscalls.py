@@ -10,6 +10,11 @@ from instructions import overflow_detect
 from memory import Memory
 
 
+# Given an ASCII code, Check if a character is not printable.
+def isInvalidChar(c: int) -> bool:
+    return (c < 32 and (c != 10 and c != 9)) or c >= 127
+
+
 # Get a string starting from a specified address until null terminator is hit or
 # a certain number of chars are read
 def getString(addr: int, mem: Memory, num_chars: int = -1) -> Union[None, str]:
@@ -17,7 +22,7 @@ def getString(addr: int, mem: Memory, num_chars: int = -1) -> Union[None, str]:
     c = mem.getByte(addr, signed=False)
 
     while c != 0 and num_chars != 0:
-        if (c < 32 and (c != 10 and c != 9)) or c >= 127:
+        if isInvalidChar(c):
             raise ex.InvalidCharacter(f'Character with ASCII code {c} can\'t be read.')
 
         name += chr(c)
@@ -57,7 +62,7 @@ def printString(reg: Dict[str, int], mem: Memory) -> None:
     addr = OrderedDict(reg)['$a0']  # Starting address of the string
 
     while c != 0:  # Keep printing until we hit a null terminator
-        if (c < 32 and (c != 10 and c != 9)) or c >= 127:
+        if isInvalidChar(c):
             raise ex.InvalidCharacter(f'Character with ASCII code {c} can\'t be printed.')
 
         a = chr(c)
@@ -89,11 +94,11 @@ def atoi(reg: Dict[str, int], mem: Memory) -> None:
         raise ex.InvalidCharacter('Empty string passed to atoi syscall')
 
     while c != 0:  # Keep going until null terminator
-        if c < 48 or c > 57:
+        if c < ord('0') or c > ord('9'):
             raise ex.InvalidCharacter(f'Character with ASCII code {c} is not a number')
 
         result *= 10
-        result += c - 48
+        result += c - ord('0')
 
         addr += 1  # Increment address
         c = mem.getByte(str(addr), signed=False)
@@ -139,8 +144,8 @@ def _exit(reg, mem) -> None:
 def printChar(reg: Dict[str, int], mem) -> None:
     c = reg['$a0']
 
-    if (c < 32 and (c != 10 and c != 9)) or c >= 127:
-        raise ex.InvalidCharacter('Character with ASCII code ' + str(c) + ' can\'t be printed.')
+    if isInvalidChar(c):
+        raise ex.InvalidCharacter(f'Character with ASCII code {c} can\'t be printed.')
 
     print(chr(c), end='')
 
@@ -163,7 +168,7 @@ def memDump(reg: Dict[str, int], mem: Memory) -> None:
         print(hex(i), end='  ')  # Print address
 
         # Printing in LITTLE ENDIAN
-        for step in range(3, -1, -1):  # Print memory contents in hex
+        for step in reversed(range(4)):  # Print memory contents in hex
             w = mem.getByte(i + step, signed=False)
             byte = hex(w)[2:]  # Get rid of the "0x"
 
@@ -172,7 +177,7 @@ def memDump(reg: Dict[str, int], mem: Memory) -> None:
 
             print(byte, end='  ')
 
-        for step in range(3, -1, -1):  # Print memory contents in ASCII
+        for step in reversed(range(4)):  # Print memory contents in ASCII
             c = mem.getByte(i + step, signed=False)
 
             if c in range(127):
