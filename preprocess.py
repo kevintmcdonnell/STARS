@@ -11,11 +11,6 @@ eq = re.compile(r'[.]eqv (.*?)? (.*)')
 fi = re.compile(r'[.]include "(.*?)"')
 
 
-def setStartLine(x: int) -> None:
-    global startLine
-    startLine = x
-
-
 def isValid(s: str, lexer: Lexer) -> bool:
     for attr in restrictedTokens:
         if re.search(getattr(lexer, attr), s):
