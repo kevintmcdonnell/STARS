@@ -4,6 +4,7 @@ from typing import Dict, Union
 
 import exceptions as ex
 import settings
+import utility
 from constants import WORD_SIZE
 from instructions import overflow_detect
 from memory import Memory
@@ -31,7 +32,7 @@ def printInt(reg: Dict[str, int], mem) -> None:
 
 def printHex(reg: Dict[str, int], mem) -> None:
     value = int(reg['$a0'])
-    print(f'0x{value & 0xFFFFFFFF:08x}', end='')
+    print(utility.format_hex(value), end='')
 
 
 def printBin(reg: Dict[str, int], mem) -> None:
@@ -198,7 +199,7 @@ def regDump(reg: Dict[str, int], mem) -> None:
     print(f'{"reg":4} {"hex":10} {"dec"}')
 
     for k in reg.keys():
-        print(f'{k:4} 0x{reg[k] & 0xFFFFFFFF:08x} {overflow_detect(reg[k], WORD_SIZE):d}')
+        print(f'{k:4} {utility.format_hex(reg[k])} {overflow_detect(reg[k], WORD_SIZE):d}')
 
 
 def openFile(reg: Dict[str, int], mem: Memory) -> None:

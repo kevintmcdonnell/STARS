@@ -1,4 +1,5 @@
 from typing import List, Union
+import utility
 
 
 class Label:
@@ -29,7 +30,7 @@ class IType:
 
     def basic_instr(self) -> str:
         if self.operation in ['or', 'ori', 'and', 'andi', 'xor', 'xori']:
-            imm = f'0x{self.imm & 0xFFFFFFFF:08x}'
+            imm = utility.format_hex(self.imm)
         else:
             imm = self.imm
 
@@ -61,7 +62,7 @@ class LoadImm:
         self.imm = imm
 
     def basic_instr(self) -> str:
-        imm_hex = f'0x{self.imm & 0xFFFFFFFF:08x}'
+        imm_hex = utility.format_hex(self.imm)
         return f'{self.operation} {self.reg}, {imm_hex}'
 
 
@@ -74,7 +75,7 @@ class LoadMem:
         self.label = label
 
     def basic_instr(self) -> str:
-        imm_hex = f'0x{self.imm & 0xFFFFFFFF:08x}'
+        imm_hex = utility.format_hex(self.imm)
         return f'{self.operation} {self.reg}, {imm_hex}({self.addr})'
 
 
