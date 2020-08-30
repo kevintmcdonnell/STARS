@@ -144,10 +144,9 @@ class MipsParser(Parser):
     tokens = MipsLexer.tokens
     debugfile = 'parser.out'
 
-    def __init__(self, lines):
-        # self.lines = lines
+    def __init__(self, original_text):
         self.labels = {}
-        self.lines = lines
+        self.original_text = original_text
 
     # Top level section (Data, Text)
     @_('sects')
@@ -195,12 +194,12 @@ class MipsParser(Parser):
         if type(p.instr) == PseudoInstr:
             for i in range(len(p.instr.instrs)):
                 p.instr.instrs[i].filetag = p.filetag
-                p.instr.instrs[i].original_text = self.lines[p.filetag.file_name][p.filetag.line_no - 1]
+                p.instr.instrs[i].original_text = self.original_text[p.filetag.file_name][p.filetag.line_no - 1]
                 p.instr.instrs[i].is_from_pseudoinstr = True
 
         else:
             p.instr.filetag = p.filetag
-            p.instr.original_text = self.lines[p.filetag.file_name][p.filetag.line_no - 1]
+            p.instr.original_text = self.original_text[p.filetag.file_name][p.filetag.line_no - 1]
             p.instr.is_from_pseudoinstr = False
 
         if 'label' in p._namemap:
@@ -551,11 +550,11 @@ def start():
             pArgs = args.pa
 
         lexer = MipsLexer()
-        data, lines = preprocess.preprocess(args.filename, lexer)
-        parser = MipsParser(lines)
+        new_text, original_text = preprocess.preprocess(args.filename, lexer)
+        parser = MipsParser(original_text)
 
-        r1 = lexer.tokenize(data)
-        result = parser.parse(r1)
+        tokenized = lexer.tokenize(new_text)
+        result = parser.parse(tokenized)
         inter = Interpreter(result, pArgs)
         inter.interpret()
 

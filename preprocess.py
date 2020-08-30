@@ -95,40 +95,46 @@ def preprocess(filename: str, lexer: Lexer) -> Tuple[str, Dict[str, List[str]]]:
     files = []
     eqv = {}
 
+    # Step 1: Do a depth-first search of the .include tree, gathering file names and
+    # .eqv definitions along the way
     files, eqv = walk(filename, files, eqv, lexer)
     texts = [''] * len(files)
-    lines = {}
+    original_text = {}
 
-    for i in range(len(files)):
-        file = open(files[i])
+    # Step 2: Add file markers and line markers
+    for i, filename in enumerate(files):
+        file = open(filename)
         count = 1
-        lines[files[i]] = file.readlines()
+        original_text[filename] = file.readlines()
 
-        for line in lines[files[i]]:
+        for line in original_text[filename]:
             line = line.strip()
 
             if line == "" or line[0] == "#":
                 texts[i] += line + "\n"
             elif count == 1:  # Beginning of a new file
-                texts[i] += line + f' {FILE_MARKER} \"{files[i]}\" {count}\n'
+                texts[i] += line + f' {FILE_MARKER} \"{filename}\" {count}\n'
             else:
-                texts[i] += line + f' {LINE_MARKER} \"{files[i]}\" {count}\n'
+                texts[i] += line + f' {LINE_MARKER} \"{filename}\" {count}\n'
+
             count += 1
 
         file.close()
 
+    # Step 3: Replace .include directives with the actual contents of the files
     text = texts[0]
 
-    for i in range(len(files)):
-        pattern = r'\.include "' + files[i] + '".*?\n'
-        text = re.sub(pattern, texts[i], text)
+    for filename, contents in zip(files, texts):
+        pattern = r'\.include "' + filename + '".*?\n'
+        text = re.sub(pattern, contents, text)
 
     newText = ''
 
+    # Step 4: Do eqv substitution
     for line in text.split('\n'):
         line = line.strip()
         line = substitute(line, eqv)
         newText += (line + "\n")
 
     newText = newText.strip()
-    return newText, lines
+    return newText, original_text
