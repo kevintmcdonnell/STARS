@@ -25,8 +25,13 @@ def isValid(s: str, lexer: Lexer) -> bool:
 
 def walk(filename: str, files: List[str], eqv: List[List[str]], lexer: Lexer) -> Tuple[List, List]:
     f = open(filename, 'r')
-    files.append(filename)
+
+    # Replace backslashes with two backslashes for regex to work properly
+    filename_re = re.sub(r'\\', r'\\\\', filename)
+
+    files.append(filename_re)
     line_count = 0
+
     for s in f.readlines():
         line_count += 1
         s = s.strip()
@@ -75,8 +80,10 @@ def preprocess(filename: str, lexer: Lexer) -> Tuple[str, Dict[str, List[str]]]:
         file.close()
 
     text = texts[0]
+
     for i in range(len(files)):
-        text = re.sub(r'\.include "' + files[i] + '".*?\n', texts[i], text)
+        pattern = r'\.include "' + files[i] + '".*?\n'
+        text = re.sub(pattern, texts[i], text)
 
     newText = ''
 
