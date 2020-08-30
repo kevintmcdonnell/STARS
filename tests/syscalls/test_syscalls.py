@@ -56,7 +56,7 @@ class TestSyscalls(unittest.TestCase):
         mem.addByte(255, mem.dataPtr)
         mem.dataPtr += 1
         mem.addAsciiz('words', mem.dataPtr)
-        self.assertRaises(ex.InvalidCharacterException, syscalls.printString, reg, mem)
+        self.assertRaises(ex.InvalidCharacter, syscalls.printString, reg, mem)
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_printInvalidString2(self, mock_stdout):
@@ -67,7 +67,7 @@ class TestSyscalls(unittest.TestCase):
         mem.addByte(8, mem.dataPtr)
         mem.dataPtr += 1
         mem.addAsciiz('words', mem.dataPtr)
-        self.assertRaises(ex.InvalidCharacterException, syscalls.printString, reg, mem)
+        self.assertRaises(ex.InvalidCharacter, syscalls.printString, reg, mem)
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_printEmptyString(self, mock_stdout):
@@ -96,7 +96,7 @@ class TestSyscalls(unittest.TestCase):
     def test_readInvalidInt(self, input):
         mem = memory.Memory()
         reg = {'$v0': 8}
-        self.assertRaises(ex.InvalidInputException, syscalls.readInteger, reg, mem)
+        self.assertRaises(ex.InvalidInput, syscalls.readInteger, reg, mem)
 
     # syscall 6
     def test_atoi(self):
@@ -124,19 +124,19 @@ class TestSyscalls(unittest.TestCase):
         mem = memory.Memory()
         reg = {'$a0': mem.dataPtr}
         mem.addAsciiz('--12345', mem.dataPtr)
-        self.assertRaises(ex.InvalidCharacterException, syscalls.atoi, reg, mem)
+        self.assertRaises(ex.InvalidCharacter, syscalls.atoi, reg, mem)
 
     def test_atoi_bad2(self):
         mem = memory.Memory()
         reg = {'$a0': mem.dataPtr}
         mem.addAsciiz('123e45', mem.dataPtr)
-        self.assertRaises(ex.InvalidCharacterException, syscalls.atoi, reg, mem)
+        self.assertRaises(ex.InvalidCharacter, syscalls.atoi, reg, mem)
 
     def test_atoi_bad_empty(self):
         mem = memory.Memory()
         reg = {'$a0': mem.dataPtr}
         mem.addAsciiz('', mem.dataPtr)
-        self.assertRaises(ex.InvalidCharacterException, syscalls.atoi, reg, mem)
+        self.assertRaises(ex.InvalidCharacter, syscalls.atoi, reg, mem)
 
     # syscall 8
     @mock.patch('builtins.input', side_effect=['uwu'])
@@ -183,13 +183,13 @@ class TestSyscalls(unittest.TestCase):
     def test_Negsbrk(self):
         mem = memory.Memory()
         reg = {'$a0': -1, '$v0': 0}
-        self.assertRaises(ex.InvalidArgumentException, syscalls.sbrk, reg, mem)
+        self.assertRaises(ex.InvalidArgument, syscalls.sbrk, reg, mem)
 
     def test_Negsbrk2(self):
         mem = memory.Memory()
         reg = {'$a0': 0xFFFFFFFF, '$v0': 0}
         syscalls.sbrk(reg, mem)
-        self.assertRaises(ex.MemoryOutOfBoundsException, syscalls.sbrk, reg, mem)
+        self.assertRaises(ex.MemoryOutOfBounds, syscalls.sbrk, reg, mem)
 
     def test_0sbrk(self):
         mem = memory.Memory()
@@ -222,13 +222,13 @@ class TestSyscalls(unittest.TestCase):
     def test_printInvalidChar(self, mock_stdout):
         mem = memory.Memory()
         reg = {'$a0': 8}
-        self.assertRaises(ex.InvalidCharacterException, syscalls.printChar, reg, mem)
+        self.assertRaises(ex.InvalidCharacter, syscalls.printChar, reg, mem)
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_printInvalidChar2(self, mock_stdout):
         mem = memory.Memory()
         reg = {'$a0': 255}
-        self.assertRaises(ex.InvalidCharacterException, syscalls.printChar, reg, mem)
+        self.assertRaises(ex.InvalidCharacter, syscalls.printChar, reg, mem)
 
     # syscall 30
     @mock.patch('sys.stdout', new_callable=StringIO)

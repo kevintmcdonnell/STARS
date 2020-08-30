@@ -1,54 +1,54 @@
-class InvalidImmediateException(Exception):
+class InvalidImmediate(Exception):
     def __init__(self, message: str):
         self.message = message
 
 
-class MemoryOutOfBoundsException(Exception):
+class MemoryOutOfBounds(Exception):
     def __init__(self, message: str):
         self.message = message
 
 
-class MemoryAlignmentException(Exception):
+class MemoryAlignmentError(Exception):
     def __init__(self, message: str):
         self.message = message
 
 
-class InvalidCharacterException(Exception):
+class InvalidCharacter(Exception):
     def __init__(self, message: str):
         self.message = message
 
 
-class InvalidLabelException(Exception):
+class InvalidLabel(Exception):
     def __init__(self, message: str):
         self.message = message
 
 
-class InvalidSyscallException(Exception):
+class InvalidSyscall(Exception):
     def __init__(self, message: str):
         self.message = message
 
 
-class WritingToZeroRegisterException(Exception):
+class WritingToZeroRegister(Exception):
     def __init__(self, message: str):
         self.message = message
 
 
-class ArithmeticOverflowException(Exception):
+class ArithmeticOverflow(Exception):
     def __init__(self, message: str):
         self.message = message
 
 
-class DivisionByZeroException(Exception):
+class DivisionByZero(Exception):
     def __init__(self, message: str):
         self.message = message
 
 
-class InvalidInputException(Exception):
+class InvalidInput(Exception):
     def __init__(self, message: str):
         self.message = message
 
 
-class InstrCountExceedException(Exception):
+class InstrCountExceed(Exception):
     def __init__(self, message: str):
         self.message = message
 
@@ -63,21 +63,21 @@ class HoustonWeHaveAProblemException(Exception):
         self.message = message
 
 
-class FileAlreadyIncludedException(Exception):
+class FileAlreadyIncluded(Exception):
     def __init__(self, message: str):
         self.message = message
 
 
-class InvalidEQVException(Exception):
+class InvalidEQV(Exception):
     def __init__(self, message: str):
         self.message = message
 
 
-class InvalidArgumentException(Exception):
+class InvalidArgument(Exception):
     def __init__(self, message: str):
         self.message = message
 
 
-class NoMainLabelException(Exception):
+class NoMainLabel(Exception):
     def __init__(self, message: str):
         self.message = message

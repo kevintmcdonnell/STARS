@@ -17,11 +17,11 @@ class TestSBUMips(unittest.TestCase):
 
     # Positive overflow
     def test_add_2(self):
-        self.assertRaises(ArithmeticOverflowException, instructions.add, 0x7FF284AB, 0x6FA3B583)
+        self.assertRaises(ArithmeticOverflow, instructions.add, 0x7FF284AB, 0x6FA3B583)
 
     # Negative overflow
     def test_add_3(self):
-        self.assertRaises(ArithmeticOverflowException, instructions.add, -0x7FF284AB, -0x6FA3B583)
+        self.assertRaises(ArithmeticOverflow, instructions.add, -0x7FF284AB, -0x6FA3B583)
 
     # Addu
     # Positive Overflow
@@ -44,7 +44,7 @@ class TestSBUMips(unittest.TestCase):
 
     # Invalid immediate value
     def test_addi_2(self):
-        self.assertRaises(InvalidImmediateException, instructions.addi, 30000, 60000)
+        self.assertRaises(InvalidImmediate, instructions.addi, 30000, 60000)
 
     # Mul
     # General case: Positive * positive
@@ -119,7 +119,7 @@ class TestSBUMips(unittest.TestCase):
 
     # Division by 0
     def test_div_5(self):
-        self.assertRaises(DivisionByZeroException, instructions.div, 5, 0)
+        self.assertRaises(DivisionByZero, instructions.div, 5, 0)
 
     # Divu
     def test_divu(self):
@@ -188,12 +188,12 @@ class TestSBUMips(unittest.TestCase):
     # Slti
     # Invalid immediate
     def test_slti(self):
-        self.assertRaises(InvalidImmediateException, instructions.slti, 3, 60000)
+        self.assertRaises(InvalidImmediate, instructions.slti, 3, 60000)
 
     # Sltiu
     # Invalid immediate
     def test_sltiu(self):
-        self.assertRaises(InvalidImmediateException, instructions.sltiu, 3, -60000)
+        self.assertRaises(InvalidImmediate, instructions.sltiu, 3, -60000)
 
     # Shifting
     # Sll
@@ -204,7 +204,7 @@ class TestSBUMips(unittest.TestCase):
 
     # Invalid shift amount
     def test_sll_2(self):
-        self.assertRaises(InvalidImmediateException, instructions.sll, 1, 32)
+        self.assertRaises(InvalidImmediate, instructions.sll, 1, 32)
 
     # Sllv
     # shamt out of range 0-31
@@ -245,7 +245,7 @@ class TestSBUMips(unittest.TestCase):
         mem = Memory(False)
         mem.addLabel('label', 0x12345678)
         reg = {}
-        self.assertRaises(InvalidLabelException, instructions.j, reg, mem, 'wack')
+        self.assertRaises(InvalidLabel, instructions.j, reg, mem, 'wack')
 
     # jal
     # Valid case
@@ -262,7 +262,7 @@ class TestSBUMips(unittest.TestCase):
         mem = Memory(False)
         mem.addLabel('label', 0x12345678)
         reg = {'pc': 0x400000}
-        self.assertRaises(InvalidLabelException, instructions.jal, reg, mem, 'wack')
+        self.assertRaises(InvalidLabel, instructions.jal, reg, mem, 'wack')
 
     # jalr
     def test_jalr(self):
@@ -284,8 +284,8 @@ class TestSBUMips(unittest.TestCase):
 
     # Invalid
     def test_lui_3(self):
-        self.assertRaises(InvalidImmediateException, instructions.lui, -1)
-        self.assertRaises(InvalidImmediateException, instructions.lui, 65536)
+        self.assertRaises(InvalidImmediate, instructions.lui, -1)
+        self.assertRaises(InvalidImmediate, instructions.lui, 65536)
 
     # Logical operations
     def test_and(self):
@@ -323,7 +323,7 @@ class TestSBUMips(unittest.TestCase):
     # Address out of range
     def test_lb_3(self):
         mem = Memory(False)
-        self.assertRaises(MemoryOutOfBoundsException, instructions.lb, 0x10000005, mem)
+        self.assertRaises(MemoryOutOfBounds, instructions.lb, 0x10000005, mem)
 
     # Nothing there
     def test_lb_4(self):
@@ -364,7 +364,7 @@ class TestSBUMips(unittest.TestCase):
     # Address unaligned
     def test_lh_3(self):
         mem = Memory(False)
-        self.assertRaises(MemoryAlignmentException, instructions.lh, 0x10010005, mem)
+        self.assertRaises(MemoryAlignmentError, instructions.lh, 0x10010005, mem)
 
     # Nothing there
     def test_lh_4(self):
@@ -399,7 +399,7 @@ class TestSBUMips(unittest.TestCase):
     def test_lw_2(self):
         mem = Memory(False)
         mem.addWord(0x1234abcd, 0x10010008)
-        self.assertRaises(MemoryAlignmentException, instructions.lw, 0x10010007, mem)
+        self.assertRaises(MemoryAlignmentError, instructions.lw, 0x10010007, mem)
 
     # Nothing there
     def test_lw_3(self):
@@ -418,7 +418,7 @@ class TestSBUMips(unittest.TestCase):
     # Address out of range
     def test_sb_2(self):
         mem = Memory(False)
-        self.assertRaises(MemoryOutOfBoundsException, instructions.sb, 0x1001005, mem, 0xF4)
+        self.assertRaises(MemoryOutOfBounds, instructions.sb, 0x1001005, mem, 0xF4)
 
     # More than one byte
     def test_sb_3(self):
@@ -437,7 +437,7 @@ class TestSBUMips(unittest.TestCase):
     # Address unaligned
     def test_sh_2(self):
         mem = Memory(False)
-        self.assertRaises(MemoryAlignmentException, instructions.sh, 0x10010007, mem, 0xabcd)
+        self.assertRaises(MemoryAlignmentError, instructions.sh, 0x10010007, mem, 0xabcd)
 
     # sw
     # General case
@@ -452,7 +452,7 @@ class TestSBUMips(unittest.TestCase):
     # Address unaligned
     def test_sw_2(self):
         mem = Memory(False)
-        self.assertRaises(MemoryAlignmentException, instructions.sw, 0x10010006, mem, 0x1234abcd)
+        self.assertRaises(MemoryAlignmentError, instructions.sw, 0x10010006, mem, 0x1234abcd)
 
     # Lwl
     # Test with different alignment

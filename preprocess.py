@@ -38,12 +38,12 @@ def walk(filename: str, files: List[str], eqv: List[List[str]], lexer: Lexer) ->
                 eqv.append(['\\b' + eqMatch.group(1) + '\\b', eqMatch.group(2)])
             else:
                 f.close()
-                raise InvalidEQVException('%s: line %d: %s is a restricted word and cannot be replaced using eqv.' %(filename, line_count, eqMatch.group(1)))
+                raise InvalidEQV('%s: line %d: %s is a restricted word and cannot be replaced using eqv.' % (filename, line_count, eqMatch.group(1)))
         elif b:
             file = b.group(1)
             if file in files:
                 f.close()
-                raise FileAlreadyIncludedException(filename + ', line number: ' + str(line_count) + ': ' + file + "already included.")
+                raise FileAlreadyIncluded(filename + ', line number: ' + str(line_count) + ': ' + file + "already included.")
             walk(file, files, eqv, lexer)
     f.close()
     return files, eqv

@@ -17,7 +17,7 @@ from typing import Union
 def check_bounds(addr: int) -> None:
     # Checking for out of bounds for memory
     if int(addr) < settings['data_min'] or int(addr) > settings['data_max']:
-        raise ex.MemoryOutOfBoundsException("0x%x is not within the data section or heap/stack." % int(addr))
+        raise ex.MemoryOutOfBounds("0x%x is not within the data section or heap/stack." % int(addr))
 
 
 class Memory:
@@ -50,7 +50,7 @@ class Memory:
     def addWord(self, data: int, addr: int) -> None:
         # Add a word (4 bytes) to memory
         if addr % 4 != 0:
-            raise ex.MemoryAlignmentException(hex(addr) + " is not word aligned.")
+            raise ex.MemoryAlignmentError(hex(addr) + " is not word aligned.")
 
         for i in range(4):  # Set byte by byte starting from LSB
             self.setByte(addr + i, (data >> (8 * i)) & 0xFF)
@@ -58,7 +58,7 @@ class Memory:
     def addHWord(self, data: int, addr: int) -> None:
         # Add a half word (2 bytes) to memory. Only looks at the least significant half-word of data.
         if addr % 2 != 0:
-            raise ex.MemoryAlignmentException(hex(addr) + " is not half-word aligned.")
+            raise ex.MemoryAlignmentError(hex(addr) + " is not half-word aligned.")
 
         for i in range(2):  # Set byte by byte starting from LSB
             self.setByte(addr + i, (data >> (8 * i)) & 0xFF)
@@ -74,7 +74,7 @@ class Memory:
     def addLabel(self, l: str, addr: int) -> None:
         # Add a label to the dictionary of labels
         if l in self.labels:
-            raise ex.InvalidLabelException(l + " is already defined")
+            raise ex.InvalidLabel(l + " is already defined")
 
         self.labels[l] = addr
 
@@ -122,7 +122,7 @@ class Memory:
         # Get a word (4 bytes) of memory from main memory
         # Returns a decimal integer representation of the word
         if addr % 4 != 0:
-            raise ex.MemoryAlignmentException(hex(addr) + " is not word aligned.")
+            raise ex.MemoryAlignmentError(hex(addr) + " is not word aligned.")
 
         acc = 0  # Result
 
@@ -140,7 +140,7 @@ class Memory:
         # Get a half-word (2 bytes) of memory from main memory
         # Returns a decimal integer representation of the word
         if addr % 2 != 0:
-            raise ex.MemoryAlignmentException(hex(addr) + " is not half-word aligned.")
+            raise ex.MemoryAlignmentError(hex(addr) + " is not half-word aligned.")
 
         acc = 0  # Result
 

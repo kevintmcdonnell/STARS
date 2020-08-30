@@ -18,21 +18,21 @@ def add(a: int, b: int, signed: bool = True) -> int:
     # Add two 32-bit two's complement numbers
     if signed:
         if a + b >= WORD_SIZE / 2 or a + b < -WORD_SIZE / 2:
-            raise ex.ArithmeticOverflowException("Overflow while adding")
+            raise ex.ArithmeticOverflow("Overflow while adding")
 
     return a + b
 
 
 def addi(a: int, b: int) -> int:
     if b not in range(-HALF_SIZE // 2, HALF_SIZE // 2):
-        raise ex.InvalidImmediateException("Immediate is not 16-bit")
+        raise ex.InvalidImmediate("Immediate is not 16-bit")
 
     return add(a, b, signed=True)
 
 
 def addiu(a: int, b: int) -> int:
     if b not in range(-HALF_SIZE // 2, HALF_SIZE // 2):
-        raise ex.InvalidImmediateException("Immediate is not 16-bit")
+        raise ex.InvalidImmediate("Immediate is not 16-bit")
 
     return addu(a, b)
 
@@ -48,7 +48,7 @@ def _and(a: int, b: int) -> int:
 
 def andi(a: int, b: int) -> int:
     if b < 0 or b >= HALF_SIZE:
-        raise ex.InvalidImmediateException("Immediate is not unsigned 16 bit")
+        raise ex.InvalidImmediate("Immediate is not unsigned 16 bit")
 
     return _and(a, b)
 
@@ -88,7 +88,7 @@ def multu(a: int, b: int) -> Tuple[int, int]:
 def div(a: int, b: int, signed: bool = True) -> Union[int, Tuple[int, int]]:
     # Divide two 32-bit numbers
     if b == 0:
-        raise ex.DivisionByZeroException(" ")
+        raise ex.DivisionByZero(" ")
 
     elif signed:  # div
         return int(a / b), abs(a) % abs(b) * (-1 if a < 0 else 1)
@@ -123,7 +123,7 @@ def clz(a: int) -> int:
 
 def lui(a: int) -> int:
     if a < 0 or a >= HALF_SIZE:
-        raise ex.InvalidImmediateException("Immediate is not unsigned 16 bit")
+        raise ex.InvalidImmediate("Immediate is not unsigned 16 bit")
 
     return a << 16
 
@@ -140,7 +140,7 @@ def _or(a: int, b: int) -> int:
 
 def ori(a: int, b: int) -> int:
     if b < 0 or b >= HALF_SIZE:
-        raise ex.InvalidImmediateException("Immediate is not unsigned 16 bit")
+        raise ex.InvalidImmediate("Immediate is not unsigned 16 bit")
 
     return _or(a, b)
 
@@ -153,7 +153,7 @@ def sllv(a: int, b: int) -> int:
 
 def sll(a: int, b: int) -> int:
     if b < 0 or b >= 32:
-        raise ex.InvalidImmediateException("Shift amount is not 0-31")
+        raise ex.InvalidImmediate("Shift amount is not 0-31")
 
     return sllv(a, b)
 
@@ -178,14 +178,14 @@ def sltu(a: int, b: int) -> int:
 
 def slti(a: int, b: int) -> int:
     if b < -HALF_SIZE // 2 or b >= HALF_SIZE // 2:
-        raise ex.InvalidImmediateException("Immediate is not 16 bit")
+        raise ex.InvalidImmediate("Immediate is not 16 bit")
 
     return slt(a, b, True)
 
 
 def sltiu(a: int, b: int) -> int:
     if b < -HALF_SIZE // 2 or b >= HALF_SIZE // 2:
-        raise ex.InvalidImmediateException("Immediate is not 16 bit")
+        raise ex.InvalidImmediate("Immediate is not 16 bit")
 
     return slt(a, b, False)
 
@@ -198,7 +198,7 @@ def srav(a: int, b: int) -> int:
 
 def sra(a: int, b: int) -> int:
     if b < 0 or b >= 32:
-        raise ex.InvalidImmediateException("Shift amount is not 0-31")
+        raise ex.InvalidImmediate("Shift amount is not 0-31")
 
     return srav(a, b)
 
@@ -210,7 +210,7 @@ def srlv(a: int, b: int) -> int:
 
 def srl(a: int, b: int) -> int:
     if b < 0 or b >= 32:
-        raise ex.InvalidImmediateException("Shift amount is not 0-31")
+        raise ex.InvalidImmediate("Shift amount is not 0-31")
 
     return srlv(a, b)
 
@@ -232,7 +232,7 @@ def xor(a: int, b: int) -> int:
 
 def xori(a: int, b: int) -> int:
     if b < 0 or b >= HALF_SIZE:
-        raise ex.InvalidImmediateException("Immediate is not unsigned 16 bit")
+        raise ex.InvalidImmediate("Immediate is not unsigned 16 bit")
 
     return xor(a, b)
 
@@ -369,7 +369,7 @@ def jal(reg: Dict[str, int], mem, label: str) -> None:
     if l:
         reg['pc'] = l
     else:
-        raise ex.InvalidLabelException(label + ' is not a valid label.')
+        raise ex.InvalidLabel(label + ' is not a valid label.')
 
 
 def j(reg: Dict[str, int], mem, label: str) -> None:
@@ -379,7 +379,7 @@ def j(reg: Dict[str, int], mem, label: str) -> None:
     if l:
         reg['pc'] = l
     else:
-        raise ex.InvalidLabelException(label + ' is not a valid label.')
+        raise ex.InvalidLabel(label + ' is not a valid label.')
 
 
 def jalr(reg: Dict[str, int], target: str) -> None:

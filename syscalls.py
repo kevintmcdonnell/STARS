@@ -55,7 +55,7 @@ def printString(reg: Dict[str, int], mem: Memory) -> None:
 
     while c != 0:  # Keep printing until we hit a null terminator
         if (c < 32 and (c != 10 and c != 9)) or c >= 127:
-            raise ex.InvalidCharacterException(f'Character with ASCII code {c} can\'t be printed.')
+            raise ex.InvalidCharacter(f'Character with ASCII code {c} can\'t be printed.')
 
         a = chr(c)
         print(a, end='')
@@ -83,11 +83,11 @@ def atoi(reg: Dict[str, int], mem: Memory) -> None:
 
     # Then, check if the string is empty
     if mem.getByte(str(addr), signed=False) == 0:
-        raise ex.InvalidCharacterException('Empty string passed to atoi syscall')
+        raise ex.InvalidCharacter('Empty string passed to atoi syscall')
 
     while c != 0:  # Keep going until null terminator
         if c < 48 or c > 57:
-            raise ex.InvalidCharacterException(f'Character with ASCII code {c} is not a number')
+            raise ex.InvalidCharacter(f'Character with ASCII code {c} is not a number')
 
         result *= 10
         result += c - 48
@@ -106,7 +106,7 @@ def readInteger(reg: Dict[str, int], mem) -> None:
         reg['$v0'] = overflow_detect(int(read), WORD_SIZE)
 
     except ValueError:
-        raise ex.InvalidInputException(read)
+        raise ex.InvalidInput(read)
 
 
 def readString(reg: Dict[str, int], mem: Memory) -> None:
@@ -117,10 +117,10 @@ def readString(reg: Dict[str, int], mem: Memory) -> None:
 
 def sbrk(reg: Dict[str, int], mem: Memory) -> None:
     if mem.heapPtr > settings.settings['initial_$sp']:
-        raise ex.MemoryOutOfBoundsException('Heap has exceeded the upper limit of ' + str(settings.settings['initial_$sp']))
+        raise ex.MemoryOutOfBounds('Heap has exceeded the upper limit of ' + str(settings.settings['initial_$sp']))
 
     if reg['$a0'] < 0:
-        raise ex.InvalidArgumentException('$a0 must be a non-negative number.')
+        raise ex.InvalidArgument('$a0 must be a non-negative number.')
 
     reg['$v0'] = mem.heapPtr
     mem.heapPtr += reg['$a0']
@@ -137,7 +137,7 @@ def printChar(reg: Dict[str, int], mem) -> None:
     c = reg['$a0']
 
     if (c < 32 and (c != 10 and c != 9)) or c >= 127:
-        raise ex.InvalidCharacterException('Character with ASCII code ' + str(c) + ' can\'t be printed.')
+        raise ex.InvalidCharacter('Character with ASCII code ' + str(c) + ' can\'t be printed.')
 
     print(chr(c), end='')
 
@@ -294,7 +294,7 @@ def randInt(reg: Dict[str, int], mem) -> None:
     upper = reg['$a0']
 
     if upper < 0:
-        raise ex.InvalidArgumentException('Upper value for randInt must be nonnegative')
+        raise ex.InvalidArgument('Upper value for randInt must be nonnegative')
 
     reg['$v0'] = random.randint(0, upper)
 

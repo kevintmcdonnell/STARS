@@ -48,8 +48,8 @@ UvU: .asciiz "owo what's this?" \x81\x83 "includeSuccess.asm" 10''')
 
     def test_file_already_included(self):
         lexer = MipsLexer()
-        self.assertRaises(FileAlreadyIncludedException, preprocess, 'alreadyIncluded.asm', lexer)
+        self.assertRaises(FileAlreadyIncluded, preprocess, 'alreadyIncluded.asm', lexer)
 
     def test_eqv_restricted_token(self):
         lexer = MipsLexer()
-        self.assertRaises(InvalidEQVException, preprocess, 'eqvRestricted.asm', lexer)
+        self.assertRaises(InvalidEQV, preprocess, 'eqvRestricted.asm', lexer)

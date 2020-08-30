@@ -83,7 +83,7 @@ class Interpreter:
 
                 elif data_type == 'align':
                     if line.data > 3 or line.data < 0:
-                        raise ex.InvalidImmediateException('Value for .align is invalid')
+                        raise ex.InvalidImmediate('Value for .align is invalid')
 
                     align = 2 ** line.data
 
@@ -107,7 +107,7 @@ class Interpreter:
                 self.mem.addText(line)
 
         if not self.has_main:
-            raise ex.NoMainLabelException('Could not find main label')
+            raise ex.NoMainLabel('Could not find main label')
 
         comp = re.compile(r'((lb[u]?)|(lh[u]?)|(lw[lr])|(lw)|(la)|(s[bhw])|(sw[lr]))')
 
@@ -120,7 +120,7 @@ class Interpreter:
                         line.instrs[0].imm = (addr >> 16) & 0xFFFF
                         line.instrs[1].imm = addr & 0xFFFF
                     else:
-                        raise ex.InvalidLabelException(line.label.name + ' is not a valid label.' + self.line_info)
+                        raise ex.InvalidLabel(line.label.name + ' is not a valid label.' + self.line_info)
 
         # Special instruction to terminate execution after every instruction has been executed
         self.mem.addText('TERMINATE_EXECUTION')
@@ -166,7 +166,7 @@ class Interpreter:
 
     def set_register(self, reg: str, data: int) -> None:
         if reg == '$0':
-            raise ex.WritingToZeroRegisterException(" " + self.line_info)
+            raise ex.WritingToZeroRegister(" " + self.line_info)
 
         key = reg
         try:
@@ -306,7 +306,7 @@ class Interpreter:
                 syscalls[str(code)](self.reg, self.mem)
 
             else:
-                raise ex.InvalidSyscallException('Not a valid syscall code:')
+                raise ex.InvalidSyscall('Not a valid syscall code:')
 
         # Branches
         elif type(instr) == Branch:
@@ -324,7 +324,7 @@ class Interpreter:
                 addr = self.mem.getLabel(label)
 
                 if addr is None:
-                    raise ex.InvalidLabelException(label + ' is not a valid label.')
+                    raise ex.InvalidLabel(label + ' is not a valid label.')
 
                 if 'al' in op:
                     instrs.jal(self.reg, self.mem, label)
@@ -345,7 +345,7 @@ class Interpreter:
             while True:
                 # Get the next instruction and increment pc
                 if str(self.reg['pc']) not in self.mem.text:
-                    raise ex.MemoryOutOfBoundsException(str(self.reg['pc']) + " is not a valid address")
+                    raise ex.MemoryOutOfBounds(str(self.reg['pc']) + " is not a valid address")
 
                 self.instr = self.mem.text[str(self.reg['pc'])]
 
@@ -354,7 +354,7 @@ class Interpreter:
                     self.instruction_count += 1
 
                 if self.instruction_count > settings['max_instructions']:
-                    raise ex.InstrCountExceedException('Exceeded maximum instruction count: ' + str(settings['max_instructions']))
+                    raise ex.InstrCountExceed('Exceeded maximum instruction count: ' + str(settings['max_instructions']))
 
                 try:
                     self.line_info = f' ({self.instr.filetag.file_name}, {self.instr.filetag.line_no})'
