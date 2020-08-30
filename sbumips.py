@@ -472,7 +472,7 @@ class MipsParser(Parser):
     # DECLARATIONS
     @_('declaration filetag declarations', 'declaration filetag')
     def declarations(self, p):
-        if 'filetag' in p._namemap:
+        if p.declaration:
             p.declaration[0].filetag = p.filetag
 
         result = p.declaration
