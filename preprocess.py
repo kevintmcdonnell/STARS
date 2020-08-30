@@ -5,9 +5,6 @@ from constants import FILE_MARKER, LINE_MARKER
 from sly.lex import Lexer
 from typing import List, Tuple, Dict
 
-eq = re.compile(r'[.]eqv (.*?)? (.*)')
-fi = re.compile(r'[.]include "(.*?)"')
-
 
 # Determine if the replacement string for eqv is valid
 def isValid(s: str, lexer: Lexer) -> bool:
@@ -26,27 +23,42 @@ def walk(filename: str, files: List[str], eqv: List[List[str]], lexer: Lexer) ->
     # Replace backslashes with two backslashes for regex to work properly
     filename_re = re.sub(r'\\', r'\\\\', filename)
 
+    # Patterns to detect if line is an .eqv or .include directive
+    eq_pattern = re.compile(r'[.]eqv (.*?)? (.*)')
+    incl_pattern = re.compile(r'[.]include "(.*?)"')
+
     files.append(filename_re)
     line_count = 0
 
-    for s in f.readlines():
+    for line in f.readlines():
         line_count += 1
-        s = s.strip()
-        s = s.split('#')[0]
-        b = fi.match(s)
-        eqMatch = eq.match(s)
-        if eqMatch:
-            if isValid(eqMatch.group(1), lexer):
-                eqv.append(['\\b' + eqMatch.group(1) + '\\b', eqMatch.group(2)])
+
+        # Ignore comments
+        line = line.split('#')[0]
+
+        incl_match = incl_pattern.match(line)
+        eq_match = eq_pattern.match(line)
+
+        if eq_match:
+            original = eq_match.group(1)
+            substitution = eq_match.group(2)
+
+            if isValid(original, lexer):
+                eqv.append([rf'\b{original}\b', substitution])
+
             else:
                 f.close()
-                raise InvalidEQV('%s: line %d: %s is a restricted word and cannot be replaced using eqv.' % (filename, line_count, eqMatch.group(1)))
-        elif b:
-            file = b.group(1)
+                raise InvalidEQV(f'{filename}: line {line_count}: {original} is a restricted word and cannot be replaced using eqv.')
+
+        elif incl_match:
+            file = incl_match.group(1)
+
             if file in files:
                 f.close()
                 raise FileAlreadyIncluded(filename + ', line number: ' + str(line_count) + ': ' + file + "already included.")
+
             walk(file, files, eqv, lexer)
+
     f.close()
     return files, eqv
 
