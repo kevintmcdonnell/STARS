@@ -63,6 +63,34 @@ def walk(filename: str, files: List[str], eqv: Dict[str, str], lexer: Lexer) -> 
     return files, eqv
 
 
+# Perform macro substitutions of a single line of code.
+def substitute(line: str, eqv: Dict[str, str]) -> str:
+    for original, substitution in eqv.items():
+        def replace_func(match):
+            # Get the index of the capture group that was matched
+            group = match.lastindex
+
+            # If it's the desired word and it's not in comments or strings, do the substitution
+            if group == 4:
+                return substitution
+
+            # Otherwise, just ignore it
+            else:
+                return match.group(group)
+
+        # 1st group: Capture anything inside of double quotes
+        # 2nd group: Capture anything after #
+        # 3rd group: Capture anything after line marker
+        # 4th group: Capture the word to replace
+        # We don't actually care about the first 3 groups. We just have it so that we can exclude them from eqv substitution.
+        eqv_pattern = rf'("[^"]+")|(#.*)|(\x81.*)|(\b{original}\b)'
+
+        # Do the substitution. We provide a custom substitution function.
+        line = re.sub(eqv_pattern, replace_func, line)
+
+    return line
+
+
 def preprocess(filename: str, lexer: Lexer) -> Tuple[str, Dict[str, List[str]]]:
     files = []
     eqv = {}
@@ -99,30 +127,7 @@ def preprocess(filename: str, lexer: Lexer) -> Tuple[str, Dict[str, List[str]]]:
 
     for line in text.split('\n'):
         line = line.strip()
-
-        for original, substitution in eqv.items():
-            def replace_func(match):
-                # Get the index of the capture group that was matched
-                group = match.lastindex
-
-                # If it's the desired word and it's not in comments or strings, do the substitution
-                if group == 4:
-                    return substitution
-
-                # Otherwise, just ignore it
-                else:
-                    return match.group(group)
-
-            # 1st group: Capture anything inside of double quotes
-            # 2nd group: Capture anything after #
-            # 3rd group: Capture anything after line marker
-            # 4th group: Capture the word to replace
-            # We don't actually care about the first 3 groups. We just have it so that we can exclude them from eqv substitution.
-            eqv_pattern = rf'("[^"]+")|(#.*)|(\x81.*)|(\b{original}\b)'
-
-            # Do the substitution. We provide a custom substitution function.
-            line = re.sub(eqv_pattern, replace_func, line)
-
+        line = substitute(line, eqv)
         newText += (line + "\n")
 
     newText = newText.strip()
