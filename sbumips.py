@@ -83,7 +83,7 @@ class MipsLexer(Lexer):
     ASCIIZ = '\.asciiz'
     ASCII = '\.ascii'
     SPACE = r'\.space'
-    EQV = r'\.eqv (.*?),? (.*)'
+    EQV = r'\.eqv (.*?) (.*?(?=\x81))'
     INCLUDE = r'\.include'
     ALIGN = r'\.align'
     GLOBL = r'\.globl'

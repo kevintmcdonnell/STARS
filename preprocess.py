@@ -6,15 +6,18 @@ from sly.lex import Lexer
 from typing import List, Tuple, Dict
 
 # list of token regex names in MipsLexer that are restricted words
-restrictedTokens = settings['pseudo_ops'].keys()
 eq = re.compile(r'[.]eqv (.*?)? (.*)')
 fi = re.compile(r'[.]include "(.*?)"')
 
 
+# Determine if the replacement string for eqv is valid
 def isValid(s: str, lexer: Lexer) -> bool:
+    restrictedTokens = settings['pseudo_ops'].keys()
+
     for attr in restrictedTokens:
         if re.search(getattr(lexer, attr), s):
             return False
+
     return True
 
 
@@ -84,9 +87,12 @@ def preprocess(filename: str, lexer: Lexer) -> Tuple[str, Dict[str, List[str]]]:
 
     for line in text.split('\n'):
         line = line.strip()
+
         for e in eqv:
             if not re.search('eqv', line) and not re.search(r'".*?' + e[0] + r'.*?"', line) and not re.search(r'#.*?' + e[0] + r'.*?', line):
                 line = re.sub(e[0], e[1], line)
+
         newText += (line + "\n")
+
     newText = newText[:-2]  # removes 2 lingering newlines
     return newText, lines

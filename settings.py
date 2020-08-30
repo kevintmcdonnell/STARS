@@ -42,7 +42,7 @@ settings = {
         'LOADS_I': [
             'li'
         ],
-        'LOADS_A': [
+        'PS_LOADS_A': [
             'la'
         ],
         'BRANCH': [
