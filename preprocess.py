@@ -17,7 +17,7 @@ def isValid(s: str, lexer: Lexer) -> bool:
     return True
 
 
-def walk(filename: str, files: List[str], eqv: List[List[str]], lexer: Lexer) -> Tuple[List, List]:
+def walk(filename: str, files: List[str], eqv: Dict[str, str], lexer: Lexer) -> Tuple[List, Dict]:
     f = open(filename, 'r')
 
     # Replace backslashes with two backslashes for regex to work properly
@@ -44,7 +44,7 @@ def walk(filename: str, files: List[str], eqv: List[List[str]], lexer: Lexer) ->
             substitution = eq_match.group(2)
 
             if isValid(original, lexer):
-                eqv.append([rf'\b{original}\b', substitution])
+                eqv[rf'\b{original}\b'] = substitution
 
             else:
                 f.close()
@@ -65,7 +65,8 @@ def walk(filename: str, files: List[str], eqv: List[List[str]], lexer: Lexer) ->
 
 def preprocess(filename: str, lexer: Lexer) -> Tuple[str, Dict[str, List[str]]]:
     files = []
-    eqv = []
+    eqv = {}
+
     files, eqv = walk(filename, files, eqv, lexer)
     texts = [''] * len(files)
     lines = {}
@@ -99,14 +100,14 @@ def preprocess(filename: str, lexer: Lexer) -> Tuple[str, Dict[str, List[str]]]:
     for line in text.split('\n'):
         line = line.strip()
 
-        for e in eqv:
+        for original, substitution in eqv.items():
             def replace_func(match):
                 # Get the index of the capture group that was matched
                 group = match.lastindex
 
                 # If it's the desired word and it's not in comments or strings, do the substitution
                 if group == 4:
-                    return e[1]
+                    return substitution
 
                 # Otherwise, just ignore it
                 else:
@@ -117,7 +118,7 @@ def preprocess(filename: str, lexer: Lexer) -> Tuple[str, Dict[str, List[str]]]:
             # 3rd group: Capture anything after line marker
             # 4th group: Capture the word to replace
             # We don't actually care about the first 3 groups. We just have it so that we can exclude them from eqv substitution.
-            eqv_pattern = r'("[^"]+")|(#.*)|(\x81.*)|(\bword\b)'
+            eqv_pattern = rf'("[^"]+")|(#.*)|(\x81.*)|(\b{original}\b)'
 
             # Do the substitution. We provide a custom substitution function.
             line = re.sub(eqv_pattern, replace_func, line)
