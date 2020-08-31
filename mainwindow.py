@@ -99,6 +99,7 @@ class MainWindow(QMainWindow):
 
     def start(self):
         if self.intr:
+            self.out.setPlainText('')
             x = Thread(target=self.intr.interpret, daemon=True)
             x.start()
 
@@ -114,11 +115,11 @@ class MainWindow(QMainWindow):
     def fill_instrs(self):
         pc = self.intr.reg['pc']
         if len(self.instrs.toPlainText()) > 0:
-            # fmt = QTextCharFormat()
+            fmt = QTextCharFormat()
             cur = self.instrs.textCursor()
-
-            # cur.select(QTextCursor.Document)
-            # cur.setCharFormat(fmt)
+            cur.select(QTextCursor.Document)
+            cur.setCharFormat(fmt)
+            cur.clearSelection()
 
             cur = self.instrs.textCursor()
             block = self.instrs.document().findBlockByLineNumber((pc - settings['initial_pc'] - 4) // 4)
