@@ -68,7 +68,7 @@ def printString(reg: Dict[str, int], mem: Memory) -> None:
         print(chr(c), end='')
 
         addr += 1  # Increment address
-        c = mem.getByte(str(addr), signed=False)
+        c = mem.getByte(addr, signed=False)
 
 
 def atoi(reg: Dict[str, int], mem: Memory) -> None:

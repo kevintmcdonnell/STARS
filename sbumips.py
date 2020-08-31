@@ -33,7 +33,7 @@ def get_upper_half(x: int) -> int:
 class MipsLexer(Lexer):
     tokens = {HALF, ALIGN, EQV, LABEL, ZERO_BRANCH, BRANCH, I_TYPE, LOADS_I,
               LOADS_R, J_FUNCT, J_FUNCTR, R_FUNCT3, SYSCALL, R_FUNCT2, NOP, BREAK, MOVE, REG, LABEL, NUMBER, STRING, CHAR, LPAREN, RPAREN,
-              COMMA, COLON, LINE_MARKER, TEXT, DATA, WORD, BYTE, ASCIIZ, ASCII, SPACE, INCLUDE, GLOBL,
+              COMMA, COLON, LINE_MARKER, TEXT, DATA, WORD, BYTE, ASCIIZ, ASCII, SPACE,
               PS_R_FUNCT3, PS_R_FUNCT2, PS_I_TYPE, PS_LOADS_I, PS_LOADS_A, PS_BRANCH, PS_ZERO_BRANCH}
     ignore = ' \t'
     pseudoOps = makeRegex()
@@ -81,13 +81,11 @@ class MipsLexer(Lexer):
     WORD = r'\.word'
     BYTE = r'\.byte'
     HALF = r'\.half'
-    ASCIIZ = '\.asciiz'
-    ASCII = '\.ascii'
+    ASCIIZ = r'\.asciiz'
+    ASCII = r'\.ascii'
     SPACE = r'\.space'
     EQV = r'\.eqv (.*?) (.*?(?=\x81))'
-    INCLUDE = r'\.include'
     ALIGN = r'\.align'
-    GLOBL = r'\.globl'
 
     @_(r'(\x81\x82)|(\x81\x83)')
     def LINE_MARKER(self, t):
@@ -127,14 +125,18 @@ class MipsLexer(Lexer):
         t.value = ord(char)
         return t
 
-    # Line number tracking
     @_(r'\#[^\x81\n]*')
     def ignore_comments(self, t):
         pass
 
+    # Line number tracking
     @_(r'\n+')
     def ignore_newline(self, t):
         self.lineno += t.value.count('\n')
+
+    @_(r'\.(include|globl)[^\n]*')
+    def ignore_directives(self, t):
+        pass
 
     def error(self, t):
         raise SyntaxError(f'Line {self.lineno}: Bad character {t.value[0]}')
@@ -161,13 +163,9 @@ class MipsParser(Parser):
 
         return p.sect
 
-    @_('dSect', 'tSect', 'INCLUDE STRING filetag', 'GLOBL LABEL filetag')
+    @_('dSect', 'tSect')
     def sect(self, p):
-        if 'INCLUDE' in p._namemap or 'GLOBL' in p._namemap:
-            return []
-
-        else:
-            return p[0]
+        return p[0]
 
     @_('DATA filetag declarations')
     def dSect(self, p):
