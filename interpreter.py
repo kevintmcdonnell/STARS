@@ -6,6 +6,8 @@ from collections import OrderedDict
 import constants as const
 import exceptions as ex
 import instructions as instrs
+import utility
+
 from classes import *
 from memory import Memory
 from settings import settings
@@ -43,13 +45,19 @@ class Interpreter:
                     # A null-terminated string
                     # There could be multiple strings separated by commas
                     # Add the string to memory and increment address in memory
-                    self.mem.addAsciiz(line.data[1: -1], self.mem.dataPtr)
-                    self.mem.dataPtr += (len(line.data) - 2 + 1)
+                    s = line.data[1: -1]  # Remove quotation marks
+                    s = utility.handle_escapes(s)
+
+                    self.mem.addAsciiz(s, self.mem.dataPtr)
+                    self.mem.dataPtr += len(s) + 1
 
                 elif data_type == 'ascii':
                     # A regular string
-                    self.mem.addAscii(line.data[1: -1], self.mem.dataPtr)
-                    self.mem.dataPtr += (len(line.data) - 2)
+                    s = line.data[1: -1]
+                    s = utility.handle_escapes(s)
+
+                    self.mem.addAscii(s, self.mem.dataPtr)
+                    self.mem.dataPtr += len(s)
 
                 elif data_type == 'byte':
                     for data in line.data:
