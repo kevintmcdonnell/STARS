@@ -13,9 +13,14 @@ from memory import Memory
 from settings import settings
 from syscalls import syscalls
 
+from PySide2.QtCore import Signal
+from PySide2.QtWidgets import QWidget
 
-class Interpreter:
+class Interpreter(QWidget):
+    step = Signal()
+    console_out = Signal(str)
     def __init__(self, code: List, args: List[str]):
+        super().__init__()
         self.reg = OrderedDict()
         self.reg_initialized = set()
 
@@ -381,6 +386,7 @@ class Interpreter:
                     self.debug.listen(self)
 
                 self.execute_instr(self.instr)
+                self.step.emit()
 
         except Exception as e:
             if hasattr(e, 'message'):
