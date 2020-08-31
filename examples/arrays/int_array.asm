@@ -1,6 +1,7 @@
 .data
 ages: .word 19, 25, 20, 22, 24, 23
 target_msg: .asciiz "Target element: "
+.align 2
 target_elem: .word 22
 index_msg: .asciiz "Index: "
 space: .asciiz " "
