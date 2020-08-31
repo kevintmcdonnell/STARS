@@ -6,7 +6,6 @@ from collections import OrderedDict
 import constants as const
 import exceptions as ex
 import instructions as instrs
-import utility
 
 from classes import *
 from memory import Memory
@@ -16,9 +15,11 @@ from syscalls import syscalls
 from PySide2.QtCore import Signal
 from PySide2.QtWidgets import QWidget
 
+
 class Interpreter(QWidget):
     step = Signal()
     console_out = Signal(str)
+
     def __init__(self, code: List, args: List[str]):
         super().__init__()
         self.reg = OrderedDict()
@@ -504,7 +505,7 @@ class Interpreter(QWidget):
                         prev = MemChange(addr, interp.mem.getHWord(addr), interp.reg['pc'] - 4, 'h')
                     else:
                         prev = MemChange(addr, interp.mem.getByte(addr), interp.reg['pc'] - 4, 'b')
-            else: # branches, nops, jr, j
+            else:  # branches, nops, jr, j
                 prev = Change(interp.reg['pc'] - 4)
 
             self.stack.append(prev)
@@ -533,7 +534,6 @@ class Interpreter(QWidget):
                 interp.instr = interp.mem.text[str(prev.pc)]
 
             return True
-
 
         def kill(self, cmd, interp) -> None:
             for i in range(3, len(interp.mem.fileTable)):

@@ -7,6 +7,7 @@ from classes import *
 from constants import *
 from settings import settings
 import argparse
+import sys
 from typing import Dict
 
 
@@ -563,10 +564,10 @@ def start():
 
     except Exception as e:
         if hasattr(e, 'message'):
-            print(type(e).__name__ + ": " + e.message)
+            print(type(e).__name__ + ": " + e.message, file=sys.stderr)
 
         else:
-            print(type(e).__name__ + ": " + str(e))
+            print(type(e).__name__ + ": " + str(e), file=sys.stderr)
 
 
 if __name__ == '__main__':
