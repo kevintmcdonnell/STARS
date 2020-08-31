@@ -62,6 +62,7 @@ settings = {
         ]},
 
     # Command line flags
+    'assemble': False,
     'debug': False,
     'disp_instr_count': False,
     'warnings': False,

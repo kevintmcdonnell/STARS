@@ -525,6 +525,7 @@ def start():
     p = argparse.ArgumentParser()
     p.add_argument('filename', type=str, help='Input MIPS Assembly file.')
 
+    p.add_argument('-a', '--assemble', help='Assemble code without running', action='store_true')
     p.add_argument('-d', '--debug', help='Enables debugging mode', action='store_true')
     p.add_argument('-g', '--garbage', help='Enables garbage data', action='store_true')
     p.add_argument('-n', '--max_instructions', help='Sets max number of instructions', type=int)
@@ -536,6 +537,8 @@ def start():
         args = p.parse_args()
         pArgs = []
 
+        if args.assemble:
+            settings['assemble'] = True
         if args.debug:
             settings['debug'] = True
         if args.garbage:
@@ -556,6 +559,11 @@ def start():
 
         tokenized = lexer.tokenize(new_text)
         result = parser.parse(tokenized)
+
+        if settings['assemble']:
+            print('Program assembled successfully.')
+            exit()
+
         inter = Interpreter(result, pArgs)
         inter.interpret()
 
