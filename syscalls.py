@@ -230,50 +230,58 @@ def openFile(reg: Dict[str, int], mem: Memory) -> None:
         return
 
     # set flags
-    flags = ""
-    if reg['$a1'] == 0:
-        flags = 'w'
-    elif reg['$a1'] == 1:
-        flags = 'r'
-    elif reg['$a1'] == 9:
-        flags = 'a'
-    else:
-        reg["$v0"] = -1
+    flags = {
+        0: 'w',
+        1: 'r',
+        9: 'a'
+    }
+
+    if reg['$a1'] not in flags:
+        reg['$v0'] = -1
+        return
+
+    flag = flags[reg['$a1']]
 
     # open the file
-    f = open(name, flags)
+    f = open(name, flag)
     mem.fileTable[fd] = f
 
     reg['$v0'] = fd
 
 
-# TODO: see how MARS determines when EOF occurs, bc python has basically no method for EOF
 def readFile(reg: Dict[str, int], mem: Memory) -> None:
-    if reg['$a0'] not in mem.fileTable.keys():
+    fd = reg['$a0']
+    addr = reg['$a1']
+    num_chars = reg['$a2']
+
+    if fd not in mem.fileTable:
         reg['$v0'] = -1
         return
-    s = mem.fileTable[reg['$a0']].read(reg['$a2'])
-    mem.addAsciiz(s, reg['$a1'])
 
-    if len(s) < reg['$a2']:
-        reg['$v0'] = 0
-    else:
-        reg['$v0'] = len(s)
+    s = mem.fileTable[fd].read(num_chars)
+    mem.addAsciiz(s, addr)
+
+    reg['$v0'] = len(s)
 
 
 def writeFile(reg: Dict[str, int], mem: Memory) -> None:
-    if reg['$a0'] not in mem.fileTable.keys():
+    fd = reg['$a0']
+
+    if fd not in mem.fileTable:
         reg['$v0'] = -1
         return
+
     s = getString(reg['$a1'], mem, num_chars=reg['$a2'])
 
-    mem.fileTable[reg['$a0']].write(s)
+    mem.fileTable[fd].write(s)
     reg['$v0'] = len(s)
 
 
 def closeFile(reg: Dict[str, int], mem: Memory) -> None:
-    if reg['$a0'] in mem.fileTable.keys() and reg['$a0'] not in [0, 1, 2]:
-        f = mem.fileTable.pop(reg['$a0'])
+    fd = reg['$a0']
+
+    if fd in mem.fileTable and fd >= 3:
+        f = mem.fileTable.pop(fd)
         f.close()
 
 

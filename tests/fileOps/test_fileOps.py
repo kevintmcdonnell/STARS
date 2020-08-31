@@ -57,7 +57,7 @@ class TestFileOps(unittest.TestCase):
         reg = {'$a0': 3, '$a1': addr, '$a2': 20, '$v0': 0}
         syscalls.readFile(reg, mem)
         f.close()
-        self.assertEqual(reg['$v0'], 0)
+        self.assertEqual(reg['$v0'], 12)
         self.assertEqual(syscalls.getString(addr, mem, 12), 'hello world!')
 
     def test_file_write_success(self):
