@@ -259,7 +259,7 @@ def readFile(reg: Dict[str, int], mem: Memory) -> None:
         return
 
     s = mem.fileTable[fd].read(num_chars)
-    mem.addAsciiz(s, addr)
+    mem.addAscii(s, addr)
 
     reg['$v0'] = len(s)
 
