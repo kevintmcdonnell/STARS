@@ -1,6 +1,6 @@
 import random
 from collections import OrderedDict
-from typing import Dict
+from typing import Dict, Union
 
 import exceptions as ex
 import settings
@@ -17,13 +17,13 @@ def isInvalidChar(c: int) -> bool:
 
 # Get a string starting from a specified address until null terminator is hit or
 # a certain number of chars are read
-def getString(addr: int, mem: Memory, num_chars: int = -1) -> str:
+def getString(addr: int, mem: Memory, num_chars: int = -1) -> Union[str, None]:
     name = ""
     c = mem.getByte(addr, signed=False)
 
     while c != 0 and num_chars != 0:
         if isInvalidChar(c):
-            raise ex.InvalidCharacter(f'Character with ASCII code {c} can\'t be read.')
+            return None
 
         name += chr(c)
         addr += 1
@@ -77,19 +77,19 @@ def atoi(reg: Dict[str, int], mem: Memory) -> None:
     # result: $v0 contains integer converted from string
 
     # Get the first byte of the string
-    addr = OrderedDict(reg)['$a0']  # Starting address of the string
+    addr = reg['$a0']
     sign = 1
 
     # First, check if the number is negative
     if mem.getByte(str(addr), signed=False) == ord('-'):
         sign = -1
-        addr = addr + 1
+        addr += 1
 
     result = 0
     c = mem.getByte(str(addr), signed=False)
 
     # Then, check if the string is empty
-    if mem.getByte(str(addr), signed=False) == 0:
+    if c == 0:
         raise ex.InvalidCharacter('Empty string passed to atoi syscall')
 
     while c != 0:  # Keep going until null terminator
@@ -198,26 +198,30 @@ def memDump(reg: Dict[str, int], mem: Memory) -> None:
             else:  # Invalid character
                 print('.', end='  ')
 
-        print('\n', end='')
+        print()
         i += 4  # Go to next word
 
 
 def regDump(reg: Dict[str, int], mem) -> None:
     print(f'{"reg":4} {"hex":10} {"dec"}')
 
-    for k in reg.keys():
-        print(f'{k:4} {utility.format_hex(reg[k])} {overflow_detect(reg[k], WORD_SIZE):d}')
+    for k, value in reg.items():
+        print(f'{k:4} {utility.format_hex(value)} {overflow_detect(value, WORD_SIZE):d}')
 
 
 def openFile(reg: Dict[str, int], mem: Memory) -> None:
     # searches through to find the lowest unused value for a file descriptor
     fd = 0
-    for f in mem.fileTable:
-        if fd == f:
-            fd += 1
+
+    while True:
+        if fd not in mem.fileTable:
+            break
+
+        fd += 1
 
     # get the string from memory
     name = getString(reg['$a0'], mem)
+
     if name is None:
         reg['$v0'] = -1
         return
