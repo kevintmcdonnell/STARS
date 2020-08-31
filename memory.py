@@ -80,10 +80,6 @@ class Memory:
 
     def addAscii(self, s: str, addr: int, null_terminate: bool = False) -> None:
         # Add a string to memory
-        s = re.sub(r'\\n', '\n', s)
-        s = re.sub(r'\\t', '\t', s)
-        s = re.sub(r'\\0', '\0', s)
-
         for a in s:
             self.setByte(addr, ord(a))
             addr += 1

@@ -118,7 +118,10 @@ def readInteger(reg: Dict[str, int], mem) -> None:
 
 def readString(reg: Dict[str, int], mem: Memory) -> None:
     s = input()
+
+    s = utility.handle_escapes(s)
     s = s[:int(reg['$a1'])]
+
     mem.addAsciiz(s, int(reg['$a0']))
 
 
