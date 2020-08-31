@@ -109,7 +109,7 @@ def div(a: int, b: int, signed: bool = True) -> Union[int, Tuple[int, int]]:
 def clo(a: int, bit: int = 1) -> int:
     temp = 32
 
-    for i in range(31, -1, -1):
+    for i in reversed(range(32)):
         if (a >> i) & 1 != bit:
             temp = 31 - i
             break

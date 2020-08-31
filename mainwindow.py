@@ -24,7 +24,6 @@ class MainWindow(QMainWindow):
         self.cur_file = None
         self.init_ui()
 
-
     def init_ui(self):
         self.setWindowTitle("STARS")
         self.lay = QHBoxLayout()
@@ -106,7 +105,7 @@ class MainWindow(QMainWindow):
     def update_screen(self):
         self.fill_reg()
         self.fill_instrs()
-            #self.fill_mem()
+        # self.fill_mem()
 
     def fill_reg(self):
         for r in REGS:
@@ -139,7 +138,6 @@ class MainWindow(QMainWindow):
                     else:
                         self.instrs.append(f'0x{int(k):08x}\t{mem.text[k].original_text.strip()}')
 
-
             cur = self.instrs.textCursor()
             block = self.instrs.document().findBlockByLineNumber(0)
             cur.setPosition(block.position())
@@ -149,8 +147,8 @@ class MainWindow(QMainWindow):
             cur.setCharFormat(fmt)
             self.instrs.verticalScrollBar().setValue(self.instrs.verticalScrollBar().minimum())
 
+
 if __name__ == "__main__":
     app = QApplication()
     window = MainWindow(app)
     app.exec_()
-

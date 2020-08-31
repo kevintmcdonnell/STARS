@@ -1,12 +1,10 @@
-# TODO: check if saving/getting from data or stack (just check ranges of numbers, it's easy enough)
-
 import random
-import re
 import sys
 from collections import OrderedDict
 
 from typing import List
 import exceptions as ex
+import utility
 
 from constants import WORD_SIZE
 from instructions import overflow_detect
@@ -16,8 +14,8 @@ from typing import Union
 
 def check_bounds(addr: int) -> None:
     # Checking for out of bounds for memory
-    if int(addr) < settings['data_min'] or int(addr) > settings['data_max']:
-        raise ex.MemoryOutOfBounds("0x%x is not within the data section or heap/stack." % int(addr))
+    if addr < settings['data_min'] or addr > settings['data_max']:
+        raise ex.MemoryOutOfBounds(f"{utility.format_hex(addr)} is not within the data section or heap/stack.")
 
 
 class Memory:
@@ -50,7 +48,7 @@ class Memory:
     def addWord(self, data: int, addr: int) -> None:
         # Add a word (4 bytes) to memory
         if addr % 4 != 0:
-            raise ex.MemoryAlignmentError(hex(addr) + " is not word aligned.")
+            raise ex.MemoryAlignmentError(f"{utility.format_hex(addr)} is not word aligned.")
 
         for i in range(4):  # Set byte by byte starting from LSB
             self.setByte(addr + i, (data >> (8 * i)) & 0xFF)
@@ -58,7 +56,7 @@ class Memory:
     def addHWord(self, data: int, addr: int) -> None:
         # Add a half word (2 bytes) to memory. Only looks at the least significant half-word of data.
         if addr % 2 != 0:
-            raise ex.MemoryAlignmentError(hex(addr) + " is not half-word aligned.")
+            raise ex.MemoryAlignmentError(f"{utility.format_hex(addr)} is not half-word aligned.")
 
         for i in range(2):  # Set byte by byte starting from LSB
             self.setByte(addr + i, (data >> (8 * i)) & 0xFF)
@@ -80,8 +78,8 @@ class Memory:
 
     def addAscii(self, s: str, addr: int, null_terminate: bool = False) -> None:
         # Add a string to memory
-        for a in s:
-            self.setByte(addr, ord(a))
+        for c in s:
+            self.setByte(addr, ord(c))
             addr += 1
 
         if null_terminate:
@@ -91,7 +89,7 @@ class Memory:
         # Get a byte of memory from main memory
         # Returns an decimal integer representation of the byte (-128 ~ 127) if signed
         # Returns (0 ~ 255) if unsigned
-        check_bounds(addr)
+        check_bounds(int(addr))
 
         if str(addr) in self.data.keys():
             acc = self.data[str(addr)]
@@ -105,7 +103,7 @@ class Memory:
         else:
             # Randomly generate a byte
             if settings['warnings']:
-                print(f'Warning: Reading from uninitialized byte 0x{addr:08x}!', file=sys.stderr)
+                print(f'Warning: Reading from uninitialized byte {utility.format_hex(int(addr))}!', file=sys.stderr)
 
             if self.toggle_garbage:
                 self.addByte(random.randint(0, 0xFF), addr)
@@ -118,11 +116,11 @@ class Memory:
         # Get a word (4 bytes) of memory from main memory
         # Returns a decimal integer representation of the word
         if addr % 4 != 0:
-            raise ex.MemoryAlignmentError(hex(addr) + " is not word aligned.")
+            raise ex.MemoryAlignmentError(f"{utility.format_hex(addr)} is not word aligned.")
 
         acc = 0  # Result
 
-        for i in range(3, -1, -1):  # Little Endian: Go from MSB to LSB
+        for i in reversed(range(4)):  # Little Endian: Go from MSB to LSB
             check_bounds(addr + i)
 
             # Get the ith byte of the word
@@ -136,11 +134,11 @@ class Memory:
         # Get a half-word (2 bytes) of memory from main memory
         # Returns a decimal integer representation of the word
         if addr % 2 != 0:
-            raise ex.MemoryAlignmentError(hex(addr) + " is not half-word aligned.")
+            raise ex.MemoryAlignmentError(f"{utility.format_hex(addr)} is not half-word aligned.")
 
         acc = 0  # Result
 
-        for i in range(1, -1, -1):  # Little Endian: Go from MSB to LSB
+        for i in reversed(range(2)):  # Little Endian: Go from MSB to LSB
             check_bounds(addr + i)
 
             # Get the ith byte of the word
@@ -162,14 +160,17 @@ class Memory:
 
     def getString(self, label: str, n: int = 100) -> Union[str, None]:
         addr = self.getLabel(label)
-        if addr == None:
+
+        if addr is None:
             return None
 
         count = 0
         ret = ''
+
         c = self.getByte(addr, signed=False)
+
         while c != 0 and count < n:
-            if c in range(127):
+            if c < 128:
                 if c == 9:  # Tab
                     ret += "\\t"
                 elif c == 10:  # Newline
@@ -178,15 +179,19 @@ class Memory:
                     ret += chr(c)
                 else:  # Invalid character
                     ret += '.'
+
             else:  # Invalid character
                 ret += '.'
+
             count += 1
             addr += 1
             c = self.getByte(addr, signed=False)
+
         return ret
 
     def getBytes(self, label: str, n: int, signed: bool = True) -> Union[List[int], None]:
         addr = self.getLabel(label)
+
         if addr is None:
             return None
 
