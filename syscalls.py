@@ -1,6 +1,6 @@
 import random
 from collections import OrderedDict
-from typing import Dict, Union
+from typing import Dict
 
 import exceptions as ex
 import settings
@@ -17,7 +17,7 @@ def isInvalidChar(c: int) -> bool:
 
 # Get a string starting from a specified address until null terminator is hit or
 # a certain number of chars are read
-def getString(addr: int, mem: Memory, num_chars: int = -1) -> Union[None, str]:
+def getString(addr: int, mem: Memory, num_chars: int = -1) -> str:
     name = ""
     c = mem.getByte(addr, signed=False)
 
@@ -58,15 +58,14 @@ def printUnsignedInt(reg: Dict[str, int], mem) -> None:
 
 def printString(reg: Dict[str, int], mem: Memory) -> None:
     # Get the first byte of the string
-    c = mem.getByte(str(reg['$a0']), signed=False)
-    addr = OrderedDict(reg)['$a0']  # Starting address of the string
+    addr = reg['$a0']  # Starting address of the string
+    c = mem.getByte(str(addr), signed=False)
 
     while c != 0:  # Keep printing until we hit a null terminator
         if isInvalidChar(c):
             raise ex.InvalidCharacter(f'Character with ASCII code {c} can\'t be printed.')
 
-        a = chr(c)
-        print(a, end='')
+        print(chr(c), end='')
 
         addr += 1  # Increment address
         c = mem.getByte(str(addr), signed=False)

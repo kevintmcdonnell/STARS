@@ -144,7 +144,7 @@ class TestSyscalls(unittest.TestCase):
         mem = memory.Memory()
         reg = {'$a0': mem.dataPtr, '$a1': 3}
         syscalls.readString(reg, mem)
-        s = syscalls.getString(mem.dataPtr, mem, num=3)
+        s = syscalls.getString(mem.dataPtr, mem, num_chars=3)
         self.assertEqual('uwu', s)
 
     @mock.patch('builtins.input', side_effect=['uwu uwu'])
@@ -152,7 +152,7 @@ class TestSyscalls(unittest.TestCase):
         mem = memory.Memory()
         reg = {'$a0': mem.dataPtr, '$a1': 3}
         syscalls.readString(reg, mem)
-        s = syscalls.getString(mem.dataPtr, mem, num=3)
+        s = syscalls.getString(mem.dataPtr, mem, num_chars=3)
         self.assertEqual('uwu', s)
 
     @mock.patch('builtins.input', side_effect=['uwu uwu'])
@@ -160,7 +160,7 @@ class TestSyscalls(unittest.TestCase):
         mem = memory.Memory()
         reg = {'$a0': mem.dataPtr, '$a1': 9}
         syscalls.readString(reg, mem)
-        s = syscalls.getString(mem.dataPtr, mem, num=9)
+        s = syscalls.getString(mem.dataPtr, mem, num_chars=9)
         self.assertEqual('uwu uwu', s)
 
     @mock.patch('builtins.input', side_effect=[str(chr(0xFF))])
