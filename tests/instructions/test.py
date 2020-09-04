@@ -65,6 +65,8 @@ class TestSBUMips(unittest.TestCase):
     # Edge case: more than 32 bits
     def test_mul_4(self):
         ret = instructions.mul(0x7F000FFF, 0x7F000FFF)
+        ret = overflow_detect(ret)
+
         self.assertEqual(50323457, ret)
 
     # Mult

@@ -13,6 +13,26 @@ def overflow_detect(n: int) -> int:
     return mod
 
 
+# Check if a 16-bit immediate is valid.
+def valid_immed(n: int) -> bool:
+    return -HALF_SIZE // 2 <= n < HALF_SIZE // 2
+
+
+# Check if an unsigned 16-bit immediate is valid.
+def valid_immed_unsigned(n: int) -> bool:
+    return 0 <= n < HALF_SIZE
+
+
+# Check if a shift amount is valid.
+def valid_shamt(n: int) -> bool:
+    return 0 <= n < 32
+
+
+# Convert a signed 32-bit integer to an unsigned one.
+def to_unsigned(n: int) -> int:
+    return n if n >= 0 else n + WORD_SIZE
+
+
 def add(a: int, b: int, signed: bool = True) -> int:
     # Add two 32-bit two's complement numbers
     if signed:
@@ -23,14 +43,14 @@ def add(a: int, b: int, signed: bool = True) -> int:
 
 
 def addi(a: int, b: int) -> int:
-    if b not in range(-HALF_SIZE // 2, HALF_SIZE // 2):
+    if not valid_immed(a + b):
         raise ex.InvalidImmediate("Immediate is not 16-bit")
 
     return add(a, b, signed=True)
 
 
 def addiu(a: int, b: int) -> int:
-    if b not in range(-HALF_SIZE // 2, HALF_SIZE // 2):
+    if not valid_immed(a + b):
         raise ex.InvalidImmediate("Immediate is not 16-bit")
 
     return addu(a, b)
@@ -46,7 +66,7 @@ def _and(a: int, b: int) -> int:
 
 
 def andi(a: int, b: int) -> int:
-    if b < 0 or b >= HALF_SIZE:
+    if valid_immed_unsigned(b):
         raise ex.InvalidImmediate("Immediate is not unsigned 16 bit")
 
     return _and(a, b)
@@ -56,24 +76,15 @@ def mul(a: int, b: int, thirty_two_bits: bool = True, signed: bool = True) -> Un
     # Multiply two 32-bit numbers
     # The result is a 64-bit number. (Unless 32 bits are specified)
     if thirty_two_bits:  # mul
-        return overflow_detect(a * b, WORD_SIZE)
+        return a * b
 
     if signed:  # mult (64 bits, signed)
         result = a * b
-        return result & 0xFFFFFFFF, (result >> 32) & 0xFFFFFFFF
 
-    # multu (64 bits, unsigned)
-    a_unsigned = a
-    b_unsigned = b
+    else: # multu (64 bits, unsigned)
+        result = to_unsigned(a) * to_unsigned(b)
 
-    if a_unsigned < 0:
-        a_unsigned += WORD_SIZE
-
-    if b_unsigned < 0:
-        b_unsigned += WORD_SIZE
-
-    result = a_unsigned * b_unsigned
-    return result & 0xFFFFFFFF, (result >> 32) & 0xFFFFFFFF
+    return result & WORD_MASK, (result >> 32) & WORD_MASK
 
 
 def mult(a: int, b: int) -> Tuple[int, int]:
@@ -85,22 +96,19 @@ def multu(a: int, b: int) -> Tuple[int, int]:
 
 
 def div(a: int, b: int, signed: bool = True) -> Union[int, Tuple[int, int]]:
+    def sign(n: int) -> int:
+        return -1 if n < 0 else 1
+
     # Divide two 32-bit numbers
     if b == 0:
         raise ex.DivisionByZero(" ")
 
     elif signed:  # div
-        return int(a / b), abs(a) % abs(b) * (-1 if a < 0 else 1)
+        return int(a / b), abs(a) % abs(b) * sign(a)
 
     # divu
-    a_unsigned = a
-    b_unsigned = b
-
-    if a_unsigned < 0:
-        a_unsigned += WORD_SIZE
-
-    if b_unsigned < 0:
-        b_unsigned += WORD_SIZE
+    a_unsigned = to_unsigned(a)
+    b_unsigned = to_unsigned(b)
 
     return a_unsigned // b_unsigned, a_unsigned % b_unsigned
 
@@ -110,8 +118,7 @@ def clo(a: int, bit: int = 1) -> int:
 
     for i in reversed(range(32)):
         if (a >> i) & 1 != bit:
-            temp = 31 - i
-            break
+            return 31 - i
 
     return temp
 
@@ -121,7 +128,7 @@ def clz(a: int) -> int:
 
 
 def lui(a: int) -> int:
-    if a < 0 or a >= HALF_SIZE:
+    if not valid_immed_unsigned(a):
         raise ex.InvalidImmediate("Immediate is not unsigned 16 bit")
 
     return a << 16
@@ -138,7 +145,7 @@ def _or(a: int, b: int) -> int:
 
 
 def ori(a: int, b: int) -> int:
-    if b < 0 or b >= HALF_SIZE:
+    if not valid_immed_unsigned(b):
         raise ex.InvalidImmediate("Immediate is not unsigned 16 bit")
 
     return _or(a, b)
@@ -147,11 +154,11 @@ def ori(a: int, b: int) -> int:
 def sllv(a: int, b: int) -> int:
     # Shift left of a 32-bit number.
     b %= 32
-    return (a << b) & 0xFFFFFFFF
+    return (a << b) & WORD_MASK
 
 
 def sll(a: int, b: int) -> int:
-    if b < 0 or b >= 32:
+    if not valid_shamt(b):
         raise ex.InvalidImmediate("Shift amount is not 0-31")
 
     return sllv(a, b)
@@ -176,14 +183,14 @@ def sltu(a: int, b: int) -> int:
 
 
 def slti(a: int, b: int) -> int:
-    if b < -HALF_SIZE // 2 or b >= HALF_SIZE // 2:
+    if not valid_immed(b):
         raise ex.InvalidImmediate("Immediate is not 16 bit")
 
     return slt(a, b, True)
 
 
 def sltiu(a: int, b: int) -> int:
-    if b < -HALF_SIZE // 2 or b >= HALF_SIZE // 2:
+    if not valid_immed(b):
         raise ex.InvalidImmediate("Immediate is not 16 bit")
 
     return slt(a, b, False)
@@ -196,7 +203,7 @@ def srav(a: int, b: int) -> int:
 
 
 def sra(a: int, b: int) -> int:
-    if b < 0 or b >= 32:
+    if not valid_shamt(b):
         raise ex.InvalidImmediate("Shift amount is not 0-31")
 
     return srav(a, b)
@@ -208,7 +215,7 @@ def srlv(a: int, b: int) -> int:
 
 
 def srl(a: int, b: int) -> int:
-    if b < 0 or b >= 32:
+    if not valid_shamt(b):
         raise ex.InvalidImmediate("Shift amount is not 0-31")
 
     return srlv(a, b)
@@ -230,7 +237,7 @@ def xor(a: int, b: int) -> int:
 
 
 def xori(a: int, b: int) -> int:
-    if b < 0 or b >= HALF_SIZE:
+    if not valid_immed_unsigned(b):
         raise ex.InvalidImmediate("Immediate is not unsigned 16 bit")
 
     return xor(a, b)

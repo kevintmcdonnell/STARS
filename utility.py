@@ -1,9 +1,10 @@
 import re
+from constants import WORD_MASK
 
 
 # Format an integer as a hexadecimal string (with leading zeros)
 def format_hex(x: int) -> str:
-    return f'0x{x & 0xFFFFFFFF:08x}'
+    return f'0x{x & WORD_MASK:08x}'
 
 
 # Handle escape sequences and replace them with the actual characters

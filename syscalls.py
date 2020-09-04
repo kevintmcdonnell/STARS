@@ -5,7 +5,7 @@ from typing import Dict, Union
 import exceptions as ex
 import settings
 import utility
-from constants import WORD_SIZE
+from constants import WORD_SIZE, WORD_MASK
 from instructions import overflow_detect
 from memory import Memory
 
@@ -45,7 +45,7 @@ def printHex(reg: Dict[str, int], mem) -> None:
 
 def printBin(reg: Dict[str, int], mem) -> None:
     value = int(reg['$a0'])
-    print(f'0b{value & 0xFFFFFFFF:032b}', end='')
+    print(f'0b{value & WORD_MASK:032b}', end='')
 
 
 def printUnsignedInt(reg: Dict[str, int], mem) -> None:
