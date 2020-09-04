@@ -176,7 +176,7 @@ class Interpreter(QWidget):
         if settings['warnings'] and key[1] in ['s', 't', 'a', 'v'] and key not in ['$at', '$sp'] and key not in self.reg_initialized:
             print(f'Reading from uninitialized register {key}!', file=sys.stderr)
 
-        return instrs.overflow_detect(self.reg[key], const.WORD_SIZE)
+        return instrs.overflow_detect(self.reg[key])
 
     def set_register(self, reg: str, data: int) -> None:
         if reg == '$0':
@@ -191,7 +191,7 @@ class Interpreter(QWidget):
             pass
 
         self.reg_initialized.add(key)
-        self.reg[key] = instrs.overflow_detect(data, const.WORD_SIZE)
+        self.reg[key] = instrs.overflow_detect(data)
 
     def execute_instr(self, instr) -> None:
         # Instruction with 3 registers

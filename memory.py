@@ -6,7 +6,6 @@ from typing import List
 import exceptions as ex
 import utility
 
-from constants import WORD_SIZE
 from instructions import overflow_detect
 from settings import settings
 from typing import Union
@@ -98,7 +97,7 @@ class Memory:
                 if acc & 0x80 > 0:
                     acc |= 0xFFFFFF00
 
-            return overflow_detect(acc, WORD_SIZE)
+            return overflow_detect(acc)
 
         else:
             # Randomly generate a byte
@@ -128,7 +127,7 @@ class Memory:
             acc = acc << 8
             acc |= byte
 
-        return overflow_detect(acc, WORD_SIZE)
+        return overflow_detect(acc)
 
     def getHWord(self, addr: int, signed: bool = True) -> int:
         # Get a half-word (2 bytes) of memory from main memory
@@ -150,7 +149,7 @@ class Memory:
             if acc & 0x8000 > 0:
                 acc |= 0xFFFF0000
 
-        return overflow_detect(acc, WORD_SIZE)
+        return overflow_detect(acc)
 
     def getLabel(self, s: str) -> Union[int, None]:
         if s in self.labels:

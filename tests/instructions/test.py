@@ -27,13 +27,13 @@ class TestSBUMips(unittest.TestCase):
     # Positive Overflow
     def test_addu_1(self):
         ret = instructions.addu(0x7FFFFFFF, 0x7FFFFFFF)
-        ret = instructions.overflow_detect(ret, WORD_SIZE)
+        ret = instructions.overflow_detect(ret)
         self.assertEqual(-2, ret)
 
     # Negative Overflow
     def test_addu_2(self):
         ret = instructions.addu(0x80000000, 0x80000000)
-        ret = instructions.overflow_detect(ret, WORD_SIZE)
+        ret = instructions.overflow_detect(ret)
         self.assertEqual(0, ret)
 
     # Addi
@@ -76,45 +76,45 @@ class TestSBUMips(unittest.TestCase):
     # General case: negative
     def test_mult_2(self):
         low, high = instructions.mul(0x7F000FFF, -200, thirty_two_bits=False)
-        low = overflow_detect(low, WORD_SIZE)
-        high = overflow_detect(high, WORD_SIZE)
+        low = overflow_detect(low)
+        high = overflow_detect(high)
         self.assertEqual((-940343096, -100), (low, high))
 
     # Multu
     # General case
     def test_multu(self):
         low, high = instructions.mul(300, -200, thirty_two_bits=False, signed=False)
-        low = overflow_detect(low, WORD_SIZE)
-        high = overflow_detect(high, WORD_SIZE)
+        low = overflow_detect(low)
+        high = overflow_detect(high)
         self.assertEqual((-60000, 299), (low, high))
 
     # Div
     # General case: pos / pos
     def test_div_1(self):
         low, high = instructions.div(30000, 59)
-        low = overflow_detect(low, WORD_SIZE)
-        high = overflow_detect(high, WORD_SIZE)
+        low = overflow_detect(low)
+        high = overflow_detect(high)
         self.assertEqual((508, 28), (low, high))
 
     # General case: pos / neg
     def test_div_2(self):
         low, high = instructions.div(30000, -59)
-        low = overflow_detect(low, WORD_SIZE)
-        high = overflow_detect(high, WORD_SIZE)
+        low = overflow_detect(low)
+        high = overflow_detect(high)
         self.assertEqual((-508, 28), (low, high))
 
     # General case: neg / pos
     def test_div_3(self):
         low, high = instructions.div(-30000, 59)
-        low = overflow_detect(low, WORD_SIZE)
-        high = overflow_detect(high, WORD_SIZE)
+        low = overflow_detect(low)
+        high = overflow_detect(high)
         self.assertEqual((-508, -28), (low, high))
 
     # General case: pos / neg
     def test_div_4(self):
         low, high = instructions.div(-30000, -59)
-        low = overflow_detect(low, WORD_SIZE)
-        high = overflow_detect(high, WORD_SIZE)
+        low = overflow_detect(low)
+        high = overflow_detect(high)
         self.assertEqual((508, -28), (low, high))
 
     # Division by 0
@@ -210,13 +210,13 @@ class TestSBUMips(unittest.TestCase):
     # shamt out of range 0-31
     def test_sllv(self):
         ret = instructions.sllv(1, -1)
-        ret = instructions.overflow_detect(ret, WORD_SIZE)
+        ret = instructions.overflow_detect(ret)
         self.assertEqual(-2 ** 31, ret)
 
     # Sra
     def test_sra(self):
         ret = instructions.sra(-2 ** 31, 24)
-        ret = instructions.overflow_detect(ret, WORD_SIZE)
+        ret = instructions.overflow_detect(ret)
         self.assertEqual(-128, ret)
 
     # Srl
@@ -280,7 +280,7 @@ class TestSBUMips(unittest.TestCase):
     # Negative
     def test_lui_2(self):
         ret = instructions.lui(0xFFFF)
-        self.assertEqual(-2 ** 16, overflow_detect(ret, WORD_SIZE))
+        self.assertEqual(-2 ** 16, overflow_detect(ret))
 
     # Invalid
     def test_lui_3(self):
@@ -302,7 +302,7 @@ class TestSBUMips(unittest.TestCase):
 
     def test_nor(self):
         ret = instructions.nor(0x5d9d128d, 0x30be0a88)
-        self.assertEqual(-2109676174, overflow_detect(ret, WORD_SIZE))
+        self.assertEqual(-2109676174, overflow_detect(ret))
 
     # Load operations
     # Lb

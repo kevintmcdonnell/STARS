@@ -12,7 +12,7 @@ from memory import Memory
 
 # Given an ASCII code, Check if a character is not printable.
 def isInvalidChar(c: int) -> bool:
-    return (c < 32 and (c != 10 and c != 9)) or c >= 127
+    return (c < 32 and (c != 10 and c != 9 and c != 13)) or c >= 127
 
 
 # Get a string starting from a specified address until null terminator is hit or
@@ -35,7 +35,7 @@ def getString(addr: int, mem: Memory, num_chars: int = -1) -> Union[str, None]:
 
 
 def printInt(reg: Dict[str, int], mem) -> None:
-    print(overflow_detect(int(reg['$a0']), WORD_SIZE), end='')
+    print(overflow_detect(int(reg['$a0'])), end='')
 
 
 def printHex(reg: Dict[str, int], mem) -> None:
@@ -103,14 +103,14 @@ def atoi(reg: Dict[str, int], mem: Memory) -> None:
         c = mem.getByte(str(addr), signed=False)
 
     result *= sign
-    reg['$v0'] = overflow_detect(result, WORD_SIZE)
+    reg['$v0'] = overflow_detect(result)
 
 
 def readInteger(reg: Dict[str, int], mem) -> None:
     read = input()
 
     try:
-        reg['$v0'] = overflow_detect(int(read), WORD_SIZE)
+        reg['$v0'] = overflow_detect(int(read))
 
     except ValueError:
         raise ex.InvalidInput(read)
@@ -209,7 +209,7 @@ def regDump(reg: Dict[str, int], mem) -> None:
     print(f'{"reg":4} {"hex":10} {"dec"}')
 
     for k, value in reg.items():
-        print(f'{k:4} {utility.format_hex(value)} {overflow_detect(value, WORD_SIZE):d}')
+        print(f'{k:4} {utility.format_hex(value)} {overflow_detect(value):d}')
 
 
 def openFile(reg: Dict[str, int], mem: Memory) -> None:

@@ -1,15 +1,14 @@
 import exceptions as ex
-from constants import WORD_SIZE, HALF_SIZE
+from constants import WORD_SIZE, HALF_SIZE, WORD_MASK
 from typing import Union, Tuple, Dict
 
 
 # Helper function to account for overflow issues.
-# For example, overflow_detect(11, 2^4) = -5
-def overflow_detect(n: int, size: int) -> int:
-    mod = n % size
+def overflow_detect(n: int) -> int:
+    mod = n % WORD_SIZE
 
-    if mod >= size // 2:
-        return mod - size
+    if mod >= WORD_SIZE // 2:
+        return mod - WORD_SIZE
 
     return mod
 
@@ -17,7 +16,7 @@ def overflow_detect(n: int, size: int) -> int:
 def add(a: int, b: int, signed: bool = True) -> int:
     # Add two 32-bit two's complement numbers
     if signed:
-        if a + b >= WORD_SIZE / 2 or a + b < -WORD_SIZE / 2:
+        if not -WORD_SIZE // 2 <= a + b < WORD_SIZE // 2:
             raise ex.ArithmeticOverflow("Overflow while adding")
 
     return a + b
