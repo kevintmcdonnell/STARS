@@ -172,9 +172,11 @@ class Memory:
         while c != 0 and count < n:
             if c < 128:
                 if c == 9:  # Tab
-                    ret += "\\t"
+                    ret += '\\t'
                 elif c == 10:  # Newline
-                    ret += "\\n"
+                    ret += '\\n'
+                elif c == 13:  # Carriage return
+                    ret += '\\r'
                 elif c >= 32:  # Regular character
                     ret += chr(c)
                 else:  # Invalid character

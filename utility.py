@@ -10,6 +10,7 @@ def format_hex(x: int) -> str:
 def handle_escapes(s: str) -> str:
     escape_seqs = {
         'n': '\n',
+        'r': '\r',
         't': '\t',
         '0': '\0',
         '"': '"'
