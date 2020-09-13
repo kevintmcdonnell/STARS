@@ -1,7 +1,7 @@
 import unittest
-from os import path as p
+
+from interpreter.exceptions import *
 from preprocess import *
-from exceptions import *
 from sbumips import MipsLexer
 
 

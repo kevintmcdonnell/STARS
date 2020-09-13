@@ -1,4 +1,5 @@
 import re
+
 from constants import WORD_MASK
 
 

@@ -1,14 +1,13 @@
 import random
 import sys
 from collections import OrderedDict
-
 from typing import List
-import exceptions as ex
-import utility
-
-from instructions import overflow_detect
-from settings import settings
 from typing import Union
+
+from interpreter import exceptions as ex
+from interpreter import utility
+from interpreter.instructions import overflow_detect
+from settings import settings
 
 
 def check_bounds(addr: int) -> None:

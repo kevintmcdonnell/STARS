@@ -2,12 +2,12 @@ import random
 from collections import OrderedDict
 from typing import Dict, Union
 
-import exceptions as ex
 import settings
-import utility
 from constants import WORD_SIZE, WORD_MASK
-from instructions import overflow_detect
-from memory import Memory
+from interpreter import exceptions as ex
+from interpreter import utility
+from interpreter.instructions import overflow_detect
+from interpreter.memory import Memory
 
 
 # Given an ASCII code, Check if a character is not printable.

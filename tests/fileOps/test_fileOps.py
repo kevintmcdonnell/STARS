@@ -1,7 +1,5 @@
 import unittest
-import interpreter
-import memory
-import syscalls
+from interpreter import memory, syscalls
 from os import path as p
 
 

@@ -1,5 +1,5 @@
 from typing import List, Union
-import utility
+from interpreter import utility
 
 
 class Label:

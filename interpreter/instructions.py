@@ -1,4 +1,4 @@
-import exceptions as ex
+from interpreter import exceptions as ex
 from constants import WORD_SIZE, HALF_SIZE, WORD_MASK
 from typing import Union, Tuple, Dict
 
@@ -43,14 +43,14 @@ def add(a: int, b: int, signed: bool = True) -> int:
 
 
 def addi(a: int, b: int) -> int:
-    if not valid_immed(a + b):
+    if not valid_immed(b):
         raise ex.InvalidImmediate("Immediate is not 16-bit")
 
     return add(a, b, signed=True)
 
 
 def addiu(a: int, b: int) -> int:
-    if not valid_immed(a + b):
+    if not valid_immed(b):
         raise ex.InvalidImmediate("Immediate is not 16-bit")
 
     return addu(a, b)

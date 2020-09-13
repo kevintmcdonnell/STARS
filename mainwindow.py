@@ -1,14 +1,14 @@
-from PySide2.QtWidgets import QMainWindow, QAction, QApplication, QFileDialog, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QWidget, QLineEdit, QTextEdit
-from PySide2.QtCore import Signal, Qt
-from PySide2.QtGui import QFont, QTextCharFormat, QTextCursor
-
-from sbumips import MipsLexer, MipsParser
-from preprocess import preprocess
-from interpreter import Interpreter
-from settings import settings
-from constants import REGS
-
 from threading import Thread
+
+from PySide2.QtCore import Qt
+from PySide2.QtGui import QTextCharFormat, QTextCursor
+from PySide2.QtWidgets import QMainWindow, QAction, QApplication, QFileDialog, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QWidget, QLineEdit, QTextEdit
+
+from constants import REGS
+from interpreter.interpreter import Interpreter
+from preprocess import preprocess
+from sbumips import MipsLexer, MipsParser
+from settings import settings
 
 
 class MainWindow(QMainWindow):

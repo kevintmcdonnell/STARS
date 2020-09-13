@@ -1,11 +1,9 @@
 import argparse
-import sys
 from typing import Dict
 
 import preprocess
-from classes import *
 from constants import *
-from interpreter import Interpreter
+from interpreter.interpreter import *
 from settings import settings
 from sly.lex import Lexer
 from sly.yacc import Parser

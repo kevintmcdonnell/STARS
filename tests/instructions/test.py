@@ -1,10 +1,9 @@
 import unittest
-from sbumips import *
-from os import path as p
-from memory import *
-import syscalls
-import instructions
-from exceptions import *
+
+from interpreter import instructions
+from interpreter.exceptions import *
+from interpreter.instructions import overflow_detect
+from interpreter.interpreter import *
 
 
 class TestSBUMips(unittest.TestCase):

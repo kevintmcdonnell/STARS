@@ -3,17 +3,15 @@ import re
 import sys
 from collections import OrderedDict
 
-import constants as const
-import exceptions as ex
-import instructions as instrs
-
-from classes import *
-from memory import Memory
-from settings import settings
-from syscalls import syscalls
-
 from PySide2.QtCore import Signal
 from PySide2.QtWidgets import QWidget
+
+import constants as const
+from interpreter import exceptions as ex, instructions as instrs
+from interpreter.classes import *
+from interpreter.memory import Memory
+from interpreter.syscalls import syscalls
+from settings import settings
 
 
 class Interpreter(QWidget):

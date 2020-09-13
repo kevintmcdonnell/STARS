@@ -1,9 +1,10 @@
-import re
-from exceptions import *
-from settings import settings
+from typing import Tuple, Dict
+
 from constants import FILE_MARKER, LINE_MARKER
+from interpreter.exceptions import *
+from interpreter.interpreter import *
+from settings import settings
 from sly.lex import Lexer
-from typing import List, Tuple, Dict
 
 
 # Determine if the replacement string for eqv is valid

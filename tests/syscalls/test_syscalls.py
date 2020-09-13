@@ -2,10 +2,9 @@ import unittest
 import unittest.mock as mock
 from io import StringIO
 
-import exceptions as ex
-import memory
+from interpreter import exceptions as ex
+from interpreter import memory, syscalls
 import settings
-import syscalls
 
 
 class TestSyscalls(unittest.TestCase):
