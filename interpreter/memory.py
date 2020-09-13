@@ -1,8 +1,7 @@
 import random
 import sys
 from collections import OrderedDict
-from typing import List
-from typing import Union
+from typing import List, Union
 
 from interpreter import exceptions as ex
 from interpreter import utility

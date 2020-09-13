@@ -96,7 +96,7 @@ class Breakpoint:
 
 
 class Declaration:
-    def __init__(self, label: Label, type: str, data: Union[int, List[int], str, List[str]]):
+    def __init__(self, label: Union[Label, None], type: str, data: Union[int, List[int], str, List[str]]):
         self.label = label
         self.type = type
         self.data = data
