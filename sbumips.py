@@ -1,25 +1,24 @@
-from sly.lex import Lexer
-from sly.yacc import Parser
-
-from interpreter import Interpreter
-import preprocess
-from classes import *
-from constants import *
-from settings import settings
 import argparse
 import sys
 from typing import Dict
+
+import preprocess
+from classes import *
+from constants import *
+from interpreter import Interpreter
+from settings import settings
+from sly.lex import Lexer
+from sly.yacc import Parser
 
 
 def makeRegex() -> Dict[str, str]:
     ret = {}
 
-    for k in settings['pseudo_ops'].keys():
-        opList = settings['pseudo_ops'][k]
+    for k, opList in settings['pseudo_ops'].items():
         regex = ''
 
         for op in opList:
-            regex += ('|(' + op + ')')
+            regex += f'|({op})'
         ret[k] = regex[1:]
 
     return ret
@@ -75,7 +74,7 @@ class MipsLexer(Lexer):
     COMMA = r','
     COLON = r':'
 
-    # Reserved words
+    # Directives
     TEXT = r'\.text'
     DATA = r'\.data'
     WORD = r'\.word'
@@ -90,6 +89,7 @@ class MipsLexer(Lexer):
     @_(r'(\x81\x82)|(\x81\x83)')
     def LINE_MARKER(self, t):
         if t.value == FILE_MARKER:
+            # Reset line number
             self.lineno = 1
 
         return t
@@ -105,7 +105,7 @@ class MipsLexer(Lexer):
         t.value = int(str(t.value), 0)
         return t
 
-    @_(r"'(.|\s|\\[0rntfv])'")
+    @_(r"'(.|\s|\\[0rnt])'")
     def CHAR(self, t):
         char = t.value[1: -1]
 
@@ -117,10 +117,6 @@ class MipsLexer(Lexer):
             char = '\r'
         elif char == '\\t':
             char = '\t'
-        elif char == '\\f':
-            char = '\t'
-        elif char == '\\v':
-            char = '\v'
 
         t.value = ord(char)
         return t
@@ -136,13 +132,13 @@ class MipsLexer(Lexer):
 
     @_(r'\.(include|globl)[^\n]*')
     def ignore_directives(self, t):
+        # These were already taken care of during the preprocessing stage, so we don't need them
         pass
 
     def error(self, t):
         raise SyntaxError(f'Line {self.lineno}: Bad character {t.value[0]}')
 
 
-######## PARSER ###############
 class MipsParser(Parser):
     tokens = MipsLexer.tokens
     debugfile = 'parser.out'
