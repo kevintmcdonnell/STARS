@@ -66,6 +66,7 @@ settings = {
     'debug': False,
     'disp_instr_count': False,
     'warnings': False,
+    'gui': False,
 
     'enabled_syscalls': {1, 4, 5, 6, 8, 9, 10, 11, 13, 14, 15, 16, 17, 30, 31, 32, 34, 35, 36, 40, 41}
 }

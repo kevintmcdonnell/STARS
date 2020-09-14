@@ -18,8 +18,16 @@ class Interpreter(QWidget):
     step = Signal()
     console_out = Signal(str)
 
+    def out(self, s: str, end="") -> None:
+        if settings['gui']:
+            self.console_out.emit(f'{s}{end}')
+        else:
+            print(s, end=end)
+
+
     def __init__(self, code: List, args: List[str]):
-        super().__init__()
+        if settings['gui']:
+            super().__init__()
         self.reg = OrderedDict()
         self.reg_initialized = set()
 
@@ -315,7 +323,7 @@ class Interpreter(QWidget):
             code = self.get_register('$v0')
 
             if str(code) in syscalls.keys() and code in settings['enabled_syscalls']:
-                syscalls[str(code)](self.reg, self.mem)
+                syscalls[str(code)](self.reg, self.mem, self.out)
 
             else:
                 raise ex.InvalidSyscall('Not a valid syscall code:')
@@ -385,7 +393,8 @@ class Interpreter(QWidget):
                     self.debug.listen(self)
 
                 self.execute_instr(self.instr)
-                self.step.emit()
+                if settings['gui']:
+                    self.step.emit()
 
         except Exception as e:
             if hasattr(e, 'message'):
