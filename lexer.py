@@ -20,8 +20,8 @@ def makeRegex() -> Dict[str, str]:
 
 class MipsLexer(Lexer):
     tokens = {HALF, ALIGN, EQV, LABEL, ZERO_BRANCH, BRANCH, I_TYPE, LOADS_I,
-              LOADS_R, J_FUNCT, J_FUNCTR, R_FUNCT3, SYSCALL, R_FUNCT2, NOP, BREAK, MOVE, REG, LABEL, NUMBER, STRING, CHAR, LPAREN, RPAREN,
-              COMMA, COLON, LINE_MARKER, TEXT, DATA, WORD, BYTE, ASCIIZ, ASCII, SPACE,
+              LOADS_R, J_FUNCT, J_FUNCTR, R_FUNCT3, SYSCALL, R_FUNCT2, NOP, BREAK, MOVE, REG, F_REG, LABEL, NUMBER, STRING, CHAR,
+              LPAREN, RPAREN, COMMA, COLON, LINE_MARKER, TEXT, DATA, WORD, BYTE, ASCIIZ, ASCII, SPACE,
               PS_R_FUNCT3, PS_R_FUNCT2, PS_I_TYPE, PS_LOADS_I, PS_LOADS_A, PS_BRANCH, PS_ZERO_BRANCH}
     ignore = ' \t'
     pseudoOps = makeRegex()
@@ -83,8 +83,14 @@ class MipsLexer(Lexer):
 
         return t
 
-    @_(r'[$](a[0123t]|s[01234567]|t[0123456789]|v[01]|ra|sp|fp|gp|[12]?\d|3[01]),?')
+    @_(r'[$](a[0123t]|s[01234567]|t[0123456789]|v[01]|ra|sp|fp|gp|3[01]|[12]?\d),?')
     def REG(self, t):
+        if t.value[-1] == ',':
+            t.value = t.value[:-1]
+        return t
+
+    @_(r'[$]f(3[01]|[12]?\d),?')
+    def F_REG(self, t):
         if t.value[-1] == ',':
             t.value = t.value[:-1]
         return t
