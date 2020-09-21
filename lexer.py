@@ -12,7 +12,7 @@ def makeRegex() -> Dict[str, str]:
         regex = ''
 
         for op in opList:
-            regex += f'|({op})'
+            regex += f'|{op}'
         ret[k] = regex[1:]
 
     return ret
@@ -27,31 +27,31 @@ class MipsLexer(Lexer):
     pseudoOps = makeRegex()
 
     # Basic instructions
-    R_FUNCT3 = r'\b((and)|(addu?)|(mul)|([xn]?or)|(sllv)|(srav)|(slt[u]?)|(sub[u]?)|(mov[nz]))\b'
-    R_FUNCT2 = r'\b((div[u]?)|(mult[u]?)|(madd[u]?)|(msub[u]?)|(cl[oz]))\b'
+    R_FUNCT3 = r'\b(and|addu?|mul|[xn]?or|sllv|srav|slt[u]?|sub[u]?|mov[nz])\b'
+    R_FUNCT2 = r'\b(div[u]?|mult[u]?|madd[u]?|msub[u]?|cl[oz])\b'
 
-    MOVE = r'\b((m[tf]hi)|(m[tf]lo))\b'
+    MOVE = r'\b(m[tf]hi|m[tf]lo)\b'
 
-    J_FUNCT = r'\b((j)|(b)|(jal))\b'
-    J_FUNCTR = r'\b((jalr)|(jr))\b'
-    I_TYPE = r'\b((addi[u]?)|(andi)|(sr[al])|(sll)|(sltiu?)|(xori)|(ori))\b'
-    LOADS_R = r'\b((lb[u]?)|(lh[u]?)|(lw[lr])|(lw)|(s[bhw])|(sw[lr]))\b'
-    LOADS_I = r'\b((lui))\b'
-    SYSCALL = r'\bsyscall\b'
-    BRANCH = r'\b((beq)|(bne))\b'
-    ZERO_BRANCH = r'\b((bl[et]z)|(bg[te]z)|(bgezal)|(bltzal))\b'
+    J_FUNCT = r'\b(j|b|jal)\b'
+    J_FUNCTR = r'\b(jalr|jr)\b'
+    I_TYPE = r'\b(addi[u]?|andi|sr[al]|sll|sltiu?|xori|ori)\b'
+    LOADS_R = r'\b(lb[u]?|lh[u]?|lw[lr]|lw|s[bhw]|sw[lr])\b'
+    LOADS_I = r'\b(lui)\b'
+    SYSCALL = r'\b(syscall)\b'
+    BRANCH = r'\b(beq|bne)\b'
+    ZERO_BRANCH = r'\b(bl[et]z|bg[te]z|bgezal|bltzal)\b'
 
-    NOP = r'\bnop\b'
-    BREAK = r'\bbreak\b'
+    NOP = r'\b(nop)\b'
+    BREAK = r'\b(break)\b'
 
     # Pseudo Instructions
-    PS_R_FUNCT3 = r'\b(' + pseudoOps['R_FUNCT3'] + r')\b'
-    PS_R_FUNCT2 = r'\b(' + pseudoOps['R_FUNCT2'] + r')\b'
-    PS_I_TYPE = r'\b(' + pseudoOps['I_TYPE'] + r')\b'
-    PS_LOADS_I = r'\b(' + pseudoOps['LOADS_I'] + r')\b'
-    PS_LOADS_A = r'\bla\b'
-    PS_BRANCH = r'\b(' + pseudoOps['BRANCH'] + r')\b'
-    PS_ZERO_BRANCH = r'\b(' + pseudoOps['ZERO_BRANCH'] + r')\b'
+    PS_R_FUNCT3 = rf'\b({pseudoOps["R_FUNCT3"]})\b'
+    PS_R_FUNCT2 = rf'\b({pseudoOps["R_FUNCT2"]})\b'
+    PS_I_TYPE = rf'\b({pseudoOps["I_TYPE"]})\b'
+    PS_LOADS_I = rf'\b({pseudoOps["LOADS_I"]})\b'
+    PS_LOADS_A = r'\b(la)\b'
+    PS_BRANCH = rf'\b({pseudoOps["BRANCH"]})\b'
+    PS_ZERO_BRANCH = rf'\b({pseudoOps["ZERO_BRANCH"]})\b'
 
     # Strings
     LABEL = r'[a-zA-Z_][a-zA-Z0-9_]*'
@@ -72,10 +72,10 @@ class MipsLexer(Lexer):
     ASCIIZ = r'\.asciiz'
     ASCII = r'\.ascii'
     SPACE = r'\.space'
-    EQV = r'\.eqv (.*?) (.*?(?=\x81))'
+    EQV = r'\.eqv .*? .*?(?=\x81)'
     ALIGN = r'\.align'
 
-    @_(r'(\x81\x82)|(\x81\x83)')
+    @_(r'(\x81\x82|\x81\x83)')
     def LINE_MARKER(self, t):
         if t.value == FILE_MARKER:
             # Reset line number
@@ -83,13 +83,13 @@ class MipsLexer(Lexer):
 
         return t
 
-    @_(r'[$]((0|(a[0123t])|(s[01234567])|(t[0123456789])|(v[01])|(ra)|(sp)|(fp)|(gp))|([123]?\d)),?')
+    @_(r'[$](a[0123t]|s[01234567]|t[0123456789]|v[01]|ra|sp|fp|gp|[12]?\d|3[01]),?')
     def REG(self, t):
         if t.value[-1] == ',':
             t.value = t.value[:-1]
         return t
 
-    @_(r'(0x[0-9A-Fa-f]+)|(-?\d+)')
+    @_(r'(0x[0-9A-Fa-f]+|-?\d+)')
     def NUMBER(self, t):
         t.value = int(str(t.value), 0)
         return t

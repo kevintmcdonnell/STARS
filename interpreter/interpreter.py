@@ -24,7 +24,6 @@ class Interpreter(QWidget):
         else:
             print(s, end=end)
 
-
     def __init__(self, code: List, args: List[str]):
         if settings['gui']:
             super().__init__()
