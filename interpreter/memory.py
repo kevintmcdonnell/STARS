@@ -36,10 +36,11 @@ class Memory:
         self.text[str(self.textPtr)] = instr
         self.textPtr += 4  # PC += 4
 
-    def setByte(self, addr: int, data: int) -> None:
+    def setByte(self, addr: int, data: int, admin=True) -> None:
         # Addr : Address in memory (int)
         # Data = Contents of the byte (0 to 0xFF)
-        check_bounds(addr)
+        if not admin:
+            check_bounds(addr)
         self.data[str(addr)] = data
 
     def addWord(self, data: int, addr: int) -> None:
@@ -58,9 +59,9 @@ class Memory:
         for i in range(2):  # Set byte by byte starting from LSB
             self.setByte(addr + i, (data >> (8 * i)) & 0xFF)
 
-    def addByte(self, data: int, addr: int) -> None:
+    def addByte(self, data: int, addr: int, admin=True) -> None:
         # Add a byte to memory. Only looks at the LSB of data.
-        self.setByte(addr, data & 0xFF)
+        self.setByte(addr, data & 0xFF, admin=True)
 
     def addAsciiz(self, s: str, addr: int) -> None:
         # Add a null-terminated string to memory
@@ -82,11 +83,12 @@ class Memory:
         if null_terminate:
             self.setByte(addr, 0)  # Store null terminator
 
-    def getByte(self, addr: Union[str, int], signed: bool = True) -> int:
+    def getByte(self, addr: Union[str, int], signed: bool = True, admin: bool = False) -> int:
         # Get a byte of memory from main memory
         # Returns an decimal integer representation of the byte (-128 ~ 127) if signed
         # Returns (0 ~ 255) if unsigned
-        check_bounds(int(addr))
+        if not admin:
+            check_bounds(int(addr))
 
         if str(addr) in self.data.keys():
             acc = self.data[str(addr)]
@@ -103,11 +105,11 @@ class Memory:
                 print(f'Warning: Reading from uninitialized byte {utility.format_hex(int(addr))}!', file=sys.stderr)
 
             if self.toggle_garbage:
-                self.addByte(random.randint(0, 0xFF), addr)
+                self.addByte(random.randint(0, 0xFF), addr, admin=True)
             else:
-                self.addByte(0, addr)
+                self.addByte(0, addr, admin=True)
 
-            return self.getByte(addr)
+            return self.getByte(addr, signed=signed, admin=admin)
 
     def getWord(self, addr: int) -> int:
         # Get a word (4 bytes) of memory from main memory

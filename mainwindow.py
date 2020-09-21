@@ -1,6 +1,6 @@
-from PySide2.QtWidgets import QMainWindow, QAction, QApplication, QFileDialog, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QWidget, QLineEdit, QTextEdit, QFrame, QPushButton
-from PySide2.QtCore import Signal, Qt, QSemaphore
-from PySide2.QtGui import QFont, QTextCharFormat, QTextCursor
+from PySide2.QtWidgets import QMainWindow, QAction, QApplication, QFileDialog, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QWidget, QLineEdit, QTextEdit, QFrame, QPushButton, QComboBox
+from PySide2.QtCore import Signal, Qt, QSemaphore, QEvent
+from PySide2.QtGui import QFont, QTextCharFormat, QTextCursor, QGuiApplication, QPalette, QColor, QKeyEvent
 
 from constants import REGS
 from interpreter.interpreter import Interpreter
@@ -8,6 +8,27 @@ from preprocess import preprocess
 from sbumips import MipsLexer, MipsParser
 from settings import settings
 from threading import Thread
+
+
+def to_ascii(c):
+    if c in range(127):
+        if c == 0:  # Null terminator
+            return "\\0"
+
+        elif c == 9:  # Tab
+            return "\\t"
+
+        elif c == 10:  # Newline
+            return "\\n"
+
+        elif c >= 32:  # Regular character
+            return chr(c)
+
+        else:  # Invalid character
+            return '.'
+
+    else:  # Invalid character
+        return '.'
 
 class MainWindow(QMainWindow):
 
@@ -22,6 +43,29 @@ class MainWindow(QMainWindow):
         self.result = None
         self.intr = None
         self.cur_file = None
+
+        self.rep = 'Hexadecimal'
+
+        self.running = False
+        self.run_sem = QSemaphore(1)
+
+        self.default_theme = QGuiApplication.palette()
+        self.dark = False
+        self.palette = QPalette()
+        self.palette.setColor(QPalette.Window, QColor(25, 25, 25)) # 53 53 53
+        self.palette.setColor(QPalette.WindowText, Qt.darkCyan)
+        self.palette.setColor(QPalette.Base, QColor(53, 53, 53)) # 25 25 25
+        self.palette.setColor(QPalette.AlternateBase, QColor(53, 53, 53))
+        self.palette.setColor(QPalette.ToolTipBase, Qt.darkCyan)
+        self.palette.setColor(QPalette.ToolTipText, Qt.darkCyan)
+        self.palette.setColor(QPalette.Text, Qt.darkCyan)
+        self.palette.setColor(QPalette.Button, QColor(53, 53, 53))
+        self.palette.setColor(QPalette.ButtonText, Qt.darkCyan)
+        self.palette.setColor(QPalette.BrightText, Qt.red)
+        self.palette.setColor(QPalette.Link, QColor(42, 130, 218))
+        self.palette.setColor(QPalette.Highlight, QColor(42, 130, 218))
+        self.palette.setColor(QPalette.HighlightedText, Qt.black)
+
         self.init_ui()
 
     def init_ui(self):
@@ -70,6 +114,10 @@ class MainWindow(QMainWindow):
         file_.addAction(open_)
 
         tools = bar.addMenu("Tools")
+        dark_mode = QAction("Dark Mode", self)
+        dark_mode.triggered.connect(self.change_theme)
+        tools.addAction(dark_mode)
+
         help_ = bar.addMenu("Help")
 
         run = bar.addMenu("Run")
@@ -79,24 +127,32 @@ class MainWindow(QMainWindow):
 
     def init_out(self):
         self.out = QTextEdit()
+        self.out.installEventFilter(self)
         self.left.addWidget(self.out)
 
     def init_mem(self):
         grid = QGridLayout()
+        self.section_dropdown = QComboBox()
+        self.section_dropdown.addItems(['Kernel', '.data', 'stack'])
+        self.section_dropdown.currentTextChanged.connect(self.change_section)
+        grid.addWidget(self.section_dropdown, 0, 0)
         grid.setSpacing(0)
-        grid.addWidget(QLabel(""), 0, 0)
         grid.addWidget(QLabel("+0"), 0, 1)
         grid.addWidget(QLabel("+4"), 0, 2)
         grid.addWidget(QLabel("+8"), 0, 3)
         grid.addWidget(QLabel("+c"), 0, 4)
         self.mem_right = QPushButton("->")
         self.mem_left = QPushButton("<-")
+        self.hdc_dropdown = QComboBox()
+        self.hdc_dropdown.addItems(["Hexadecimal", "Decimal", "ASCII"])
+        self.hdc_dropdown.currentTextChanged.connect(self.change_rep)
         grid.addWidget(self.mem_left, 0, 5)
         grid.addWidget(self.mem_right, 0, 6)
+        grid.addWidget(self.hdc_dropdown, 1, 5, 1, 2)
         self.addresses = [0] * 16
         self.addresses = self.addresses[:]
         self.mem_vals = []
-        self.base_address = settings['data_min']
+        self.base_address = 0
         count = 0
         for i in range(1, 17):
             for j in range(5):
@@ -124,24 +180,71 @@ class MainWindow(QMainWindow):
         if not filename or len(filename[0]) == 0:
             return
 
-        lexer = MipsLexer()
-        data, lines = preprocess(filename[0], lexer)
-        parser = MipsParser(lines)
+        try:
+            lexer = MipsLexer()
+            data, lines = preprocess(filename[0], lexer)
+            parser = MipsParser(lines)
 
-        r1 = lexer.tokenize(data)
-        result = parser.parse(r1)
-        self.intr = Interpreter(result, [])
-        self.update_screen()
-        self.intr.step.connect(self.update_screen)
-        self.intr.console_out.connect(self.update_console)
-        self.mem_right.clicked.connect(self.mem_rightclick)
-        self.mem_left.clicked.connect(self.mem_leftclick)
+            r1 = lexer.tokenize(data)
+            self.result = parser.parse(r1)
+            self.intr = Interpreter(self.result, [])
+            self.update_screen()
+            self.intr.step.connect(self.update_screen)
+            self.intr.console_out.connect(self.update_console)
+            self.mem_right.clicked.connect(self.mem_rightclick)
+            self.mem_left.clicked.connect(self.mem_leftclick)
+            self.intr.end.connect(self.set_running)
+
+            self.setWindowTitle(f'STARS: {filename[0]}')
+            self.filename = filename[0]
+        except Exception as e:
+            if hasattr(e, 'message'):
+                self.console_sem.acquire()
+                self.out.setPlainText(type(e).__name__ + ": " + e.message)
+                self.console_sem.release()
+
+            else:
+                self.console_sem.acquire()
+                self.out.setPlainText(type(e).__name__ + ": " + str(e))
+                self.console_sem.release()
+
+    def change_theme(self):
+        if not self.dark:
+            self.app.setPalette(self.palette)
+            for reg in REGS:
+                self.regs[reg].setPalette(self.palette)
+        else:
+            self.app.setPalette(self.default_theme)
+            for reg in REGS:
+                self.regs[reg].setPalette(self.default_theme)
+        self.dark = not self.dark
 
     def start(self):
-        if self.intr:
+        if self.intr and not self.running:
+            self.set_running(True)
             self.out.setPlainText('')
-            x = Thread(target=self.intr.interpret, daemon=True)
-            x.start()
+            self.program = Thread(target=self.intr.interpret, daemon=True)
+            self.program.start()
+
+    def change_rep(self, t):
+        self.rep = t
+        self.update_screen()
+
+    def change_section(self, t):
+        if t == 'Kernel':
+            self.base_address = 0
+        elif t == '.data':
+            self.base_address = settings['data_min']
+        else:
+            self.base_address = settings['initial_$sp']
+        self.fill_mem()
+
+    def set_running(self, run):
+        self.run_sem.acquire()
+        self.running = run
+        if not run:
+            self.intr.initialize(self.result, [])
+        self.run_sem.release()
 
     def update_screen(self):
         self.fill_reg()
@@ -150,7 +253,10 @@ class MainWindow(QMainWindow):
 
     def fill_reg(self):
         for r in REGS:
-            self.regs[r].setText(str(self.intr.reg[r]))
+            if self.rep == "Decimal":
+                self.regs[r].setText(str(self.intr.reg[r]))
+            else:
+                self.regs[r].setText(f'0x{self.intr.reg[r]:08x}')
 
     def fill_instrs(self):
         pc = self.intr.reg['pc']
@@ -194,7 +300,12 @@ class MainWindow(QMainWindow):
 
         count = self.base_address
         for q in self.mem_vals:
-            q.setText(f'0x{mem.getByte(count + 3, signed=False):02x} 0x{mem.getByte(count + 2, signed=False):02x} 0x{mem.getByte(count + 1, signed=False):02x} 0x{mem.getByte(count, signed=False):02x}')
+            if self.rep == "Decimal":
+                q.setText(f'{mem.getByte(count + 3, admin=True):3} {mem.getByte(count + 2, admin=True):3} {mem.getByte(count + 1, admin=True):3} {mem.getByte(count, admin=True):3}')
+            elif self.rep == "ASCII":
+                q.setText(f'{to_ascii(mem.getByte(count + 3, signed=False, admin=True)):2} {to_ascii(mem.getByte(count + 2, signed=False, admin=True)):2} {to_ascii(mem.getByte(count + 1, signed=False, admin=True)):2} {to_ascii(mem.getByte(count, signed=False, admin=True)):2}')
+            else:
+                q.setText(f'0x{mem.getByte(count + 3, signed=False, admin=True):02x} 0x{mem.getByte(count + 2, signed=False, admin=True):02x} 0x{mem.getByte(count + 1, signed=False, admin=True):02x} 0x{mem.getByte(count, signed=False, admin=True):02x}')
             count += 4
         count = self.base_address
         for a in self.addresses:
@@ -223,8 +334,14 @@ class MainWindow(QMainWindow):
         self.out.insertPlainText(s)
         self.console_sem.release()
 
-    def console_input(self):
-        print('enter')
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.KeyPress and obj is self.out:
+            print(event.key())
+            if event.key() in range(256):
+                print(f'\t{chr(event.key())}')
+            if event.key() == Qt.Key_Return and self.out.hasFocus():
+                print('Enter pressed')
+        return super().eventFilter(obj, event)
 
 if __name__ == "__main__":
     app = QApplication()

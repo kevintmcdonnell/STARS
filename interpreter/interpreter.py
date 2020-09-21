@@ -18,16 +18,19 @@ from settings import settings
 class Interpreter(QWidget):
     step = Signal()
     console_out = Signal(str)
-
-    def out(self, s: str, end='') -> None:
+    end = Signal(bool)
+    def out(self, s: str, end="", file=sys.stdout) -> None:
         if settings['gui']:
             self.console_out.emit(f'{s}{end}')
         else:
-            print(s, end=end)
+            print(s, end=end, file=file)
 
     def __init__(self, code: List, args: List[str]):
         if settings['gui']:
             super().__init__()
+        self.initialize(code, args)
+
+    def initialize(self, code: List, args: List[str]):
         self.reg = OrderedDict()
         self.reg_initialized = set()
 
@@ -328,7 +331,7 @@ class Interpreter(QWidget):
             code = self.get_register('$v0')
 
             if str(code) in syscalls.keys() and code in settings['enabled_syscalls']:
-                syscalls[str(code)](self.reg, self.mem, self.out)
+                syscalls[str(code)](self.reg, self.mem, self)
 
             else:
                 raise ex.InvalidSyscall('Not a valid syscall code:')
@@ -389,6 +392,8 @@ class Interpreter(QWidget):
                     if settings['debug']:
                         print()
                         self.debug.listen(self)
+                    if settings['gui']:
+                        self.end.emit(False)
                     break
 
                 elif self.debug.debug(self.instr):
@@ -402,6 +407,7 @@ class Interpreter(QWidget):
         except Exception as e:
             if hasattr(e, 'message'):
                 e.message += ' ' + self.line_info
+                self.end.emit(False)
             raise e
 
     def dump(self) -> None:
