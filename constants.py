@@ -6,6 +6,9 @@ HALF_SIZE = 1 << 16
 
 WORD_MASK = 0xFFFFFFFF
 
+FLOAT_MIN = 1.175494351E-38
+FLOAT_MAX = 3.402823466E38
+
 # Registers
 REGS = ['$0', '$at', '$v0', '$v1', '$a0', '$a1', '$a2', '$a3', '$t0', '$t1', '$t2', '$t3', '$t4', '$t5', '$t6', '$t7',
         '$s0', '$s1', '$s2', '$s3', '$s4', '$s5', '$s6', '$s7', '$t8', '$t9', '$k0', '$k1', '$gp', '$sp', '$fp', '$ra', 'pc', 'hi', 'lo']

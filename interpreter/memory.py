@@ -1,6 +1,9 @@
 import random
+import struct
 import sys
+from constants import WORD_MASK
 from collections import OrderedDict
+from numpy import float32
 from typing import List, Union
 
 from interpreter import exceptions as ex
@@ -9,8 +12,8 @@ from interpreter.instructions import overflow_detect
 from settings import settings
 
 
+# Check for out of bounds
 def check_bounds(addr: int) -> None:
-    # Checking for out of bounds for memory
     if addr < settings['data_min'] or addr > settings['data_max']:
         raise ex.MemoryOutOfBounds(f"{utility.format_hex(addr)} is not within the data section or heap/stack.")
 
@@ -31,56 +34,69 @@ class Memory:
                                       (2, sys.stderr)])
         self.heapPtr = 0x10040000
 
+    # Add an instruction to memory
     def addText(self, instr) -> None:
-        # Add an instruction to memory
         self.text[str(self.textPtr)] = instr
         self.textPtr += 4  # PC += 4
 
     def setByte(self, addr: int, data: int) -> None:
-        # Addr : Address in memory (int)
-        # Data = Contents of the byte (0 to 0xFF)
         check_bounds(addr)
         self.data[str(addr)] = data
 
+    # Add a word (4 bytes) to memory
     def addWord(self, data: int, addr: int) -> None:
-        # Add a word (4 bytes) to memory
         if addr % 4 != 0:
             raise ex.MemoryAlignmentError(f"{utility.format_hex(addr)} is not word aligned.")
 
         for i in range(4):  # Set byte by byte starting from LSB
             self.setByte(addr + i, (data >> (8 * i)) & 0xFF)
 
+    # Add a half word (2 bytes) to memory. Only looks at the least significant half-word of data.
     def addHWord(self, data: int, addr: int) -> None:
-        # Add a half word (2 bytes) to memory. Only looks at the least significant half-word of data.
         if addr % 2 != 0:
             raise ex.MemoryAlignmentError(f"{utility.format_hex(addr)} is not half-word aligned.")
 
         for i in range(2):  # Set byte by byte starting from LSB
             self.setByte(addr + i, (data >> (8 * i)) & 0xFF)
 
+    # Add a byte to memory. Only looks at the LSB of data.
     def addByte(self, data: int, addr: int) -> None:
-        # Add a byte to memory. Only looks at the LSB of data.
         self.setByte(addr, data & 0xFF)
 
-    def addAsciiz(self, s: str, addr: int) -> None:
-        # Add a null-terminated string to memory
-        self.addAscii(s, addr, null_terminate=True)
+    # Add a single precision floating point to memory
+    def addFloat(self, data: float32, addr: int) -> None:
+        data_int = int.from_bytes(struct.pack('>f', data), 'big')
+        self.addWord(data_int, addr)
 
-    def addLabel(self, l: str, addr: int) -> None:
-        # Add a label to the dictionary of labels
-        if l in self.labels:
-            raise ex.InvalidLabel(l + " is already defined")
+    # Add a double precision floating point to memory
+    def addDouble(self, data: float, addr: int) -> None:
+        if addr % 8 != 0:
+            raise ex.MemoryAlignmentError(f"{utility.format_hex(addr)} is not double-word aligned.")
 
-        self.labels[l] = addr
+        data_int = int.from_bytes(struct.pack('>d', data), 'big')
 
+        self.addWord(data_int & WORD_MASK, addr)  # Lower 32 bits
+        self.addWord(data_int >> 32, addr + 4)  # Upper 32 bits
+
+    # Add a string to memory
     def addAscii(self, s: str, addr: int, null_terminate: bool = False) -> None:
-        # Add a string to memory
         for c in s:
             self.setByte(addr, ord(c))
             addr += 1
 
         if null_terminate:
             self.setByte(addr, 0)  # Store null terminator
+
+    # Add a null-terminated string to memory
+    def addAsciiz(self, s: str, addr: int) -> None:
+        self.addAscii(s, addr, null_terminate=True)
+
+    # Add a label to the dictionary of labels
+    def addLabel(self, l: str, addr: int) -> None:
+        if l in self.labels:
+            raise ex.InvalidLabel(l + " is already defined")
+
+        self.labels[l] = addr
 
     def getByte(self, addr: Union[str, int], signed: bool = True) -> int:
         # Get a byte of memory from main memory
@@ -109,9 +125,9 @@ class Memory:
 
             return self.getByte(addr)
 
+    # Get a word (4 bytes) of memory from main memory
+    # Returns a decimal integer representation of the word
     def getWord(self, addr: int) -> int:
-        # Get a word (4 bytes) of memory from main memory
-        # Returns a decimal integer representation of the word
         if addr % 4 != 0:
             raise ex.MemoryAlignmentError(f"{utility.format_hex(addr)} is not word aligned.")
 
@@ -127,9 +143,9 @@ class Memory:
 
         return overflow_detect(acc)
 
+    # Get a half-word (2 bytes) of memory from main memory
+    # Return a decimal integer representation of the word
     def getHWord(self, addr: int, signed: bool = True) -> int:
-        # Get a half-word (2 bytes) of memory from main memory
-        # Returns a decimal integer representation of the word
         if addr % 2 != 0:
             raise ex.MemoryAlignmentError(f"{utility.format_hex(addr)} is not half-word aligned.")
 
@@ -148,6 +164,20 @@ class Memory:
                 acc |= 0xFFFF0000
 
         return overflow_detect(acc)
+
+    def getFloat(self, addr: int) -> float32:
+        data_int = self.getWord(addr)
+        return struct.unpack('>f', data_int.to_bytes(4, 'big'))[0]
+
+    def getDouble(self, addr: int) -> float:
+        if addr % 8 != 0:
+            raise ex.MemoryAlignmentError(f"{utility.format_hex(addr)} is not double-word aligned.")
+
+        data_lower = self.getWord(addr)
+        data_upper = self.getWord(addr + 4)
+        data_int = data_upper << 32 + data_lower
+
+        return struct.unpack('>d', data_int.to_bytes(8, 'big'))[0]
 
     def getLabel(self, s: str) -> Union[int, None]:
         if s in self.labels:
@@ -199,8 +229,8 @@ class Memory:
             ret.append(self.getByte(i, signed=signed))
         return ret
 
+    # Dump the contents of memory
     def dump(self) -> None:
-        # Dump the contents of memory
         print(self.stack)
         print(self.data)
         print(self.text)
