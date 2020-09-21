@@ -86,15 +86,15 @@ class MipsParser(Parser):
     def iType(self, p):
         return IType(p.I_TYPE, [p[1], p[2]], p[3])
 
-    @_('R_FUNCT3 REG REG REG')
+    @_('R_TYPE3 REG REG REG')
     def rType(self, p):
         return RType(p[0], [p[1], p[2], p[3]])
 
-    @_('R_FUNCT2 REG REG')
+    @_('R_TYPE2 REG REG')
     def rType(self, p):
         return RType(p[0], [p[1], p[2]])
 
-    @_('J_FUNCT LABEL', 'J_FUNCTR REG')
+    @_('J_TYRE LABEL', 'J_TYRE_R REG')
     def jType(self, p):
         if 'LABEL' in p._namemap:
             return JType(p[0], Label(p[1]))
@@ -161,7 +161,7 @@ class MipsParser(Parser):
 
         return None
 
-    @_('PS_R_FUNCT3 REG REG REG')
+    @_('PS_R_TYPE3 REG REG REG')
     def rType(self, p):
         instrs = []
 
@@ -224,7 +224,7 @@ class MipsParser(Parser):
 
         return None
 
-    @_('PS_R_FUNCT2 REG REG')
+    @_('PS_R_TYPE2 REG REG')
     def rType(self, p):
         if p[0] == 'move':
             instr = RType('addu', [p.REG0, '$0', p.REG1])

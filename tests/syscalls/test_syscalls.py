@@ -7,34 +7,38 @@ from interpreter import memory, syscalls
 import settings
 
 
+def out(s, end=''):
+    print(s, end=end)
+
+
 class TestSyscalls(unittest.TestCase):
     # syscall 1
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_printInt(self, mock_stdout):
         mem = memory.Memory()
         reg = {'$a0': 0}
-        syscalls.printInt(reg, mem)
+        syscalls.printInt(reg, mem, out)
         self.assertEqual(mock_stdout.getvalue(), str(0))
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_printNegInt(self, mock_stdout):
         mem = memory.Memory()
         reg = {'$a0': -1}
-        syscalls.printInt(reg, mem)
+        syscalls.printInt(reg, mem, out)
         self.assertEqual(mock_stdout.getvalue(), str(-1))
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_printLargeInt(self, mock_stdout):
         mem = memory.Memory()
         reg = {'$a0': 0x7FFFFFFF}
-        syscalls.printInt(reg, mem)
+        syscalls.printInt(reg, mem, out)
         self.assertEqual(mock_stdout.getvalue(), str(0x7FFFFFFF))
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_printLargeNegInt(self, mock_stdout):
         mem = memory.Memory()
         reg = {'$a0': -2147483648}
-        syscalls.printInt(reg, mem)
+        syscalls.printInt(reg, mem, out)
         self.assertEqual(mock_stdout.getvalue(), str(-2147483648))
 
     # syscall 4
@@ -43,7 +47,7 @@ class TestSyscalls(unittest.TestCase):
         mem = memory.Memory()
         reg = {'$a0': mem.dataPtr}
         mem.addAsciiz('words', mem.dataPtr)
-        syscalls.printString(reg, mem)
+        syscalls.printString(reg, mem, out)
         self.assertEqual(mock_stdout.getvalue(), 'words')
 
     @mock.patch('sys.stdout', new_callable=StringIO)
@@ -55,7 +59,7 @@ class TestSyscalls(unittest.TestCase):
         mem.addByte(255, mem.dataPtr)
         mem.dataPtr += 1
         mem.addAsciiz('words', mem.dataPtr)
-        self.assertRaises(ex.InvalidCharacter, syscalls.printString, reg, mem)
+        self.assertRaises(ex.InvalidCharacter, syscalls.printString, reg, mem, out)
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_printInvalidString2(self, mock_stdout):
@@ -66,14 +70,14 @@ class TestSyscalls(unittest.TestCase):
         mem.addByte(8, mem.dataPtr)
         mem.dataPtr += 1
         mem.addAsciiz('words', mem.dataPtr)
-        self.assertRaises(ex.InvalidCharacter, syscalls.printString, reg, mem)
+        self.assertRaises(ex.InvalidCharacter, syscalls.printString, reg, mem, out)
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_printEmptyString(self, mock_stdout):
         mem = memory.Memory()
         reg = {'$a0': mem.dataPtr}
         mem.addByte(0, mem.dataPtr)
-        syscalls.printString(reg, mem)
+        syscalls.printString(reg, mem, out)
         self.assertEqual(mock_stdout.getvalue(), '')
 
     # sycall 5
@@ -214,20 +218,20 @@ class TestSyscalls(unittest.TestCase):
     def test_printChar(self, mock_stdout):
         mem = memory.Memory()
         reg = {'$a0': ord('A')}
-        syscalls.printChar(reg, mem)
+        syscalls.printChar(reg, mem, out)
         self.assertEqual(mock_stdout.getvalue(), 'A')
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_printInvalidChar(self, mock_stdout):
         mem = memory.Memory()
         reg = {'$a0': 8}
-        self.assertRaises(ex.InvalidCharacter, syscalls.printChar, reg, mem)
+        self.assertRaises(ex.InvalidCharacter, syscalls.printChar, reg, mem, out)
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_printInvalidChar2(self, mock_stdout):
         mem = memory.Memory()
         reg = {'$a0': 255}
-        self.assertRaises(ex.InvalidCharacter, syscalls.printChar, reg, mem)
+        self.assertRaises(ex.InvalidCharacter, syscalls.printChar, reg, mem, out)
 
     # syscall 30
     @mock.patch('sys.stdout', new_callable=StringIO)
@@ -235,7 +239,7 @@ class TestSyscalls(unittest.TestCase):
         mem = memory.Memory()
         mem.addAsciiz('uwu hewwo worwd >.<', mem.dataPtr)
         reg = {'$a0': mem.dataPtr, '$a1': mem.dataPtr + 12}
-        syscalls.memDump(reg, mem)
+        syscalls.memDump(reg, mem, out)
         self.assertEqual('''addr        hex             ascii       
 0x10010000  20  75  77  75     u  w  u  
 0x10010004  77  77  65  68  w  w  e  h  
@@ -247,7 +251,7 @@ class TestSyscalls(unittest.TestCase):
         mem = memory.Memory()
         mem.addAsciiz('uwu hew' + str(chr(255)) + 'o worwd >.<', mem.dataPtr)
         reg = {'$a0': mem.dataPtr, '$a1': mem.dataPtr + 12}
-        syscalls.memDump(reg, mem)
+        syscalls.memDump(reg, mem, out)
         self.assertEqual('''addr        hex             ascii       
 0x10010000  20  75  77  75     u  w  u  
 0x10010004  ff  77  65  68  .  w  e  h  
@@ -259,7 +263,7 @@ class TestSyscalls(unittest.TestCase):
         mem = memory.Memory()
         mem.addAsciiz('uwu hew' + str(chr(20)) + 'o worwd >.<', mem.dataPtr)
         reg = {'$a0': mem.dataPtr, '$a1': mem.dataPtr + 12}
-        syscalls.memDump(reg, mem)
+        syscalls.memDump(reg, mem, out)
         self.assertEqual('''addr        hex             ascii       
 0x10010000  20  75  77  75     u  w  u  
 0x10010004  14  77  65  68  .  w  e  h  
@@ -271,7 +275,7 @@ class TestSyscalls(unittest.TestCase):
         mem = memory.Memory()
         mem.addAsciiz('uwu hew' + str(chr(0)) + 'o worwd >.<', mem.dataPtr)
         reg = {'$a0': mem.dataPtr, '$a1': mem.dataPtr + 12}
-        syscalls.memDump(reg, mem)
+        syscalls.memDump(reg, mem, out)
         self.assertEqual('''addr        hex             ascii       
 0x10010000  20  75  77  75     u  w  u  
 0x10010004  00  77  65  68  \\0 w  e  h  
@@ -283,7 +287,7 @@ class TestSyscalls(unittest.TestCase):
         mem = memory.Memory()
         mem.addAsciiz('uwu hew' + str(chr(9)) + 'o worwd >.<', mem.dataPtr)
         reg = {'$a0': mem.dataPtr, '$a1': mem.dataPtr + 12}
-        syscalls.memDump(reg, mem)
+        syscalls.memDump(reg, mem, out)
         self.assertEqual('''addr        hex             ascii       
 0x10010000  20  75  77  75     u  w  u  
 0x10010004  09  77  65  68  \\t w  e  h  
@@ -295,7 +299,7 @@ class TestSyscalls(unittest.TestCase):
         mem = memory.Memory()
         mem.addAsciiz('uwu hew' + str(chr(10)) + 'o worwd >.<', mem.dataPtr)
         reg = {'$a0': mem.dataPtr, '$a1': mem.dataPtr + 12}
-        syscalls.memDump(reg, mem)
+        syscalls.memDump(reg, mem, out)
         self.assertEqual('''addr        hex             ascii       
 0x10010000  20  75  77  75     u  w  u  
 0x10010004  0a  77  65  68  \\n w  e  h  
@@ -307,7 +311,7 @@ class TestSyscalls(unittest.TestCase):
         mem = memory.Memory()
         mem.addAsciiz('uwu hewwo worwd >.<', mem.dataPtr)
         reg = {'$a0': mem.dataPtr, '$a1': mem.dataPtr + 10}
-        syscalls.memDump(reg, mem)
+        syscalls.memDump(reg, mem, out)
         self.assertEqual('''addr        hex             ascii       
 0x10010000  20  75  77  75     u  w  u  
 0x10010004  77  77  65  68  w  w  e  h  
@@ -319,7 +323,7 @@ class TestSyscalls(unittest.TestCase):
     def test_dumpReg(self, mock_stdout):
         mem = memory.Memory()
         reg = {'$a0': 0}
-        syscalls.regDump(reg, mem)
+        syscalls.regDump(reg, mem, out)
         self.assertEqual('''reg  hex        dec
 $a0  0x00000000 0
 ''', mock_stdout.getvalue())
@@ -328,7 +332,7 @@ $a0  0x00000000 0
     def test_dumpRegNeg(self, mock_stdout):
         mem = memory.Memory()
         reg = {'$a0': 0x80000000}
-        syscalls.regDump(reg, mem)
+        syscalls.regDump(reg, mem, out)
         self.assertEqual('''reg  hex        dec
 $a0  0x80000000 -2147483648
 ''', mock_stdout.getvalue())
@@ -340,7 +344,7 @@ $a0  0x80000000 -2147483648
         reg = {}
         f = open('dummytest.txt')
         mem.fileTable[3] = f
-        syscalls.dumpFiles(reg, mem)
+        syscalls.dumpFiles(reg, mem, out)
         f.close()
         self.assertEqual('''0	stdin
 1	stdout
@@ -353,28 +357,28 @@ $a0  0x80000000 -2147483648
     def test_printHex(self, mock_stdout):
         mem = memory.Memory()
         reg = {'$a0': 0}
-        syscalls.printHex(reg, mem)
+        syscalls.printHex(reg, mem, out)
         self.assertEqual(mock_stdout.getvalue(), '0x00000000')
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_printNegHex(self, mock_stdout):
         mem = memory.Memory()
         reg = {'$a0': -1}
-        syscalls.printHex(reg, mem)
+        syscalls.printHex(reg, mem, out)
         self.assertEqual(mock_stdout.getvalue(), '0xffffffff')
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_printLargeHex(self, mock_stdout):
         mem = memory.Memory()
         reg = {'$a0': 0x7FFFFFFF}
-        syscalls.printHex(reg, mem)
+        syscalls.printHex(reg, mem, out)
         self.assertEqual(mock_stdout.getvalue(), '0x7fffffff')
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_printLargeNegHex(self, mock_stdout):
         mem = memory.Memory()
         reg = {'$a0': -2147483648}
-        syscalls.printHex(reg, mem)
+        syscalls.printHex(reg, mem, out)
         self.assertEqual(mock_stdout.getvalue(), '0x80000000')
 
     # syscall 35
@@ -382,28 +386,28 @@ $a0  0x80000000 -2147483648
     def test_printBin(self, mock_stdout):
         mem = memory.Memory()
         reg = {'$a0': 0}
-        syscalls.printBin(reg, mem)
+        syscalls.printBin(reg, mem, out)
         self.assertEqual(mock_stdout.getvalue(), '0b00000000000000000000000000000000')
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_printNegBin(self, mock_stdout):
         mem = memory.Memory()
         reg = {'$a0': -1}
-        syscalls.printBin(reg, mem)
+        syscalls.printBin(reg, mem, out)
         self.assertEqual(mock_stdout.getvalue(), '0b11111111111111111111111111111111')
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_printLargeBin(self, mock_stdout):
         mem = memory.Memory()
         reg = {'$a0': 0x7FFFFFFF}
-        syscalls.printBin(reg, mem)
+        syscalls.printBin(reg, mem, out)
         self.assertEqual(mock_stdout.getvalue(), '0b01111111111111111111111111111111')
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_printLargeNegBin(self, mock_stdout):
         mem = memory.Memory()
         reg = {'$a0': -2147483648}
-        syscalls.printBin(reg, mem)
+        syscalls.printBin(reg, mem, out)
         self.assertEqual(mock_stdout.getvalue(), '0b10000000000000000000000000000000')
 
     # syscall 36
@@ -411,28 +415,28 @@ $a0  0x80000000 -2147483648
     def test_printUInt(self, mock_stdout):
         mem = memory.Memory()
         reg = {'$a0': 0}
-        syscalls.printUnsignedInt(reg, mem)
+        syscalls.printUnsignedInt(reg, mem, out)
         self.assertEqual(mock_stdout.getvalue(), str(0))
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_printNegval(self, mock_stdout):
         mem = memory.Memory()
         reg = {'$a0': -1}
-        syscalls.printUnsignedInt(reg, mem)
+        syscalls.printUnsignedInt(reg, mem, out)
         self.assertEqual(mock_stdout.getvalue(), str(0xffffffff))
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_printLargeUInt(self, mock_stdout):
         mem = memory.Memory()
         reg = {'$a0': 0x7FFFFFFF}
-        syscalls.printUnsignedInt(reg, mem)
+        syscalls.printUnsignedInt(reg, mem, out)
         self.assertEqual(mock_stdout.getvalue(), str(0x7fffffff))
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_printLargeNegUInt(self, mock_stdout):
         mem = memory.Memory()
         reg = {'$a0': -2147483648}
-        syscalls.printUnsignedInt(reg, mem)
+        syscalls.printUnsignedInt(reg, mem, out)
         self.assertEqual(mock_stdout.getvalue(), str(0x80000000))
 
 

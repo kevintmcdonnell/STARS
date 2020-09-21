@@ -20,20 +20,20 @@ def makeRegex() -> Dict[str, str]:
 
 class MipsLexer(Lexer):
     tokens = {HALF, ALIGN, EQV, LABEL, ZERO_BRANCH, BRANCH, I_TYPE, LOADS_I,
-              LOADS_R, J_FUNCT, J_FUNCTR, R_FUNCT3, SYSCALL, R_FUNCT2, NOP, BREAK, MOVE, REG, F_REG, LABEL, NUMBER, STRING, CHAR,
+              LOADS_R, J_TYRE, J_TYRE_R, R_TYPE3, SYSCALL, R_TYPE2, NOP, BREAK, MOVE, REG, F_REG, LABEL, NUMBER, STRING, CHAR,
               LPAREN, RPAREN, COMMA, COLON, LINE_MARKER, TEXT, DATA, WORD, BYTE, ASCIIZ, ASCII, SPACE,
-              PS_R_FUNCT3, PS_R_FUNCT2, PS_I_TYPE, PS_LOADS_I, PS_LOADS_A, PS_BRANCH, PS_ZERO_BRANCH}
+              PS_R_TYPE3, PS_R_TYPE2, PS_I_TYPE, PS_LOADS_I, PS_LOADS_A, PS_BRANCH, PS_ZERO_BRANCH}
     ignore = ' \t'
     pseudoOps = makeRegex()
 
     # Basic instructions
-    R_FUNCT3 = r'\b(and|addu?|mul|[xn]?or|sllv|srav|slt[u]?|sub[u]?|mov[nz])\b'
-    R_FUNCT2 = r'\b(div[u]?|mult[u]?|madd[u]?|msub[u]?|cl[oz])\b'
+    R_TYPE3 = r'\b(and|addu?|mul|[xn]?or|sllv|srav|slt[u]?|sub[u]?|mov[nz])\b'
+    R_TYPE2 = r'\b(div[u]?|mult[u]?|madd[u]?|msub[u]?|cl[oz])\b'
 
     MOVE = r'\b(m[tf]hi|m[tf]lo)\b'
 
-    J_FUNCT = r'\b(j|b|jal)\b'
-    J_FUNCTR = r'\b(jalr|jr)\b'
+    J_TYRE = r'\b(j|b|jal)\b'
+    J_TYRE_R = r'\b(jalr|jr)\b'
     I_TYPE = r'\b(addi[u]?|andi|sr[al]|sll|sltiu?|xori|ori)\b'
     LOADS_R = r'\b(lb[u]?|lh[u]?|lw[lr]|lw|s[bhw]|sw[lr])\b'
     LOADS_I = r'\b(lui)\b'
@@ -44,9 +44,11 @@ class MipsLexer(Lexer):
     NOP = r'\b(nop)\b'
     BREAK = r'\b(break)\b'
 
+    # Basic floating point instructions
+
     # Pseudo Instructions
-    PS_R_FUNCT3 = rf'\b({pseudoOps["R_FUNCT3"]})\b'
-    PS_R_FUNCT2 = rf'\b({pseudoOps["R_FUNCT2"]})\b'
+    PS_R_TYPE3 = rf'\b({pseudoOps["R_TYPE3"]})\b'
+    PS_R_TYPE2 = rf'\b({pseudoOps["R_TYPE2"]})\b'
     PS_I_TYPE = rf'\b({pseudoOps["I_TYPE"]})\b'
     PS_LOADS_I = rf'\b({pseudoOps["LOADS_I"]})\b'
     PS_LOADS_A = r'\b(la)\b'

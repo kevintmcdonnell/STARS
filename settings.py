@@ -17,7 +17,7 @@ settings = {
     'garbage_registers': False,  # Garbage values in registers / memory
     'garbage_memory': False,
 
-    'pseudo_ops': {'R_FUNCT3': [
+    'pseudo_ops': {'R_TYPE3': [
         'seq',
         'sne',
         'sge',
@@ -29,7 +29,7 @@ settings = {
         'rolv',
         'rorv'
     ],
-        'R_FUNCT2': [
+        'R_TYPE2': [
             'move',
             'neg',
             'not',

@@ -71,7 +71,7 @@ def printString(reg: Dict[str, int], mem: Memory, out) -> None:
         c = mem.getByte(addr, signed=False)
 
 
-def atoi(reg: Dict[str, int], mem: Memory, out) -> None:
+def atoi(reg: Dict[str, int], mem: Memory, out=None) -> None:
     # Converts string to integer
     # a0: address of null-terminated string
     # result: $v0 contains integer converted from string
@@ -106,7 +106,7 @@ def atoi(reg: Dict[str, int], mem: Memory, out) -> None:
     reg['$v0'] = overflow_detect(result)
 
 
-def readInteger(reg: Dict[str, int], mem, out) -> None:
+def readInteger(reg: Dict[str, int], mem, out=None) -> None:
     read = input()
 
     try:
@@ -116,7 +116,7 @@ def readInteger(reg: Dict[str, int], mem, out) -> None:
         raise ex.InvalidInput(read)
 
 
-def readString(reg: Dict[str, int], mem: Memory, out) -> None:
+def readString(reg: Dict[str, int], mem: Memory, out=None) -> None:
     s = input()
 
     s = utility.handle_escapes(s)
@@ -125,7 +125,7 @@ def readString(reg: Dict[str, int], mem: Memory, out) -> None:
     mem.addAsciiz(s, int(reg['$a0']))
 
 
-def sbrk(reg: Dict[str, int], mem: Memory, out) -> None:
+def sbrk(reg: Dict[str, int], mem: Memory, out=None) -> None:
     if mem.heapPtr > settings.settings['initial_$sp']:
         raise ex.MemoryOutOfBounds('Heap has exceeded the upper limit of ' + str(settings.settings['initial_$sp']))
 
@@ -139,7 +139,7 @@ def sbrk(reg: Dict[str, int], mem: Memory, out) -> None:
         mem.heapPtr += 4 - (mem.heapPtr % 4)
 
 
-def _exit(reg, mem, out) -> None:
+def _exit(reg, mem, out=None) -> None:
     exit()
 
 
@@ -212,7 +212,7 @@ def regDump(reg: Dict[str, int], mem, out) -> None:
         out(f'{k:4} {utility.format_hex(value)} {overflow_detect(value):d}\n')
 
 
-def openFile(reg: Dict[str, int], mem: Memory, out) -> None:
+def openFile(reg: Dict[str, int], mem: Memory, out=None) -> None:
     # searches through to find the lowest unused value for a file descriptor
     fd = 0
 
@@ -249,7 +249,7 @@ def openFile(reg: Dict[str, int], mem: Memory, out) -> None:
     reg['$v0'] = fd
 
 
-def readFile(reg: Dict[str, int], mem: Memory, out) -> None:
+def readFile(reg: Dict[str, int], mem: Memory, out=None) -> None:
     fd = reg['$a0']
     addr = reg['$a1']
     num_chars = reg['$a2']
@@ -264,7 +264,7 @@ def readFile(reg: Dict[str, int], mem: Memory, out) -> None:
     reg['$v0'] = len(s)
 
 
-def writeFile(reg: Dict[str, int], mem: Memory, out) -> None:
+def writeFile(reg: Dict[str, int], mem: Memory, out=None) -> None:
     fd = reg['$a0']
 
     if fd not in mem.fileTable:
@@ -277,7 +277,7 @@ def writeFile(reg: Dict[str, int], mem: Memory, out) -> None:
     reg['$v0'] = len(s)
 
 
-def closeFile(reg: Dict[str, int], mem: Memory, out) -> None:
+def closeFile(reg: Dict[str, int], mem: Memory, out=None) -> None:
     fd = reg['$a0']
 
     if fd in mem.fileTable and fd >= 3:
@@ -300,17 +300,17 @@ def dumpFiles(reg, mem: Memory, out) -> None:
         out(str(k) + '\t' + s + '\n')
 
 
-def _exit2(reg: Dict[str, int], mem, out) -> None:
+def _exit2(reg: Dict[str, int], mem, out=None) -> None:
     exit(reg['$a0'])
 
 
 # For random integer generation
-def setSeed(reg: Dict[str, int], mem, out) -> None:
+def setSeed(reg: Dict[str, int], mem, out=None) -> None:
     # a0: seed
     random.seed(reg['$a0'])
 
 
-def randInt(reg: Dict[str, int], mem, out) -> None:
+def randInt(reg: Dict[str, int], mem, out=None) -> None:
     # Generates a random integer in range [0, a0] (inclusive)
     # Puts result in $v0
     upper = reg['$a0']
