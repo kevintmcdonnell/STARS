@@ -21,7 +21,7 @@ def makeRegex() -> Dict[str, str]:
 class MipsLexer(Lexer):
     tokens = {HALF, ALIGN, EQV, LABEL, ZERO_BRANCH, BRANCH, I_TYPE, LOADS_I,
               LOADS_R, J_TYRE, J_TYRE_R, R_TYPE3, SYSCALL, R_TYPE2, NOP, BREAK, MOVE, REG, F_REG, LABEL, NUMBER, STRING, CHAR,
-              LPAREN, RPAREN, COMMA, COLON, LINE_MARKER, TEXT, DATA, WORD, BYTE, ASCIIZ, ASCII, SPACE,
+              LPAREN, RPAREN, COMMA, COLON, LINE_MARKER, TEXT, DATA, WORD, BYTE, FLOAT, DOUBLE, ASCIIZ, ASCII, SPACE,
               PS_R_TYPE3, PS_R_TYPE2, PS_I_TYPE, PS_LOADS_I, PS_LOADS_A, PS_BRANCH, PS_ZERO_BRANCH}
     ignore = ' \t'
     pseudoOps = makeRegex()
@@ -71,6 +71,8 @@ class MipsLexer(Lexer):
     WORD = r'\.word'
     BYTE = r'\.byte'
     HALF = r'\.half'
+    FLOAT = r'\.float'
+    DOUBLE = r'\.double'
     ASCIIZ = r'\.asciiz'
     ASCII = r'\.ascii'
     SPACE = r'\.space'
@@ -99,8 +101,12 @@ class MipsLexer(Lexer):
 
     @_(r'(0x[0-9A-Fa-f]+|-?\d+)')
     def NUMBER(self, t):
-        t.value = int(str(t.value), 0)
+        t.value = int(t.value, 0)
         return t
+
+    @_(r'[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?')
+    def FLOAT(self, t):
+        t.value = float(t.value)
 
     @_(r"'(.|\s|\\[0rnt])'")
     def CHAR(self, t):

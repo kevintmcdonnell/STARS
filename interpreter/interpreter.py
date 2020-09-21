@@ -92,6 +92,14 @@ class Interpreter(QWidget):
                         self.mem.addHWord(data, self.mem.dataPtr)
                         self.mem.dataPtr += 2
 
+                elif data_type == 'float':
+                    # TODO
+                    pass
+
+                elif data_type == 'double':
+                    # TODO
+                    pass
+
                 elif data_type == 'space':
                     for data in line.data:
                         for j in range(data):
