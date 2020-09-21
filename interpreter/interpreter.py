@@ -19,7 +19,7 @@ class Interpreter(QWidget):
     step = Signal()
     console_out = Signal(str)
 
-    def out(self, s: str, end="") -> None:
+    def out(self, s: str, end='') -> None:
         if settings['gui']:
             self.console_out.emit(f'{s}{end}')
         else:
@@ -35,7 +35,7 @@ class Interpreter(QWidget):
         self.mem = Memory(settings['garbage_memory'])
 
         self.instruction_count = 0
-        self.line_info = ""
+        self.line_info = ''
         self.debug = Debug()
         self.instr = None
 
@@ -113,7 +113,7 @@ class Interpreter(QWidget):
                         self.mem.dataPtr += (align - mod)
 
             elif type(line) == Label:
-                if line.name == "main":
+                if line.name == 'main':
                     self.has_main = True
                     self.reg['pc'] = self.mem.textPtr
 
@@ -140,7 +140,7 @@ class Interpreter(QWidget):
                         line.instrs[0].imm = (addr >> 16) & 0xFFFF
                         line.instrs[1].imm = addr & 0xFFFF
                     else:
-                        raise ex.InvalidLabel(line.label.name + ' is not a valid label.' + self.line_info)
+                        raise ex.InvalidLabel(f'{line.label.name} is not a valid label. {self.line_info}')
 
         # Special instruction to terminate execution after every instruction has been executed
         self.mem.addText('TERMINATE_EXECUTION')
@@ -175,7 +175,7 @@ class Interpreter(QWidget):
         key = reg
         try:
             x = int(reg[1:])
-            key = list(self.reg.items())[x][0]
+            key = list(self.reg.keys())[x]
         except ValueError:
             pass
 
@@ -186,13 +186,13 @@ class Interpreter(QWidget):
 
     def set_register(self, reg: str, data: int) -> None:
         if reg == '$0':
-            raise ex.WritingToZeroRegister(" " + self.line_info)
+            raise ex.WritingToZeroRegister(f' {self.line_info}')
 
         key = reg
+
         try:
             x = int(reg[1:])
-            key = list(self.reg.items())[x][0]
-
+            key = list(self.reg.keys())[x]
         except ValueError:
             pass
 
@@ -226,8 +226,8 @@ class Interpreter(QWidget):
             r1 = instr.regs[0]
             r2 = instr.regs[1]
 
-            if op in ['mult', 'multu', 'madd', 'maddu', 'msub', 'msubu']:
-                signed = len(op) == 4
+            if op in {'mult', 'multu', 'madd', 'maddu', 'msub', 'msubu'}:
+                signed = op[-1] == 'u'
                 r1_data = self.get_register(r1)
                 r2_data = self.get_register(r2)
 
@@ -249,7 +249,7 @@ class Interpreter(QWidget):
                 self.set_register('hi', high)
 
             elif op == 'div' or op == 'divu':
-                signed = len(op) == 3
+                signed = op[-1] == 'u'
                 result, remainder = instrs.div(self.get_register(r1), self.get_register(r2), signed=signed)
 
                 # Set lo to quotient, and hi to remainder
@@ -284,7 +284,7 @@ class Interpreter(QWidget):
                 upper = instrs.lui(instr.imm)
                 self.set_register(instr.reg, upper)
 
-        # Load from memory
+        # Load or store from memory
         elif type(instr) == LoadMem:
             op = instr.operation
             reg = instr.reg
@@ -294,14 +294,11 @@ class Interpreter(QWidget):
                 result = instrs.table[op](addr, self.mem, self.get_register(reg))
                 self.set_register(reg, result)
 
-            elif op in ['swr', 'swl']:
-                pass
-
             elif op[0] == 'l':  # lw, lh, lb
                 result = instrs.table[op](addr, self.mem)
                 self.set_register(reg, result)
 
-            else:  # sw, sh, sb
+            else:  # Store instructions
                 instrs.table[op](addr, self.mem, self.get_register(reg))
 
         # Mfhi, mflo, mthi, mtlo
@@ -335,7 +332,7 @@ class Interpreter(QWidget):
             rt = self.get_register(instr.rt)
 
             if 'z' in op:
-                result = instrs.table[op[:4]](rs)
+                result = instrs.table[op[:-1]](rs)
             else:
                 result = instrs.table[op](rs, rt)
 
@@ -344,7 +341,7 @@ class Interpreter(QWidget):
                 addr = self.mem.getLabel(label)
 
                 if addr is None:
-                    raise ex.InvalidLabel(label + ' is not a valid label.')
+                    raise ex.InvalidLabel(f'{label} is not a valid label.')
 
                 if 'al' in op:
                     instrs.jal(self.reg, self.mem, label)
@@ -355,32 +352,30 @@ class Interpreter(QWidget):
             pass
 
         elif type(instr) == Breakpoint:
-            raise ex.BreakpointException("code = %d" % instr.code)
-
-        else:
-            raise ex.HoustonWeHaveAProblemException('oh no.')
+            raise ex.BreakpointException(f'code = {instr.code}')
 
     def interpret(self) -> None:
         try:
             while True:
                 # Get the next instruction and increment pc
-                if str(self.reg['pc']) not in self.mem.text:
-                    raise ex.MemoryOutOfBounds(str(self.reg['pc']) + " is not a valid address")
+                pc = self.reg['pc']
 
-                self.instr = self.mem.text[str(self.reg['pc'])]
+                if str(pc) not in self.mem.text:
+                    raise ex.MemoryOutOfBounds(f'{pc} is not a valid address')
 
-                if self.instr != "TERMINATE_EXECUTION":
+                self.instr = self.mem.text[str(pc)]
+
+                if self.instr != 'TERMINATE_EXECUTION':
                     self.reg['pc'] += 4
                     self.instruction_count += 1
 
                 if self.instruction_count > settings['max_instructions']:
-                    raise ex.InstrCountExceed('Exceeded maximum instruction count: ' + str(settings['max_instructions']))
+                    raise ex.InstrCountExceed(f'Exceeded maximum instruction count: {settings["max_instructions"]}')
 
                 try:
                     self.line_info = f' ({self.instr.filetag.file_name}, {self.instr.filetag.line_no})'
-
                 except AttributeError:
-                    self.line_info = ""
+                    self.line_info = ''
 
                 if self.instr == 'TERMINATE_EXECUTION':
                     if settings['debug']:
@@ -389,16 +384,16 @@ class Interpreter(QWidget):
                     break
 
                 elif self.debug.debug(self.instr):
-
                     self.debug.listen(self)
 
                 self.execute_instr(self.instr)
+
                 if settings['gui']:
                     self.step.emit()
 
         except Exception as e:
             if hasattr(e, 'message'):
-                e.message += " " + self.line_info
+                e.message += ' ' + self.line_info
             raise e
 
     def dump(self) -> None:

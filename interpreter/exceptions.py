@@ -58,11 +58,6 @@ class BreakpointException(Exception):
         self.message = message
 
 
-class HoustonWeHaveAProblemException(Exception):
-    def __init__(self, message: str):
-        self.message = message
-
-
 class FileAlreadyIncluded(Exception):
     def __init__(self, message: str):
         self.message = message
