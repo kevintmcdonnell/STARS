@@ -1,4 +1,8 @@
 This program is a MIPS Assembly simulator made for the purpose of education.
+## Dependencies
+* PySide2
+* numpy
+* openngl
 
 # How to run:
 * `sbumips.py [-a] [-h] [-d] [-g] [-n #] [-i] [-w] [-pa arg1, arg2, ...] filename`
