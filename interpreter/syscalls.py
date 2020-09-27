@@ -2,7 +2,7 @@ import random
 from collections import OrderedDict
 from typing import Dict, Union
 
-import settings
+from settings import settings
 from constants import WORD_SIZE, WORD_MASK
 from interpreter import exceptions as ex
 from interpreter import utility
@@ -126,8 +126,8 @@ def readString(reg: Dict[str, int], mem: Memory, inter) -> None:
 
 
 def sbrk(reg: Dict[str, int], mem: Memory, inter) -> None:
-    if mem.heapPtr > settings.settings['initial_$sp']:
-        raise ex.Memoryinter.OutOfBounds('Heap has exceeded the upper limit of ' + str(settings.settings['initial_$sp']))
+    if mem.heapPtr > settings['initial_$sp']:
+        raise ex.MemoryOutOfBounds('Heap has exceeded the upper limit of ' + str(settings['initial_$sp']))
 
     if reg['$a0'] < 0:
         raise ex.InvalidArgument('$a0 must be a non-negative number.')
@@ -140,7 +140,8 @@ def sbrk(reg: Dict[str, int], mem: Memory, inter) -> None:
 
 
 def _exit(reg, mem, inter) -> None:
-    inter.end.emit(False)
+    if settings['gui']:
+        inter.end.emit(False)
     exit()
 
 
@@ -302,7 +303,8 @@ def dumpFiles(reg, mem: Memory, inter) -> None:
 
 
 def _exit2(reg: Dict[str, int], mem, inter) -> None:
-    inter.end.emit(False)
+    if settings['gui']:
+        inter.end.emit(False)
     exit(reg['$a0'])
 
 

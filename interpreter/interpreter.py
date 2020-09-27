@@ -19,6 +19,7 @@ class Interpreter(QWidget):
     step = Signal()
     console_out = Signal(str)
     end = Signal(bool)
+
     def out(self, s: str, end="", file=sys.stdout) -> None:
         if settings['gui']:
             self.console_out.emit(f'{s}{end}')
@@ -28,11 +29,9 @@ class Interpreter(QWidget):
     def __init__(self, code: List, args: List[str]):
         if settings['gui']:
             super().__init__()
-        self.initialize(code, args)
 
-    def initialize(self, code: List, args: List[str]):
-        self.reg = OrderedDict()
         self.reg_initialized = set()
+        self.reg = OrderedDict()
 
         self.init_registers(settings['garbage_registers'])
         self.mem = Memory(settings['garbage_memory'])
@@ -42,10 +41,12 @@ class Interpreter(QWidget):
         self.debug = Debug()
         self.instr = None
 
+        self.has_main = False
+        self.initialize_memory(code, args)
+
+    def initialize_memory(self, code: List, args: List[str]):
         if len(args) > 0:
             self.handleArgs(args)
-
-        self.has_main = False
 
         for line in code:  # Go through the source code line by line, adding declarations first
             if type(line) == Declaration:
@@ -140,18 +141,17 @@ class Interpreter(QWidget):
         if not self.has_main:
             raise ex.NoMainLabel('Could not find main label')
 
-        comp = re.compile(r'((lb[u]?)|(lh[u]?)|(lw[lr])|(lw)|(la)|(s[bhw])|(sw[lr]))')
+        comp = re.compile(r'(lb[u]?|lh[u]?|lw[lr]|lw|la|s[bhw]|sw[lr])')
 
-        for line in code:  # Now add the instructions
-            if type(line) == PseudoInstr:
-                if comp.match(line.operation):
-                    addr = self.mem.getLabel(line.label.name)
+        for line in code:  # Replace the labels in load/store instructions by the actual address
+            if type(line) == PseudoInstr and comp.match(line.operation):
+                addr = self.mem.getLabel(line.label.name)
 
-                    if addr:
-                        line.instrs[0].imm = (addr >> 16) & 0xFFFF
-                        line.instrs[1].imm = addr & 0xFFFF
-                    else:
-                        raise ex.InvalidLabel(f'{line.label.name} is not a valid label. {self.line_info}')
+                if addr:
+                    line.instrs[0].imm = (addr >> 16) & 0xFFFF
+                    line.instrs[1].imm = addr & 0xFFFF
+                else:
+                    raise ex.InvalidLabel(f'{line.label.name} is not a valid label. {self.line_info}')
 
         # Special instruction to terminate execution after every instruction has been executed
         self.mem.addText('TERMINATE_EXECUTION')
