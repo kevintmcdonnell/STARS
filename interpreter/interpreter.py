@@ -344,15 +344,29 @@ class Interpreter(QWidget):
             reg = instr.reg
             addr = self.get_register(instr.addr) + instr.imm
 
-            if op in ['lwr', 'lwl']:
+            if op in {'lwr', 'lwl'}:
                 result = instrs.table[op](addr, self.mem, self.get_register(reg))
                 self.set_register(reg, result)
 
-            elif op[0] == 'l':  # lw, lh, lb
+            elif op in {'lw', 'lh', 'lb'}:
                 result = instrs.table[op](addr, self.mem)
                 self.set_register(reg, result)
 
-            else:  # Store instructions
+            elif op == 'l.s':
+                result = self.mem.getFloat(addr)
+                self.set_reg_float(reg, result)
+
+            elif op == 'l.d':
+                result = self.mem.getDouble(addr)
+                self.set_reg_double(reg, result)
+
+            elif op == 's.s':
+                self.mem.addFloat(self.get_reg_float(reg), addr)
+
+            elif op == 's.d':
+                self.mem.addDouble(self.get_reg_double(reg), addr)
+
+            else:  # Other store instructions
                 instrs.table[op](addr, self.mem, self.get_register(reg))
 
         # Mfhi, mflo, mthi, mtlo

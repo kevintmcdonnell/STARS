@@ -139,6 +139,14 @@ class MipsParser(Parser):
 
         return Breakpoint()
 
+    # FLOATING POINT INSTRUCTIONS
+    @_('LOADS_F F_REG NUMBER LPAREN REG RPAREN', 'LOADS_F F_REG LPAREN REG RPAREN')
+    def iType(self, p):
+        if 'NUMBER' in p._namemap:
+            return LoadMem(p[0], p.F_REG, p.REG, p.NUMBER)
+        else:
+            return LoadMem(p[0], p.F_REG, p.REG, 0)
+
     # PSEUDO INSTRUCTIONS
     @_('PS_I_TYPE REG REG NUMBER', 'PS_I_TYPE REG REG CHAR')
     def iType(self, p):
@@ -364,9 +372,9 @@ class MipsParser(Parser):
 
         return result
 
-    @_('FLOAT', 'FLOAT COMMA nums', 'FLOAT nums')
+    @_('FLOAT_LITERAL', 'FLOAT_LITERAL COMMA floats', 'FLOAT_LITERAL floats')
     def floats(self, p):
-        result = [p.FLOAT]
+        result = [p.FLOAT_LITERAL]
 
         if len(p) > 1:
             result += p.floats

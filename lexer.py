@@ -21,7 +21,8 @@ def makeRegex() -> Dict[str, str]:
 class MipsLexer(Lexer):
     tokens = {HALF, ALIGN, EQV, LABEL, ZERO_BRANCH, BRANCH, I_TYPE, LOADS_I,
               LOADS_R, J_TYPE, J_TYPE_R, R_TYPE3, SYSCALL, R_TYPE2, NOP, BREAK, MOVE,
-              REG, F_REG, LABEL, NUMBER, STRING, CHAR,
+              LOADS_F,
+              REG, F_REG, LABEL, NUMBER, STRING, CHAR, FLOAT_LITERAL,
               LPAREN, RPAREN, COMMA, COLON, LINE_MARKER,
               TEXT, DATA, WORD, BYTE, FLOAT, DOUBLE, ASCIIZ, ASCII, SPACE,
               PS_R_TYPE3, PS_R_TYPE2, PS_I_TYPE, PS_LOADS_I, PS_LOADS_A, PS_BRANCH, PS_ZERO_BRANCH}
@@ -47,6 +48,7 @@ class MipsLexer(Lexer):
     BREAK = r'\b(break)\b'
 
     # Basic floating point instructions
+    LOADS_F = r'\b(l|s)\.[sd]\b'
 
     # Pseudo Instructions
     PS_R_TYPE3 = rf'\b({pseudoOps["R_TYPE3"]})\b'
@@ -101,14 +103,15 @@ class MipsLexer(Lexer):
             t.value = t.value[:-1]
         return t
 
+    @_(r'[-+]?[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?')
+    def FLOAT_LITERAL(self, t):
+        t.value = float(t.value)
+        return t
+
     @_(r'(0x[0-9A-Fa-f]+|-?\d+)')
     def NUMBER(self, t):
         t.value = int(t.value, 0)
         return t
-
-    @_(r'[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?')
-    def FLOAT(self, t):
-        t.value = float(t.value)
 
     @_(r"'(.|\s|\\[0rnt])'")
     def CHAR(self, t):
