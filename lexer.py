@@ -20,7 +20,7 @@ def makeRegex() -> Dict[str, str]:
 
 class MipsLexer(Lexer):
     tokens = {HALF, ALIGN, EQV, LABEL, ZERO_BRANCH, BRANCH, I_TYPE, LOADS_I,
-              LOADS_R, J_TYRE, J_TYRE_R, R_TYPE3, SYSCALL, R_TYPE2, NOP, BREAK, MOVE,
+              LOADS_R, J_TYPE, J_TYPE_R, R_TYPE3, SYSCALL, R_TYPE2, NOP, BREAK, MOVE,
               REG, F_REG, LABEL, NUMBER, STRING, CHAR,
               LPAREN, RPAREN, COMMA, COLON, LINE_MARKER,
               TEXT, DATA, WORD, BYTE, FLOAT, DOUBLE, ASCIIZ, ASCII, SPACE,
