@@ -68,12 +68,11 @@ class LoadImm:
 
 
 class LoadMem:
-    def __init__(self, operation: str, reg: str, addr: str, imm: int, label: Label = None):
+    def __init__(self, operation: str, reg: str, addr: str, imm: int):
         self.operation = operation
         self.reg = reg
         self.addr = addr
         self.imm = imm
-        self.label = label
 
     def basic_instr(self) -> str:
         imm_hex = utility.format_hex(self.imm)

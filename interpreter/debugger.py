@@ -245,8 +245,7 @@ class Debug:
                 prev = RegChange(instr.reg, interp.reg[instr.reg], interp.reg['pc'] - 4)
             else:
                 addr = interp.reg[instr.addr] + instr.imm
-                if instr.label:
-                    addr = interp.mem.getLabel(instr.Label)
+
                 if op[1] == 'w':
                     prev = MemChange(addr, interp.mem.getWord(addr), interp.reg['pc'] - 4, 'w')
                 elif op[1] == 'h':

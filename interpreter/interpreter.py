@@ -228,6 +228,31 @@ class Interpreter(QWidget):
         self.reg_initialized.add(key)
         self.reg[key] = instrs.overflow_detect(data)
 
+    def get_reg_float(self, reg: str) -> float32:
+        return self.f_reg[reg]
+
+    def set_reg_float(self, reg: str, data: float32) -> None:
+        self.f_reg[reg] = data
+
+    def get_reg_double(self, reg: str) -> float:
+        next_reg = f'$f{int(reg[2:]) + 1}'
+
+        lower_bytes = struct.pack('>f', self.f_reg[reg])
+        upper_bytes = struct.pack('>f', self.f_reg[next_reg])
+        double_bytes = upper_bytes + lower_bytes
+
+        return struct.unpack('>d', double_bytes)[0]
+
+    def set_reg_double(self, reg: str, data: float) -> None:
+        next_reg = f'$f{int(reg[2:]) + 1}'
+
+        double_bytes = struct.pack('>d', data)
+        upper = struct.unpack('>f', double_bytes[:4])[0]
+        lower = struct.unpack('>f', double_bytes[4:])[0]
+
+        self.f_reg[reg] = lower_bytes
+        self.f_reg[next_reg] = upper_bytes
+
     def execute_instr(self, instr) -> None:
         # Instruction with 3 registers
         if type(instr) == RType and len(instr.regs) == 3:

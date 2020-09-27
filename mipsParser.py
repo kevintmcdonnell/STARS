@@ -107,13 +107,10 @@ class MipsParser(Parser):
 
     @_('LOADS_R REG NUMBER LPAREN REG RPAREN', 'LOADS_R REG LPAREN REG RPAREN')
     def iType(self, p):
-        if 'LPAREN' in p._namemap:
-            if 'NUMBER' in p._namemap:
-                return LoadMem(p[0], p.REG0, p.REG1, p.NUMBER)
-            else:
-                return LoadMem(p[0], p.REG0, p.REG1, 0)
-
-        return None
+        if 'NUMBER' in p._namemap:
+            return LoadMem(p[0], p.REG0, p.REG1, p.NUMBER)
+        else:
+            return LoadMem(p[0], p.REG0, p.REG1, 0)
 
     @_('MOVE REG')
     def move(self, p):
@@ -276,9 +273,7 @@ class MipsParser(Parser):
     @_('LOADS_R REG LABEL')
     def iType(self, p):
         # If it has a label, it's a pseudoinstruction
-        instrs = []
-        instrs.append(LoadImm('lui', '$at', 0))
-        instrs.append(LoadMem(p[0], p.REG, '$at', 0))
+        instrs = [LoadImm('lui', '$at', 0), LoadMem(p[0], p.REG, '$at', 0)]
 
         pseudoInstr = PseudoInstr(p[0], instrs)
         pseudoInstr.label = Label(p.LABEL)
