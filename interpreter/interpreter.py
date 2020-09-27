@@ -1,10 +1,13 @@
+import os
 import random
 import re
+import struct
 import sys
 from collections import OrderedDict
 
 from PySide2.QtCore import Signal
 from PySide2.QtWidgets import QWidget
+from numpy import float32
 
 import constants as const
 from interpreter import exceptions as ex, instructions as instrs
@@ -20,7 +23,7 @@ class Interpreter(QWidget):
     console_out = Signal(str)
     end = Signal(bool)
 
-    def out(self, s: str, end="", file=sys.stdout) -> None:
+    def out(self, s: str, end='', file=sys.stdout) -> None:
         if settings['gui']:
             self.console_out.emit(f'{s}{end}')
         else:
@@ -32,6 +35,7 @@ class Interpreter(QWidget):
 
         self.reg_initialized = set()
         self.reg = OrderedDict()
+        self.f_reg = dict()
 
         self.init_registers(settings['garbage_registers'])
         self.mem = Memory(settings['garbage_memory'])
@@ -182,8 +186,8 @@ class Interpreter(QWidget):
 
     def init_registers(self, randomize: bool) -> None:
         for r in const.REGS:
-            if 'initial_' + r in settings.keys():
-                self.reg[r] = settings['initial_' + r]
+            if f'initial_{r}' in settings.keys():
+                self.reg[r] = settings[f'initial_{r}']
 
             elif randomize:
                 self.reg[r] = random.randint(0, 2 ** 32 - 1)
@@ -191,15 +195,22 @@ class Interpreter(QWidget):
             else:
                 self.reg[r] = 0
 
+        for r in const.F_REGS:
+            if randomize:
+                random_bytes = os.urandom(4)
+                self.f_reg[r] = float32(struct.unpack('>f', random_bytes)[0])
+
+            else:
+                self.f_reg[r] = float32(0.0)
+
     def get_register(self, reg: str) -> int:
         key = reg
-        try:
+
+        if reg[1:].isnumeric():
             x = int(reg[1:])
             key = list(self.reg.keys())[x]
-        except ValueError:
-            pass
 
-        if settings['warnings'] and key[1] in ['s', 't', 'a', 'v'] and key not in ['$at', '$sp'] and key not in self.reg_initialized:
+        if settings['warnings'] and key[1] in {'s', 't', 'a', 'v'} and key not in {'$at', '$sp'} and key not in self.reg_initialized:
             print(f'Reading from uninitialized register {key}!', file=sys.stderr)
 
         return instrs.overflow_detect(self.reg[key])
@@ -210,11 +221,9 @@ class Interpreter(QWidget):
 
         key = reg
 
-        try:
+        if reg[1:].isnumeric():
             x = int(reg[1:])
             key = list(self.reg.keys())[x]
-        except ValueError:
-            pass
 
         self.reg_initialized.add(key)
         self.reg[key] = instrs.overflow_detect(data)
