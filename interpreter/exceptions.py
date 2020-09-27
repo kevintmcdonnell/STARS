@@ -28,6 +28,11 @@ class InvalidSyscall(Exception):
         self.message = message
 
 
+class InvalidRegister(Exception):
+    def __init__(self, message: str):
+        self.message = message
+
+
 class WritingToZeroRegister(Exception):
     def __init__(self, message: str):
         self.message = message

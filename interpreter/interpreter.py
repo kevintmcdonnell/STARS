@@ -235,7 +235,13 @@ class Interpreter(QWidget):
         self.f_reg[reg] = data
 
     def get_reg_double(self, reg: str) -> float:
-        next_reg = f'$f{int(reg[2:]) + 1}'
+        reg_number = int(reg[2:])
+
+        if reg_number & 1:
+            raise ex.InvalidRegister('Double-precision instructions can only be done'
+                                     ' with even numbered registers')
+
+        next_reg = f'$f{reg_number + 1}'
 
         lower_bytes = struct.pack('>f', self.f_reg[reg])
         upper_bytes = struct.pack('>f', self.f_reg[next_reg])
@@ -244,14 +250,20 @@ class Interpreter(QWidget):
         return struct.unpack('>d', double_bytes)[0]
 
     def set_reg_double(self, reg: str, data: float) -> None:
-        next_reg = f'$f{int(reg[2:]) + 1}'
+        reg_number = int(reg[2:])
+
+        if reg_number & 1:
+            raise ex.InvalidRegister('Double-precision instructions can only be done'
+                                     ' with even numbered registers')
+
+        next_reg = f'$f{reg_number + 1}'
 
         double_bytes = struct.pack('>d', data)
         upper = struct.unpack('>f', double_bytes[:4])[0]
         lower = struct.unpack('>f', double_bytes[4:])[0]
 
-        self.f_reg[reg] = lower_bytes
-        self.f_reg[next_reg] = upper_bytes
+        self.f_reg[reg] = lower
+        self.f_reg[next_reg] = upper
 
     def execute_instr(self, instr) -> None:
         # Instruction with 3 registers
