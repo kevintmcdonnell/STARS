@@ -1,11 +1,12 @@
 import random
 import struct
 import sys
-from constants import WORD_MASK
 from collections import OrderedDict
-from numpy import float32
 from typing import List, Union
 
+from numpy import float32
+
+from constants import WORD_MASK
 from interpreter import exceptions as ex
 from interpreter import utility
 from interpreter.instructions import overflow_detect

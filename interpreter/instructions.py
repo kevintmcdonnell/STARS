@@ -1,6 +1,7 @@
-from interpreter import exceptions as ex
-from constants import WORD_SIZE, HALF_SIZE, WORD_MASK
 from typing import Union, Tuple, Dict
+
+from constants import WORD_SIZE, HALF_SIZE, WORD_MASK
+from interpreter import exceptions as ex
 
 
 # Helper function to account for overflow issues.

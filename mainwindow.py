@@ -1,13 +1,14 @@
-from PySide2.QtWidgets import QMainWindow, QAction, QApplication, QFileDialog, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QWidget, QLineEdit, QTextEdit, QFrame, QPushButton, QComboBox
-from PySide2.QtCore import Signal, Qt, QSemaphore, QEvent
-from PySide2.QtGui import QFont, QTextCharFormat, QTextCursor, QGuiApplication, QPalette, QColor, QKeyEvent
+from threading import Thread
+
+from PySide2.QtCore import Qt, QSemaphore, QEvent
+from PySide2.QtGui import QTextCharFormat, QTextCursor, QGuiApplication, QPalette, QColor
+from PySide2.QtWidgets import *
 
 from constants import REGS
 from interpreter.interpreter import Interpreter
 from preprocess import preprocess
 from sbumips import MipsLexer, MipsParser
 from settings import settings
-from threading import Thread
 
 
 def to_ascii(c):
@@ -30,6 +31,7 @@ def to_ascii(c):
     else:  # Invalid character
         return '.'
 
+
 class MainWindow(QMainWindow):
 
     def __init__(self, app):
@@ -39,7 +41,7 @@ class MainWindow(QMainWindow):
         settings['gui'] = True
         self.console_sem = QSemaphore(1)
         self.mem_sem = QSemaphore(1)
-        #settings['debug'] = True
+        # settings['debug'] = True
         self.result = None
         self.intr = None
         self.cur_file = None
@@ -52,9 +54,9 @@ class MainWindow(QMainWindow):
         self.default_theme = QGuiApplication.palette()
         self.dark = False
         self.palette = QPalette()
-        self.palette.setColor(QPalette.Window, QColor(25, 25, 25)) # 53 53 53
+        self.palette.setColor(QPalette.Window, QColor(25, 25, 25))  # 53 53 53
         self.palette.setColor(QPalette.WindowText, Qt.darkCyan)
-        self.palette.setColor(QPalette.Base, QColor(53, 53, 53)) # 25 25 25
+        self.palette.setColor(QPalette.Base, QColor(53, 53, 53))  # 25 25 25
         self.palette.setColor(QPalette.AlternateBase, QColor(53, 53, 53))
         self.palette.setColor(QPalette.ToolTipBase, Qt.darkCyan)
         self.palette.setColor(QPalette.ToolTipText, Qt.darkCyan)
@@ -80,7 +82,6 @@ class MainWindow(QMainWindow):
         self.init_mem()
         self.init_out()
         self.init_regs()
-
 
         center = QWidget()
         center.setLayout(self.lay)
@@ -162,13 +163,12 @@ class MainWindow(QMainWindow):
                 q.setLineWidth(2)
                 if j == 0:
                     q.setText(f'0x{count:08x}')
-                    self.addresses[i-1] = q
+                    self.addresses[i - 1] = q
                 else:
                     self.mem_vals.append(q)
                 grid.addWidget(q, i, j)
             count += 16
         self.left.addLayout(grid)
-
 
     def open_file(self):
         try:
@@ -303,9 +303,11 @@ class MainWindow(QMainWindow):
             if self.rep == "Decimal":
                 q.setText(f'{mem.getByte(count + 3, admin=True):3} {mem.getByte(count + 2, admin=True):3} {mem.getByte(count + 1, admin=True):3} {mem.getByte(count, admin=True):3}')
             elif self.rep == "ASCII":
-                q.setText(f'{to_ascii(mem.getByte(count + 3, signed=False, admin=True)):2} {to_ascii(mem.getByte(count + 2, signed=False, admin=True)):2} {to_ascii(mem.getByte(count + 1, signed=False, admin=True)):2} {to_ascii(mem.getByte(count, signed=False, admin=True)):2}')
+                q.setText(
+                    f'{to_ascii(mem.getByte(count + 3, signed=False, admin=True)):2} {to_ascii(mem.getByte(count + 2, signed=False, admin=True)):2} {to_ascii(mem.getByte(count + 1, signed=False, admin=True)):2} {to_ascii(mem.getByte(count, signed=False, admin=True)):2}')
             else:
-                q.setText(f'0x{mem.getByte(count + 3, signed=False, admin=True):02x} 0x{mem.getByte(count + 2, signed=False, admin=True):02x} 0x{mem.getByte(count + 1, signed=False, admin=True):02x} 0x{mem.getByte(count, signed=False, admin=True):02x}')
+                q.setText(
+                    f'0x{mem.getByte(count + 3, signed=False, admin=True):02x} 0x{mem.getByte(count + 2, signed=False, admin=True):02x} 0x{mem.getByte(count + 1, signed=False, admin=True):02x} 0x{mem.getByte(count, signed=False, admin=True):02x}')
             count += 4
         count = self.base_address
         for a in self.addresses:
@@ -342,6 +344,7 @@ class MainWindow(QMainWindow):
             if event.key() == Qt.Key_Return and self.out.hasFocus():
                 print('Enter pressed')
         return super().eventFilter(obj, event)
+
 
 if __name__ == "__main__":
     app = QApplication()
