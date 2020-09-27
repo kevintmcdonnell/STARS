@@ -217,7 +217,7 @@ class Debug:
             return settings['debug']
 
         # If we encounter a breakpoint while executing, then break
-        elif settings['debug'] and ((filename, str(lineno)) in self.breakpoints):
+        elif settings['debug'] and (filename, str(lineno)) in self.breakpoints:
             self.continueFlag = False
             return True
 

@@ -97,12 +97,20 @@ class Interpreter(QWidget):
                         self.mem.dataPtr += 2
 
                 elif data_type == 'float':
-                    # TODO
-                    pass
+                    mod = self.mem.dataPtr % 4
+                    if mod != 0:
+                        self.mem.dataPtr += (4 - mod)
+                    for data in line.data:
+                        self.mem.addFloat(data, self.mem.dataPtr)
+                        self.mem.dataPtr += 4
 
                 elif data_type == 'double':
-                    # TODO
-                    pass
+                    mod = self.mem.dataPtr % 8
+                    if mod != 0:
+                        self.mem.dataPtr += (8 - mod)
+                    for data in line.data:
+                        self.mem.addDouble(data, self.mem.dataPtr)
+                        self.mem.dataPtr += 8
 
                 elif data_type == 'space':
                     for data in line.data:
@@ -111,10 +119,11 @@ class Interpreter(QWidget):
                                 self.mem.addByte(random.randint(0, 0xFF), self.mem.dataPtr)
                             else:
                                 self.mem.addByte(0, self.mem.dataPtr)
+
                             self.mem.dataPtr += 1
 
                 elif data_type == 'align':
-                    if line.data > 3 or line.data < 0:
+                    if not 0 <= line.data <= 3:
                         raise ex.InvalidImmediate('Value for .align is invalid')
 
                     align = 2 ** line.data
@@ -374,14 +383,12 @@ class Interpreter(QWidget):
                 if str(pc) not in self.mem.text:
                     raise ex.MemoryOutOfBounds(f'{pc} is not a valid address')
 
-                self.instr = self.mem.text[str(pc)]
-
-                if self.instr != 'TERMINATE_EXECUTION':
-                    self.reg['pc'] += 4
-                    self.instruction_count += 1
-
                 if self.instruction_count > settings['max_instructions']:
                     raise ex.InstrCountExceed(f'Exceeded maximum instruction count: {settings["max_instructions"]}')
+
+                self.instr = self.mem.text[str(pc)]
+                self.reg['pc'] += 4
+                self.instruction_count += 1
 
                 try:
                     self.line_info = f' ({self.instr.filetag.file_name}, {self.instr.filetag.line_no})'
@@ -392,8 +399,10 @@ class Interpreter(QWidget):
                     if settings['debug']:
                         print()
                         self.debug.listen(self)
+
                     if settings['gui']:
                         self.end.emit(False)
+
                     break
 
                 elif self.debug.debug(self.instr):
@@ -407,14 +416,18 @@ class Interpreter(QWidget):
         except Exception as e:
             if hasattr(e, 'message'):
                 e.message += ' ' + self.line_info
-                self.end.emit(False)
+
+                if settings['gui']:
+                    self.end.emit(False)
+
             raise e
 
     def dump(self) -> None:
         # Dump the contents in registers and memory
-        print("Registers:")
-        for s in self.reg:
-            print(f'{s}: {self.reg[s]}')
+        print('Registers:')
 
-        print("Memory:")
+        for name, val in self.reg.items():
+            print(f'{name}: {val}')
+
+        print('Memory:')
         self.mem.dump()
