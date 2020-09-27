@@ -180,7 +180,7 @@ class Memory:
 
         data_lower = self.getWord(addr)
         data_upper = self.getWord(addr + 4)
-        data_int = data_upper << 32 + data_lower
+        data_int = (data_upper << 32) + data_lower
 
         return struct.unpack('>d', data_int.to_bytes(8, 'big'))[0]
 
