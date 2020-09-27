@@ -94,7 +94,7 @@ class MipsParser(Parser):
     def rType(self, p):
         return RType(p[0], [p[1], p[2]])
 
-    @_('J_TYRE LABEL', 'J_TYRE_R REG')
+    @_('J_TYPE LABEL', 'J_TYPE_R REG')
     def jType(self, p):
         if 'LABEL' in p._namemap:
             return JType(p[0], Label(p[1]))

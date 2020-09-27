@@ -34,8 +34,8 @@ class MipsLexer(Lexer):
 
     MOVE = r'\b(m[tf]hi|m[tf]lo)\b'
 
-    J_TYRE = r'\b(j|b|jal)\b'
-    J_TYRE_R = r'\b(jalr|jr)\b'
+    J_TYPE = r'\b(j|b|jal)\b'
+    J_TYPE_R = r'\b(jalr|jr)\b'
     I_TYPE = r'\b(addi[u]?|andi|sr[al]|sll|sltiu?|xori|ori)\b'
     LOADS_R = r'\b(lb[u]?|lh[u]?|lw[lr]|lw|s[bhw]|sw[lr])\b'
     LOADS_I = r'\b(lui)\b'
