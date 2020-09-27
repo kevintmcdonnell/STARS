@@ -387,9 +387,8 @@ class Interpreter(QWidget):
         elif type(instr) == Syscall:
             code = self.get_register('$v0')
 
-            if str(code) in syscalls.keys() and code in settings['enabled_syscalls']:
-                syscalls[str(code)](self.reg, self.mem, self)
-
+            if code in syscalls and code in settings['enabled_syscalls']:
+                syscalls[code](self)
             else:
                 raise ex.InvalidSyscall('Not a valid syscall code:')
 

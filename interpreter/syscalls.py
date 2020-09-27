@@ -1,5 +1,4 @@
 import random
-from collections import OrderedDict
 from typing import Dict, Union
 
 from settings import settings
@@ -34,32 +33,42 @@ def getString(addr: int, mem: Memory, num_chars: int = -1) -> Union[str, None]:
     return name
 
 
-def printInt(reg: Dict[str, int], mem, inter) -> None:
-    inter.out(overflow_detect(int(reg['$a0'])), end='')
+def printInt(inter) -> None:
+    inter.out(inter.get_register('$a0'), end='')
 
 
-def printHex(reg: Dict[str, int], mem, inter) -> None:
-    value = int(reg['$a0'])
+def printHex(inter) -> None:
+    value = inter.get_register('$a0')
     inter.out(utility.format_hex(value), end='')
 
 
-def printBin(reg: Dict[str, int], mem, inter) -> None:
-    value = int(reg['$a0'])
+def printBin(inter) -> None:
+    value = inter.get_register('$a0')
     inter.out(f'0b{value & WORD_MASK:032b}', end='')
 
 
-def printUnsignedInt(reg: Dict[str, int], mem, inter) -> None:
-    value = int(reg['$a0'])
+def printUnsignedInt(inter) -> None:
+    value = inter.get_register('$a0')
     if value < 0:
         value += WORD_SIZE
 
     inter.out(value, end='')
 
 
-def printString(reg: Dict[str, int], mem: Memory, inter) -> None:
+def printFloat(inter) -> None:
+    value = inter.get_reg_float('$f12')
+    inter.out(value, end='')
+
+
+def printDouble(inter) -> None:
+    value = inter.get_reg_double('$f12')
+    inter.out(value, end='')
+
+
+def printString(inter) -> None:
     # Get the first byte of the string
-    addr = reg['$a0']  # Starting address of the string
-    c = mem.getByte(str(addr), signed=False)
+    addr = inter.get_register('$a0')  # Starting address of the string
+    c = inter.mem.getByte(str(addr), signed=False)
 
     while c != 0:  # Keep printing until we hit a null terminator
         if isInvalidChar(c):
@@ -68,25 +77,25 @@ def printString(reg: Dict[str, int], mem: Memory, inter) -> None:
         inter.out(chr(c), end='')
 
         addr += 1  # Increment address
-        c = mem.getByte(addr, signed=False)
+        c = inter.mem.getByte(addr, signed=False)
 
 
-def atoi(reg: Dict[str, int], mem: Memory, inter) -> None:
+def atoi(inter) -> None:
     # Converts string to integer
     # a0: address of null-terminated string
     # result: $v0 contains integer converted from string
 
     # Get the first byte of the string
-    addr = reg['$a0']
+    addr = inter.get_register('$a0')
     sign = 1
 
     # First, check if the number is negative
-    if mem.getByte(str(addr), signed=False) == ord('-'):
+    if inter.mem.getByte(str(addr), signed=False) == ord('-'):
         sign = -1
         addr += 1
 
     result = 0
-    c = mem.getByte(str(addr), signed=False)
+    c = inter.mem.getByte(str(addr), signed=False)
 
     # Then, check if the string is empty
     if c == 0:
@@ -100,53 +109,55 @@ def atoi(reg: Dict[str, int], mem: Memory, inter) -> None:
         result += c - ord('0')
 
         addr += 1  # Increment address
-        c = mem.getByte(str(addr), signed=False)
+        c = inter.mem.getByte(str(addr), signed=False)
 
     result *= sign
-    reg['$v0'] = overflow_detect(result)
+    inter.set_register('$v0', result)
 
 
-def readInteger(reg: Dict[str, int], mem, inter) -> None:
+def readInteger(inter) -> None:
     read = input()
 
     try:
-        reg['$v0'] = overflow_detect(int(read))
+        inter.set_register('$v0', int(read))
 
     except ValueError:
         raise ex.InvalidInput(read)
 
 
-def readString(reg: Dict[str, int], mem: Memory, inter) -> None:
+def readString(inter) -> None:
     s = input()
 
     s = utility.handle_escapes(s)
-    s = s[:int(reg['$a1'])]
+    s = s[:inter.get_register('$a1')]
 
-    mem.addAsciiz(s, int(reg['$a0']))
+    inter.mem.addAsciiz(s, inter.get_register('$a0'))
 
 
-def sbrk(reg: Dict[str, int], mem: Memory, inter) -> None:
-    if mem.heapPtr > settings['initial_$sp']:
+def sbrk(inter) -> None:
+    if inter.mem.heapPtr > settings['initial_$sp']:
         raise ex.MemoryOutOfBounds('Heap has exceeded the upper limit of ' + str(settings['initial_$sp']))
 
-    if reg['$a0'] < 0:
+    size = inter.get_register('$a0')
+
+    if size < 0:
         raise ex.InvalidArgument('$a0 must be a non-negative number.')
 
-    reg['$v0'] = mem.heapPtr
-    mem.heapPtr += reg['$a0']
+    inter.set_register('$v0', inter.mem.heapPtr)
+    inter.mem.heapPtr += size
 
-    if mem.heapPtr % 4 != 0:
-        mem.heapPtr += 4 - (mem.heapPtr % 4)
+    if inter.mem.heapPtr % 4 != 0:
+        inter.mem.heapPtr += 4 - (inter.mem.heapPtr % 4)
 
 
-def _exit(reg, mem, inter) -> None:
+def _exit(inter) -> None:
     if settings['gui']:
         inter.end.emit(False)
     exit()
 
 
-def printChar(reg: Dict[str, int], mem, inter) -> None:
-    c = reg['$a0']
+def printChar(inter) -> None:
+    c = inter.get_register('$a0')
 
     if isInvalidChar(c):
         raise ex.InvalidCharacter(f'Character with ASCII code {c} can\'t be printed.')
@@ -154,10 +165,10 @@ def printChar(reg: Dict[str, int], mem, inter) -> None:
     inter.out(chr(c), end='')
 
 
-def memDump(reg: Dict[str, int], mem: Memory, inter) -> None:
+def memDump(inter) -> None:
     # Set lower and upper bounds for addresses to dump memory contents
-    low = reg['$a0']
-    high = reg['$a1']
+    low = inter.get_register('$a0')
+    high = inter.get_register('$a1')
 
     if low % 4 != 0:
         low -= (low % 4)
@@ -173,7 +184,7 @@ def memDump(reg: Dict[str, int], mem: Memory, inter) -> None:
 
         # Printing in LITTLE ENDIAN
         for step in reversed(range(4)):  # inter.out memory contents in hex
-            w = mem.getByte(i + step, signed=False)
+            w = inter.mem.getByte(i + step, signed=False)
             byte = hex(w)[2:]  # Get rid of the "0x"
 
             if len(byte) == 1:  # Pad with zero if it is one character
@@ -182,7 +193,7 @@ def memDump(reg: Dict[str, int], mem: Memory, inter) -> None:
             inter.out(byte, end='  ')
 
         for step in reversed(range(4)):  # inter.out memory contents in ASCII
-            c = mem.getByte(i + step, signed=False)
+            c = inter.mem.getByte(i + step, signed=False)
 
             if c in range(127):
                 if c == 0:  # Null terminator
@@ -207,28 +218,28 @@ def memDump(reg: Dict[str, int], mem: Memory, inter) -> None:
         i += 4  # Go to next word
 
 
-def regDump(reg: Dict[str, int], mem, inter) -> None:
+def regDump(inter) -> None:
     inter.out(f'{"reg":4} {"hex":10} {"dec"}\n')
 
-    for k, value in reg.items():
+    for k, value in inter.reg.items():
         inter.out(f'{k:4} {utility.format_hex(value)} {overflow_detect(value):d}\n')
 
 
-def openFile(reg: Dict[str, int], mem: Memory, inter) -> None:
+def openFile(inter) -> None:
     # searches through to find the lowest unused value for a file descriptor
     fd = 0
 
     while True:
-        if fd not in mem.fileTable:
+        if fd not in inter.mem.fileTable:
             break
 
         fd += 1
 
     # get the string from memory
-    name = getString(reg['$a0'], mem)
+    name = getString(inter.get_register('$a0'), inter.mem)
 
     if name is None:
-        reg['$v0'] = -1
+        inter.set_register('$v0', -1)
         return
 
     # set flags
@@ -238,59 +249,60 @@ def openFile(reg: Dict[str, int], mem: Memory, inter) -> None:
         9: 'a'
     }
 
-    if reg['$a1'] not in flags:
-        reg['$v0'] = -1
+    mode = inter.get_register('$a1')
+
+    if mode not in flags:
+        inter.set_register('$v0', -1)
         return
 
-    flag = flags[reg['$a1']]
+    flag = flags[mode]
 
     # open the file
     f = open(name, flag)
-    mem.fileTable[fd] = f
+    inter.mem.fileTable[fd] = f
 
-    reg['$v0'] = fd
+    inter.set_register('$v0', fd)
 
 
-def readFile(reg: Dict[str, int], mem: Memory, inter) -> None:
-    fd = reg['$a0']
-    addr = reg['$a1']
-    num_chars = reg['$a2']
+def readFile(inter) -> None:
+    fd = inter.get_register('$a0')
+    addr = inter.get_register('$a1')
+    num_chars = inter.get_register('$a2')
 
-    if fd not in mem.fileTable:
-        reg['$v0'] = -1
+    if fd not in inter.mem.fileTable:
+        inter.set_register('$v0', -1)
         return
 
-    s = mem.fileTable[fd].read(num_chars)
-    mem.addAscii(s, addr)
+    s = inter.mem.fileTable[fd].read(num_chars)
+    inter.mem.addAscii(s, addr)
 
-    reg['$v0'] = len(s)
+    inter.set_register('$v0', len(s))
 
 
-def writeFile(reg: Dict[str, int], mem: Memory, inter) -> None:
-    fd = reg['$a0']
+def writeFile(inter) -> None:
+    fd = inter.get_register('$a0')
 
-    if fd not in mem.fileTable:
-        reg['$v0'] = -1
+    if fd not in inter.mem.fileTable:
+        inter.set_register('$v0', -1)
         return
 
-    s = getString(reg['$a1'], mem, num_chars=reg['$a2'])
+    s = getString(inter.get_register('$a1'), inter.mem, num_chars=inter.get_register('$a2'))
 
-    mem.fileTable[fd].write(s)
-    reg['$v0'] = len(s)
+    inter.mem.fileTable[fd].write(s)
+    inter.set_register('$v0', len(s))
 
 
-def closeFile(reg: Dict[str, int], mem: Memory, inter) -> None:
-    fd = reg['$a0']
+def closeFile(inter) -> None:
+    fd = inter.get_register('$a0')
 
-    if fd in mem.fileTable and fd >= 3:
-        f = mem.fileTable.pop(fd)
+    if fd in inter.mem.fileTable and fd >= 3:
+        f = inter.mem.fileTable.pop(fd)
         f.close()
 
 
 # this can be expanded to print more info abinter.out the individual files if we so want to
-def dumpFiles(reg, mem: Memory, inter) -> None:
-    for k, i in mem.fileTable.items():
-        s = ''
+def dumpFiles(inter) -> None:
+    for k, i in inter.mem.fileTable.items():
         if k == 0:
             s = 'stdin'
         elif k == 1:
@@ -299,50 +311,54 @@ def dumpFiles(reg, mem: Memory, inter) -> None:
             s = 'stderr'
         else:
             s = i.name
+
         inter.out(str(k) + '\t' + s + '\n')
 
 
-def _exit2(reg: Dict[str, int], mem, inter) -> None:
+def _exit2(inter) -> None:
     if settings['gui']:
         inter.end.emit(False)
-    exit(reg['$a0'])
+
+    exit(inter.get_register('$a0'))
 
 
 # For random integer generation
-def setSeed(reg: Dict[str, int], mem, inter) -> None:
+def setSeed(inter) -> None:
     # a0: seed
-    random.seed(reg['$a0'])
+    random.seed(inter.get_register('$a0'))
 
 
-def randInt(reg: Dict[str, int], mem, inter) -> None:
+def randInt(inter) -> None:
     # Generates a random integer in range [0, a0] (inclusive)
     # Puts result in $v0
-    upper = reg['$a0']
+    upper = inter.get_register('$a0')
 
     if upper < 0:
         raise ex.InvalidArgument('Upper value for randInt must be nonnegative')
 
-    reg['$v0'] = random.randint(0, upper)
+    inter.set_register('$v0', random.randint(0, upper))
 
 
-syscalls = OrderedDict([('1', printInt),
-                        ('4', printString),
-                        ('5', readInteger),
-                        ('6', atoi),
-                        ('8', readString),
-                        ('9', sbrk),
-                        ('10', _exit),
-                        ('11', printChar),
-                        ('13', openFile),
-                        ('14', readFile),
-                        ('15', writeFile),
-                        ('16', closeFile),
-                        ('17', _exit2),
-                        ('30', memDump),
-                        ('31', regDump),
-                        ('32', dumpFiles),
-                        ('34', printHex),
-                        ('35', printBin),
-                        ('36', printUnsignedInt),
-                        ('40', setSeed),
-                        ('41', randInt)])
+syscalls = {1: printInt,
+            2: printFloat,
+            3: printDouble,
+            4: printString,
+            5: readInteger,
+            6: atoi,
+            8: readString,
+            9: sbrk,
+            10: _exit,
+            11: printChar,
+            13: openFile,
+            14: readFile,
+            15: writeFile,
+            16: closeFile,
+            17: _exit2,
+            30: memDump,
+            31: regDump,
+            32: dumpFiles,
+            34: printHex,
+            35: printBin,
+            36: printUnsignedInt,
+            40: setSeed,
+            41: randInt}
