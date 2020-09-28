@@ -5,7 +5,7 @@ from interpreter.exceptions import *
 from interpreter.interpreter import *
 from settings import settings
 from sly.lex import Lexer
-
+from pathlib import Path
 
 # Determine if the replacement string for eqv is valid
 def isValid(s: str, lexer: Lexer) -> bool:
@@ -18,17 +18,17 @@ def isValid(s: str, lexer: Lexer) -> bool:
     return True
 
 
-def walk(filename: str, files: List[str], eqv: Dict[str, str], lexer: Lexer) -> Tuple[List, Dict]:
-    f = open(filename, 'r')
+def walk(filename: Path, files: List[str], eqv: Dict[str, str], lexer: Lexer, parent: Path) -> Tuple[List, Dict]:
+    f = filename.open(mode='r')
 
     # Replace backslashes with two backslashes for regex to work properly
-    filename_re = re.sub(r'\\', r'\\\\', filename)
+
 
     # Patterns to detect if line is an .eqv or .include directive
     eq_pattern = re.compile(r'[.]eqv (.*?)? (.*)')
     incl_pattern = re.compile(r'[.]include "(.*?)"')
 
-    files.append(filename_re)
+    files.append(filename)
     line_count = 0
 
     for line in f.readlines():
@@ -53,12 +53,13 @@ def walk(filename: str, files: List[str], eqv: Dict[str, str], lexer: Lexer) -> 
 
         elif incl_match:
             file = incl_match.group(1)
-
+            file = parent.joinpath(file)
+            file.resolve()
             if file in files:
                 f.close()
-                raise FileAlreadyIncluded(filename + ', line number: ' + str(line_count) + ': ' + file + "already included.")
+                raise FileAlreadyIncluded(f'{filename}, line number: {line_count}: {file} already included.')
 
-            walk(file, files, eqv, lexer)
+            walk(file, files, eqv, lexer, parent)
 
     f.close()
     return files, eqv
@@ -98,17 +99,19 @@ def preprocess(filename: str, lexer: Lexer) -> Tuple[str, Dict[str, List[str]]]:
 
     # Step 1: Do a depth-first search of the .include tree, gathering file names and
     # .eqv definitions along the way
-    files, eqv = walk(filename, files, eqv, lexer)
+    path = Path(filename)
+    path.resolve()
+    files, eqv = walk(path, files, eqv, lexer, path.parent)
     texts = [''] * len(files)
     original_text = {}
 
     # Step 2: Add file markers and line markers
     for i, filename in enumerate(files):
-        file = open(filename)
+        file = filename.open()
         count = 1
-        original_text[filename] = file.readlines()
+        original_text[str(filename)] = file.readlines()
 
-        for line in original_text[filename]:
+        for line in original_text[str(filename)]:
             line = line.strip()
 
             if line == "" or line[0] == "#":
@@ -126,7 +129,8 @@ def preprocess(filename: str, lexer: Lexer) -> Tuple[str, Dict[str, List[str]]]:
     text = texts[0]
 
     for filename, contents in zip(files, texts):
-        pattern = r'\.include "' + filename + '".*?\n'
+        filename_re = re.sub(r'\\', r'\\\\', str(filename))
+        pattern = r'\.include "' + filename_re + '".*?\n'
         text = re.sub(pattern, contents, text)
 
     newText = ''

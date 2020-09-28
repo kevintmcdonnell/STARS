@@ -16,7 +16,7 @@ from interpreter.debugger import Debug
 from interpreter.memory import Memory
 from interpreter.syscalls import syscalls
 from settings import settings
-
+from threading import Event
 
 class Interpreter(QWidget):
     step = Signal()
@@ -36,6 +36,8 @@ class Interpreter(QWidget):
         self.reg_initialized = set()
         self.reg = OrderedDict()
         self.f_reg = dict()
+
+        self.pause_lock = Event()
 
         self.init_registers(settings['garbage_registers'])
         self.mem = Memory(settings['garbage_memory'])
@@ -467,6 +469,10 @@ class Interpreter(QWidget):
                 elif self.debug.debug(self.instr):
                     self.debug.listen(self)
 
+                elif settings['gui'] and type(self.instr) == Syscall and (self.reg['$v0'] == 10 or self.reg['$v0'] == 17):
+                    self.end.emit(False)
+                    break
+
                 self.execute_instr(self.instr)
 
                 if settings['gui']:
@@ -475,10 +481,8 @@ class Interpreter(QWidget):
         except Exception as e:
             if hasattr(e, 'message'):
                 e.message += ' ' + self.line_info
-
                 if settings['gui']:
                     self.end.emit(False)
-
             raise e
 
     def dump(self) -> None:
@@ -490,3 +494,11 @@ class Interpreter(QWidget):
 
         print('Memory:')
         self.mem.dump()
+
+    def pause(self, pause: bool):
+        self.debug.continueFlag = not pause
+        if pause:
+            self.pause_lock.clear()
+        else:
+            self.pause_lock.set()
+

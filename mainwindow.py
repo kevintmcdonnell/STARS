@@ -39,6 +39,8 @@ class MainWindow(QMainWindow):
         self.app = app
 
         settings['gui'] = True
+        settings['debug'] = True
+
         self.console_sem = QSemaphore(1)
         self.mem_sem = QSemaphore(1)
         # settings['debug'] = True
@@ -50,6 +52,8 @@ class MainWindow(QMainWindow):
 
         self.running = False
         self.run_sem = QSemaphore(1)
+
+        self.filename = None
 
         self.default_theme = QGuiApplication.palette()
         self.dark = False
@@ -125,6 +129,15 @@ class MainWindow(QMainWindow):
         start = QAction("Start", self)
         start.triggered.connect(self.start)
         run.addAction(start)
+        step = QAction("Step", self)
+        step.triggered.connect(self.step)
+        run.addAction(step)
+        back = QAction("Back", self)
+        back.triggered.connect(self.reverse)
+        run.addAction(back)
+        pause = QAction('Pause', self)
+        pause.triggered.connect(self.pause)
+        run.addAction(pause)
 
     def init_out(self):
         self.out = QTextEdit()
@@ -174,15 +187,18 @@ class MainWindow(QMainWindow):
         try:
             filename = QFileDialog.getOpenFileName(self, 'Open', '.', options=QFileDialog.DontUseNativeDialog)
         except:
-            print('failed')
+            self.out.setPlainText("Could not open file.")
             return
 
         if not filename or len(filename[0]) == 0:
             return
 
+        self.assemble(filename[0])
+
+    def assemble(self, filename):
         try:
             lexer = MipsLexer()
-            data, lines = preprocess(filename[0], lexer)
+            data, lines = preprocess(filename, lexer)
             parser = MipsParser(lines)
 
             r1 = lexer.tokenize(data)
@@ -195,9 +211,10 @@ class MainWindow(QMainWindow):
             self.mem_left.clicked.connect(self.mem_leftclick)
             self.intr.end.connect(self.set_running)
 
-            self.setWindowTitle(f'STARS: {filename[0]}')
-            self.filename = filename[0]
+            self.setWindowTitle(f'STARS: {filename}')
+            self.filename = filename
         except Exception as e:
+            print(e)
             if hasattr(e, 'message'):
                 self.console_sem.acquire()
                 self.out.setPlainText(type(e).__name__ + ": " + e.message)
@@ -220,11 +237,42 @@ class MainWindow(QMainWindow):
         self.dark = not self.dark
 
     def start(self):
-        if self.intr and not self.running:
+        if not self.intr:
+            return
+        if not self.running:
             self.set_running(True)
+            self.assemble(self.filename)
+            self.intr.pause(False)
             self.out.setPlainText('')
             self.program = Thread(target=self.intr.interpret, daemon=True)
             self.program.start()
+        elif not self.intr.debug.continueFlag:
+            self.intr.pause(False)
+
+    def pause(self):
+        if not self.intr:
+            return
+        if self.intr.debug.continueFlag:
+            self.intr.pause(True)
+
+    def step(self):
+        if not self.intr:
+            return
+        if not self.running:
+            self.set_running(True)
+            self.assemble(self.filename)
+            self.intr.pause_lock.set()
+            self.out.setPlainText('')
+            self.program = Thread(target=self.intr.interpret, daemon=True)
+            self.program.start()
+        else:
+            self.intr.pause_lock.set()
+
+    def reverse(self):
+        if not self.intr or not self.running:
+            return
+        else:
+            self.intr.debug.reverse(None, self.intr)
 
     def change_rep(self, t):
         self.rep = t
@@ -242,8 +290,6 @@ class MainWindow(QMainWindow):
     def set_running(self, run):
         self.run_sem.acquire()
         self.running = run
-        if not run:
-            self.intr.initialize(self.result, [])
         self.run_sem.release()
 
     def update_screen(self):

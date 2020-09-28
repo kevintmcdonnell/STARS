@@ -187,7 +187,7 @@ class Debug:
     def listen(self, interp):
         loop = True
 
-        while loop:
+        while loop and not settings['gui']:
             if type(interp.instr) is not str:
                 if interp.instr.is_from_pseudoinstr:
                     print(f'{interp.instr.original_text.strip()} ( {interp.instr.basic_instr()} )')
@@ -205,6 +205,12 @@ class Debug:
 
             else:
                 print_usage_text()
+
+        if settings['gui']:
+            interp.pause_lock.wait()
+            if not self.continueFlag:
+                interp.pause_lock.clear()
+
         self.push(interp)
 
     def debug(self, instr) -> bool:
@@ -279,6 +285,9 @@ class Debug:
 
             interp.reg['pc'] = prev.pc + 4
             interp.instr = interp.mem.text[str(prev.pc)]
+
+        if settings['gui']:
+            interp.step.emit()
 
         return True
 
