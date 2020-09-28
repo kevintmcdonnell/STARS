@@ -151,7 +151,7 @@ def sbrk(inter) -> None:
 
 
 def _exit(inter) -> None:
-    if settings.settings['gui']:
+    if settings['gui']:
         inter.end.emit(False)
     exit()
 
@@ -316,7 +316,7 @@ def dumpFiles(inter) -> None:
 
 
 def _exit2(inter) -> None:
-    if settings.settings['gui']:
+    if settings['gui']:
         inter.end.emit(False)
     exit(inter.get_register('$a0'))
 
