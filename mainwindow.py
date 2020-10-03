@@ -42,6 +42,7 @@ class MainWindow(QMainWindow):
         settings['debug'] = True
 
         self.console_sem = QSemaphore(1)
+        self.out_pos = 0
         self.mem_sem = QSemaphore(1)
         # settings['debug'] = True
         self.result = None
@@ -244,6 +245,7 @@ class MainWindow(QMainWindow):
             self.assemble(self.filename)
             self.intr.pause(False)
             self.out.setPlainText('')
+            self.out_pos = self.out.textCursor().position()
             self.program = Thread(target=self.intr.interpret, daemon=True)
             self.program.start()
         elif not self.intr.debug.continueFlag:
@@ -380,15 +382,20 @@ class MainWindow(QMainWindow):
         cur = self.out.textCursor()
         cur.setPosition(QTextCursor.End)
         self.out.insertPlainText(s)
+        self.out_pos = self.out.textCursor().position()
         self.console_sem.release()
 
     def eventFilter(self, obj, event):
         if event.type() == QEvent.KeyPress and obj is self.out:
-            print(event.key())
-            if event.key() in range(256):
-                print(f'\t{chr(event.key())}')
             if event.key() == Qt.Key_Return and self.out.hasFocus():
-                print('Enter pressed')
+                self.console_sem.acquire()
+                cur = self.out.textCursor()
+                cur.setPosition(self.out_pos, QTextCursor.KeepAnchor)
+                s = cur.selectedText()
+                cur.setPosition(QTextCursor.End)
+                self.out_pos = self.out.textCursor().position()
+                self.console_sem.release()
+                self.intr.set_input(s)
         return super().eventFilter(obj, event)
 
 

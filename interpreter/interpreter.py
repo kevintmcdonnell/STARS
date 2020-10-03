@@ -16,7 +16,7 @@ from interpreter.debugger import Debug
 from interpreter.memory import Memory
 from interpreter.syscalls import syscalls
 from settings import settings
-from threading import Event
+from threading import Event, Lock
 
 class Interpreter(QWidget):
     step = Signal()
@@ -29,6 +29,14 @@ class Interpreter(QWidget):
         else:
             print(s, end=end, file=file)
 
+    def input(self):
+        if settings['gui']:
+            self.input_lock.clear()
+            self.input_lock.wait()
+            return self.input_str
+        else:
+            return input()
+
     def __init__(self, code: List, args: List[str]):
         if settings['gui']:
             super().__init__()
@@ -38,6 +46,9 @@ class Interpreter(QWidget):
         self.f_reg = dict()
 
         self.pause_lock = Event()
+        self.input_lock = Event()
+        self.lock_input = Lock()
+        self.input_str = None
 
         self.init_registers(settings['garbage_registers'])
         self.mem = Memory(settings['garbage_memory'])
@@ -502,3 +513,9 @@ class Interpreter(QWidget):
         else:
             self.pause_lock.set()
 
+    def set_input(self, string: str):
+        self.lock_input.acquire()
+        if not self.input_lock.isSet():
+            self.input_str = string
+            self.input_lock.set()
+        self.lock_input.release()

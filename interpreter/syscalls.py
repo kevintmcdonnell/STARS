@@ -116,7 +116,7 @@ def atoi(inter) -> None:
 
 
 def readInteger(inter) -> None:
-    read = input()
+    read = inter.input()
 
     try:
         inter.set_register('$v0', int(read))
@@ -126,7 +126,7 @@ def readInteger(inter) -> None:
 
 
 def readString(inter) -> None:
-    s = input()
+    s = inter.input()
 
     s = utility.handle_escapes(s)
     s = s[:inter.get_register('$a1')]
