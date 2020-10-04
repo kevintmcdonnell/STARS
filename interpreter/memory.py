@@ -40,7 +40,7 @@ class Memory:
         self.text[str(self.textPtr)] = instr
         self.textPtr += 4  # PC += 4
 
-    def setByte(self, addr: int, data: int, admin=True) -> None:
+    def setByte(self, addr: int, data: int, admin=False) -> None:
         # Addr : Address in memory (int)
         # Data = Contents of the byte (0 to 0xFF)
         if not admin:
@@ -63,9 +63,9 @@ class Memory:
         for i in range(2):  # Set byte by byte starting from LSB
             self.setByte(addr + i, (data >> (8 * i)) & 0xFF)
 
-    def addByte(self, data: int, addr: int, admin=True) -> None:
+    def addByte(self, data: int, addr: int, admin=False) -> None:
         # Add a byte to memory. Only looks at the LSB of data.
-        self.setByte(addr, data & 0xFF, admin=True)
+        self.setByte(addr, data & 0xFF, admin)
 
     # Add a single precision floating point to memory
     def addFloat(self, data: float32, addr: int) -> None:
@@ -124,9 +124,9 @@ class Memory:
                 print(f'Warning: Reading from uninitialized byte {utility.format_hex(int(addr))}!', file=sys.stderr)
 
             if self.toggle_garbage:
-                self.addByte(random.randint(0, 0xFF), addr, admin=True)
+                self.addByte(random.randint(0, 0xFF), addr, admin=admin)
             else:
-                self.addByte(0, addr, admin=True)
+                self.addByte(0, addr, admin=admin)
 
             return self.getByte(addr, signed=signed, admin=admin)
 
