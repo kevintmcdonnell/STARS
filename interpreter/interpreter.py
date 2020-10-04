@@ -373,7 +373,7 @@ class Interpreter(QWidget):
                 result = instrs.table[op](addr, self.mem, self.get_register(reg))
                 self.set_register(reg, result)
 
-            elif op in {'lw', 'lh', 'lb'}:
+            elif op in {'lw', 'lh', 'lb', 'lhu', 'lbu'}:
                 result = instrs.table[op](addr, self.mem)
                 self.set_register(reg, result)
 
