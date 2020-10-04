@@ -7,6 +7,7 @@ from settings import settings
 from sly.lex import Lexer
 from pathlib import Path
 
+
 # Determine if the replacement string for eqv is valid
 def isValid(s: str, lexer: Lexer) -> bool:
     restrictedTokens = settings['pseudo_ops'].keys()
@@ -18,11 +19,8 @@ def isValid(s: str, lexer: Lexer) -> bool:
     return True
 
 
-def walk(filename: Path, files: List[str], eqv: Dict[str, str], lexer: Lexer, parent: Path) -> Tuple[List, Dict]:
+def walk(filename: Path, files: List[Path], eqv: Dict[str, str], abs_to_rel: Dict[Path, str], lexer: Lexer, parent: Path) -> None:
     f = filename.open(mode='r')
-
-    # Replace backslashes with two backslashes for regex to work properly
-
 
     # Patterns to detect if line is an .eqv or .include directive
     eq_pattern = re.compile(r'[.]eqv (.*?)? (.*)')
@@ -52,17 +50,19 @@ def walk(filename: Path, files: List[str], eqv: Dict[str, str], lexer: Lexer, pa
                 raise InvalidEQV(f'{filename}: line {line_count}: {original} is a restricted word and cannot be replaced using eqv.')
 
         elif incl_match:
-            file = incl_match.group(1)
-            file = parent.joinpath(file)
+            rel = incl_match.group(1)
+            file = parent.joinpath(rel)
             file.resolve()
+
+            abs_to_rel[file] = rel
+
             if file in files:
                 f.close()
                 raise FileAlreadyIncluded(f'{filename}, line number: {line_count}: {file} already included.')
 
-            walk(file, files, eqv, lexer, parent)
+            walk(file, files, eqv, abs_to_rel, lexer, parent)
 
     f.close()
-    return files, eqv
 
 
 # Perform macro substitutions of a single line of code.
@@ -96,12 +96,14 @@ def substitute(line: str, eqv: Dict[str, str]) -> str:
 def preprocess(filename: str, lexer: Lexer) -> Tuple[str, Dict[str, List[str]]]:
     files = []
     eqv = {}
+    abs_to_rel = {}
 
     # Step 1: Do a depth-first search of the .include tree, gathering file names and
     # .eqv definitions along the way
     path = Path(filename)
     path.resolve()
-    files, eqv = walk(path, files, eqv, lexer, path.parent)
+
+    walk(path, files, eqv, abs_to_rel, lexer, path.parent)
     texts = [''] * len(files)
     original_text = {}
 
@@ -109,17 +111,19 @@ def preprocess(filename: str, lexer: Lexer) -> Tuple[str, Dict[str, List[str]]]:
     for i, filename in enumerate(files):
         file = filename.open()
         count = 1
-        original_text[str(filename)] = file.readlines()
 
-        for line in original_text[str(filename)]:
+        filename_fslash = filename.as_posix()
+        original_text[filename_fslash] = file.readlines()
+
+        for line in original_text[filename_fslash]:
             line = line.strip()
 
-            if line == "" or line[0] == "#":
-                texts[i] += line + "\n"
+            if line == '' or line[0] == '#':
+                texts[i] += line + '\n'
             elif count == 1:  # Beginning of a new file
-                texts[i] += line + f' {FILE_MARKER} \"{filename}\" {count}\n'
+                texts[i] += line + f' {FILE_MARKER} \"{filename_fslash}\" {count}\n'
             else:
-                texts[i] += line + f' {LINE_MARKER} \"{filename}\" {count}\n'
+                texts[i] += line + f' {LINE_MARKER} \"{filename_fslash}\" {count}\n'
 
             count += 1
 
@@ -129,9 +133,9 @@ def preprocess(filename: str, lexer: Lexer) -> Tuple[str, Dict[str, List[str]]]:
     text = texts[0]
 
     for filename, contents in zip(files, texts):
-        filename_re = re.sub(r'\\', r'\\\\', str(filename))
-        pattern = r'\.include "' + filename_re + '".*?\n'
-        text = re.sub(pattern, contents, text)
+        if filename in abs_to_rel:
+            pattern = rf'\.include "{abs_to_rel[filename]}".*?\n'
+            text = re.sub(pattern, contents, text)
 
     newText = ''
 
@@ -139,7 +143,7 @@ def preprocess(filename: str, lexer: Lexer) -> Tuple[str, Dict[str, List[str]]]:
     for line in text.split('\n'):
         line = line.strip()
         line = substitute(line, eqv)
-        newText += (line + "\n")
+        newText += (line + '\n')
 
     newText = newText.strip()
     return newText, original_text
