@@ -69,7 +69,7 @@ class Memory:
 
     # Add a single precision floating point to memory
     def addFloat(self, data: float32, addr: int) -> None:
-        data_int = int.from_bytes(struct.pack('>f', data), 'big')
+        data_int = int.from_bytes(struct.pack('>f', data), 'big', signed=True)
         self.addWord(data_int, addr)
 
     # Add a double precision floating point to memory
@@ -77,7 +77,7 @@ class Memory:
         if addr % 8 != 0:
             raise ex.MemoryAlignmentError(f"{utility.format_hex(addr)} is not double-word aligned.")
 
-        data_int = int.from_bytes(struct.pack('>d', data), 'big')
+        data_int = int.from_bytes(struct.pack('>d', data), 'big', signed=True)
 
         self.addWord(data_int & WORD_MASK, addr)  # Lower 32 bits
         self.addWord(data_int >> 32, addr + 4)  # Upper 32 bits
@@ -172,7 +172,7 @@ class Memory:
 
     def getFloat(self, addr: int) -> float32:
         data_int = self.getWord(addr)
-        return struct.unpack('>f', data_int.to_bytes(4, 'big'))[0]
+        return struct.unpack('>f', data_int.to_bytes(4, 'big', signed=True))[0]
 
     def getDouble(self, addr: int) -> float:
         if addr % 8 != 0:
@@ -182,7 +182,7 @@ class Memory:
         data_upper = self.getWord(addr + 4)
         data_int = (data_upper << 32) + data_lower
 
-        return struct.unpack('>d', data_int.to_bytes(8, 'big'))[0]
+        return struct.unpack('>d', data_int.to_bytes(8, 'big', signed=True))[0]
 
     def getLabel(self, s: str) -> Union[int, None]:
         if s in self.labels:
