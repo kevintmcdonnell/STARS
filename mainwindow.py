@@ -397,7 +397,7 @@ class MainWindow(QMainWindow):
 
     def mem_leftclick(self):
         self.mem_sem.acquire()
-        if self.base_address >= settings['data_min'] + 256:
+        if self.base_address >= 256:
             self.base_address -= 256
         self.mem_sem.release()
         self.fill_mem()
