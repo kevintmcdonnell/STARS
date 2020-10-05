@@ -24,11 +24,11 @@ class Interpreter(QWidget):
     console_out = Signal(str)
     end = Signal(bool)
 
-    def out(self, s: str, end='', file=sys.stdout) -> None:
+    def out(self, s: str, end='') -> None:
         if settings['gui']:
             self.console_out.emit(f'{s}{end}')
         else:
-            print(s, end=end, file=file)
+            print(s, end=end)
 
     def input(self):
         if settings['gui']:
