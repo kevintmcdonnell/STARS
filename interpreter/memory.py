@@ -172,7 +172,7 @@ class Memory:
 
     def getFloat(self, addr: int) -> float32:
         data_int = self.getWord(addr)
-        return struct.unpack('>f', data_int.to_bytes(4, 'big', signed=True))[0]
+        return float32(struct.unpack('>f', data_int.to_bytes(4, 'big', signed=True))[0])
 
     def getDouble(self, addr: int) -> float:
         if addr % 8 != 0:

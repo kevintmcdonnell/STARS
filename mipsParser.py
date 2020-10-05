@@ -56,7 +56,7 @@ class MipsParser(Parser):
     def instrs(self, p):
         result = []
 
-        if type(p.instr) == PseudoInstr:
+        if type(p.instr) is PseudoInstr:
             for i in range(len(p.instr.instrs)):
                 p.instr.instrs[i].filetag = p.filetag
                 p.instr.instrs[i].original_text = self.original_text[p.filetag.file_name][p.filetag.line_no - 1]
@@ -86,7 +86,7 @@ class MipsParser(Parser):
     def iType(self, p):
         return IType(p.I_TYPE, [p[1], p[2]], p[3])
 
-    @_('R_TYPE3 REG REG REG')
+    @_('R_TYPE3 REG REG REG', 'R_TYPE3_F F_REG F_REG F_REG')
     def rType(self, p):
         return RType(p[0], [p[1], p[2], p[3]])
 

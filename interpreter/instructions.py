@@ -1,9 +1,13 @@
+import warnings
 from typing import Union, Tuple, Dict
+
+from numpy import float32
 
 from constants import WORD_SIZE, HALF_SIZE, WORD_MASK
 from interpreter import exceptions as ex
 
 
+# Regular instructions
 # Helper function to account for overflow issues.
 def overflow_detect(n: int) -> int:
     mod = n % WORD_SIZE
@@ -82,7 +86,7 @@ def mul(a: int, b: int, thirty_two_bits: bool = True, signed: bool = True) -> Un
     if signed:  # mult (64 bits, signed)
         result = a * b
 
-    else: # multu (64 bits, unsigned)
+    else:  # multu (64 bits, unsigned)
         result = to_unsigned(a) * to_unsigned(b)
 
     return result & WORD_MASK, (result >> 32) & WORD_MASK
@@ -404,13 +408,63 @@ def movz(a: int, b: int) -> int:
     return a
 
 
+# Floating point instructions
+def add_f(a: Union[float32, float], b: Union[float32, float]) -> Union[float32, float]:
+    if type(a) is float32:
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            return float32(a + b)
+
+    return a + b
+
+
+def sub_f(a: Union[float32, float], b: Union[float32, float]) -> Union[float32, float]:
+    if type(a) is float32:
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            return float32(a - b)
+
+    return a - b
+
+
+def mul_f(a: Union[float32, float], b: Union[float32, float]) -> Union[float32, float]:
+    if type(a) is float32:
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            return float32(a * b)
+
+    return a * b
+
+
+def div_f(a: Union[float32, float], b: Union[float32, float]) -> Union[float32, float]:
+    if type(a) is float32:
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            return float32(a / b)
+
+    try:
+        result = a / b
+    except ZeroDivisionError:
+        if a > 0:
+            result = float('inf')
+        elif a < 0:
+            result = float('-inf')
+        else:
+            result = float('nan')
+
+    return result
+
+
 table = {'add': add,
+         'add_f': add_f,
          'addu': addu,
          'addi': addi,
          'addiu': addiu,
          'and': _and,
          'andi': andi,
          'mul': mul,
+         'mul_f': mul_f,
+         'div_f': div_f,
          'clo': clo,
          'clz': clz,
          'nor': nor,
@@ -427,6 +481,7 @@ table = {'add': add,
          'srl': srl,
          'srlv': srlv,
          'sub': sub,
+         'sub_f': sub_f,
          'subu': subu,
          'xor': xor,
          'xori': xori,

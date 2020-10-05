@@ -21,13 +21,17 @@ def makeRegex() -> Dict[str, str]:
 class MipsLexer(Lexer):
     tokens = {HALF, ALIGN, EQV, LABEL, ZERO_BRANCH, BRANCH, I_TYPE, LOADS_I,
               LOADS_R, J_TYPE, J_TYPE_R, R_TYPE3, SYSCALL, R_TYPE2, NOP, BREAK, MOVE,
-              LOADS_F,
+              LOADS_F, R_TYPE3_F,
               REG, F_REG, LABEL, NUMBER, STRING, CHAR, FLOAT_LITERAL,
               LPAREN, RPAREN, COMMA, COLON, LINE_MARKER,
               TEXT, DATA, WORD, BYTE, FLOAT, DOUBLE, ASCIIZ, ASCII, SPACE,
               PS_R_TYPE3, PS_R_TYPE2, PS_I_TYPE, PS_LOADS_I, PS_LOADS_A, PS_BRANCH, PS_ZERO_BRANCH}
     ignore = ' \t'
     pseudoOps = makeRegex()
+
+    # Basic floating point instructions
+    LOADS_F = r'\b(l|s)\.[sd]\b'
+    R_TYPE3_F = r'\b(add|sub|mul|div)\.[sd]\b'
 
     # Basic instructions
     R_TYPE3 = r'\b(and|addu?|mul|[xn]?or|sllv|srav|slt[u]?|sub[u]?|mov[nz])\b'
@@ -46,9 +50,6 @@ class MipsLexer(Lexer):
 
     NOP = r'\b(nop)\b'
     BREAK = r'\b(break)\b'
-
-    # Basic floating point instructions
-    LOADS_F = r'\b(l|s)\.[sd]\b'
 
     # Pseudo Instructions
     PS_R_TYPE3 = rf'\b({pseudoOps["R_TYPE3"]})\b'

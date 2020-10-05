@@ -4,6 +4,7 @@ import re
 import struct
 import sys
 from collections import OrderedDict
+from threading import Event, Lock
 
 from PySide2.QtCore import Signal
 from PySide2.QtWidgets import QWidget
@@ -16,7 +17,7 @@ from interpreter.debugger import Debug
 from interpreter.memory import Memory
 from interpreter.syscalls import syscalls
 from settings import settings
-from threading import Event, Lock
+
 
 class Interpreter(QWidget):
     step = Signal()
@@ -66,7 +67,7 @@ class Interpreter(QWidget):
             self.handleArgs(args)
 
         for line in code:  # Go through the source code line by line, adding declarations first
-            if type(line) == Declaration:
+            if type(line) is Declaration:
                 # Data declaration
                 data_type = line.type[1:]
 
@@ -118,7 +119,18 @@ class Interpreter(QWidget):
                     if mod != 0:
                         self.mem.dataPtr += (4 - mod)
                     for data in line.data:
-                        self.mem.addFloat(data, self.mem.dataPtr)
+                        data_f32 = 0.0
+
+                        if abs(data) < const.FLOAT_MIN:
+                            data_f32 = float32(0)
+                        elif data > const.FLOAT_MAX:
+                            data_f32 = float32('inf')
+                        elif data < -const.FLOAT_MAX:
+                            data_f32 = float32('-inf')
+                        else:
+                            data_f32 = float32(data)
+
+                        self.mem.addFloat(data_f32, self.mem.dataPtr)
                         self.mem.dataPtr += 4
 
                 elif data_type == 'double':
@@ -150,14 +162,14 @@ class Interpreter(QWidget):
                     if mod != 0:
                         self.mem.dataPtr += (align - mod)
 
-            elif type(line) == Label:
+            elif type(line) is Label:
                 if line.name == 'main':
                     self.has_main = True
                     self.reg['pc'] = self.mem.textPtr
 
                 self.mem.addLabel(line.name, self.mem.textPtr)
 
-            elif type(line) == PseudoInstr:
+            elif type(line) is PseudoInstr:
                 for instr in line.instrs:
                     self.mem.addText(instr)
 
@@ -170,7 +182,7 @@ class Interpreter(QWidget):
         comp = re.compile(r'(lb[u]?|lh[u]?|lw[lr]|lw|la|s[bhw]|sw[lr])')
 
         for line in code:  # Replace the labels in load/store instructions by the actual address
-            if type(line) == PseudoInstr and comp.match(line.operation):
+            if type(line) is PseudoInstr and comp.match(line.operation):
                 addr = self.mem.getLabel(line.label.name)
 
                 if addr:
@@ -279,28 +291,47 @@ class Interpreter(QWidget):
         self.f_reg[next_reg] = upper
 
     def execute_instr(self, instr) -> None:
+        def is_float_single(op: str) -> bool:
+            return op[-2:] == '.s'
+
+        def is_float_double(op: str) -> bool:
+            return op[-2:] == '.d'
+
         # Instruction with 3 registers
-        if type(instr) == RType and len(instr.regs) == 3:
+        if type(instr) is RType and len(instr.regs) == 3:
             op = instr.operation
             rd = instr.regs[0]
-            rs = self.get_register(instr.regs[1])
-            rt = self.get_register(instr.regs[2])
 
-            result = instrs.table[op](rs, rt)
+            if is_float_single(op):
+                rs = self.get_reg_float(instr.regs[1])
+                rt = self.get_reg_float(instr.regs[2])
+                result = instrs.table[op[:-2] + '_f'](rs, rt)
+                self.set_reg_float(rd, result)
 
-            if op == 'movz':
-                if rt == 0:
-                    self.set_register(rd, result)
-
-            elif op == 'movn':
-                if rt != 0:
-                    self.set_register(rd, result)
+            elif is_float_double(op):
+                rs = self.get_reg_double(instr.regs[1])
+                rt = self.get_reg_double(instr.regs[2])
+                result = instrs.table[op[:-2] + '_f'](rs, rt)
+                self.set_reg_double(rd, result)
 
             else:
-                self.set_register(rd, result)
+                rs = self.get_register(instr.regs[1])
+                rt = self.get_register(instr.regs[2])
+                result = instrs.table[op](rs, rt)
+
+                if op == 'movz':
+                    if rt == 0:
+                        self.set_register(rd, result)
+
+                elif op == 'movn':
+                    if rt != 0:
+                        self.set_register(rd, result)
+
+                else:
+                    self.set_register(rd, result)
 
         # Instruction with 2 registers
-        elif type(instr) == RType and len(instr.regs) == 2:
+        elif type(instr) is RType and len(instr.regs) == 2:
             op = instr.operation
             r1 = instr.regs[0]
             r2 = instr.regs[1]
@@ -340,15 +371,15 @@ class Interpreter(QWidget):
                 self.set_register(r1, result)
 
         # j type instructions (Label)
-        elif type(instr) == JType and type(instr.target) == Label:
+        elif type(instr) is JType and type(instr.target) is Label:
             instrs.table[instr.operation](self.reg, self.mem, instr.target.name)
 
         # j type instructions (Return)
-        elif type(instr) == JType:
+        elif type(instr) is JType:
             instrs.table[instr.operation](self.reg, instr.target)
 
         # i-type isntructions
-        elif type(instr) == IType:
+        elif type(instr) is IType:
             op = instr.operation
             rd = instr.regs[0]
             rs = self.get_register(instr.regs[1])
@@ -358,13 +389,13 @@ class Interpreter(QWidget):
             self.set_register(rd, result)
 
         # Load immediate
-        elif type(instr) == LoadImm:
+        elif type(instr) is LoadImm:
             if instr.operation == 'lui':
                 upper = instrs.lui(instr.imm)
                 self.set_register(instr.reg, upper)
 
         # Load or store from memory
-        elif type(instr) == LoadMem:
+        elif type(instr) is LoadMem:
             op = instr.operation
             reg = instr.reg
             addr = self.get_register(instr.addr) + instr.imm
@@ -395,7 +426,7 @@ class Interpreter(QWidget):
                 instrs.table[op](addr, self.mem, self.get_register(reg))
 
         # Mfhi, mflo, mthi, mtlo
-        elif type(instr) == Move:
+        elif type(instr) is Move:
             op = instr.operation
 
             if 'f' in op:
@@ -409,7 +440,7 @@ class Interpreter(QWidget):
             self.set_register(dest, self.get_register(src))
 
         # syscall
-        elif type(instr) == Syscall:
+        elif type(instr) is Syscall:
             code = self.get_register('$v0')
 
             if code in syscalls and code in settings['enabled_syscalls']:
@@ -418,7 +449,7 @@ class Interpreter(QWidget):
                 raise ex.InvalidSyscall('Not a valid syscall code:')
 
         # Branches
-        elif type(instr) == Branch:
+        elif type(instr) is Branch:
             op = instr.operation
             rs = self.get_register(instr.rs)
             rt = self.get_register(instr.rt)
@@ -440,10 +471,10 @@ class Interpreter(QWidget):
                 else:
                     self.set_register('pc', addr)
 
-        elif type(instr) == Nop:
+        elif type(instr) is Nop:
             pass
 
-        elif type(instr) == Breakpoint:
+        elif type(instr) is Breakpoint:
             raise ex.BreakpointException(f'code = {instr.code}')
 
     def interpret(self) -> None:
@@ -480,7 +511,7 @@ class Interpreter(QWidget):
                 elif self.debug.debug(self.instr):
                     self.debug.listen(self)
 
-                elif settings['gui'] and type(self.instr) == Syscall and (self.reg['$v0'] == 10 or self.reg['$v0'] == 17):
+                elif settings['gui'] and type(self.instr) is Syscall and (self.reg['$v0'] == 10 or self.reg['$v0'] == 17):
                     self.end.emit(False)
                     break
 

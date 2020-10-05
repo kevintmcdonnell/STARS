@@ -230,22 +230,22 @@ class Debug:
     def push(self, interp) -> None:
         instr = interp.instr
         prev = None
-        if type(instr) == RType or type(instr) == IType:
+        if type(instr) is RType or type(instr) is IType:
             op = instr.operation
             if op in ['mult', 'multu', 'madd', 'maddu', 'msub', 'msubu', 'div', 'divu']:
                 prev = MChange(interp.reg['hi'], interp.reg['lo'], interp.reg['pc'] - 4)
             else:
                 prev = RegChange(instr.regs[0], interp.reg[instr.regs[0]], interp.reg['pc'] - 4)
-        elif type(instr) == LoadImm or type(instr) == Move:
+        elif type(instr) is LoadImm or type(instr) is Move:
             prev = RegChange(instr.reg, interp.reg[instr.reg], interp.reg['pc'] - 4)
-        elif type(instr) == JType:
+        elif type(instr) is JType:
             op = instr.operation
             if 'l' in op:
-                if type(instr.target) == Label:
+                if type(instr.target) is Label:
                     prev = RegChange('$ra', interp.reg['$ra'], interp.reg['pc'] - 4)
                 else:
                     prev = RegChange(instr.target, interp.reg[instr.target], interp.reg['pc'] - 4)
-        elif type(instr) == LoadMem:
+        elif type(instr) is LoadMem:
             op = instr.operation
             if op[0] == 'l':
                 prev = RegChange(instr.reg, interp.reg[instr.reg], interp.reg['pc'] - 4)
