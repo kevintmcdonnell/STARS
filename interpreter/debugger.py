@@ -219,8 +219,6 @@ class Debug:
         filename = instr.filetag.file_name
         lineno = instr.filetag.line_no
 
-        print(self.breakpoints)
-
         if settings['debug'] and (filename, str(lineno)) in self.breakpoints:
             self.continueFlag = False
             return True
