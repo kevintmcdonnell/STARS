@@ -56,6 +56,8 @@ class MainWindow(QMainWindow):
 
         self.filename = None
 
+        self.breakpoints = []
+
         self.default_theme = QGuiApplication.palette()
         self.dark = False
         self.palette = QPalette()
@@ -106,10 +108,22 @@ class MainWindow(QMainWindow):
         self.right.addLayout(self.reg_box)
 
     def init_instrs(self):
-        self.instrs = QTextEdit()
-        self.instrs.setLineWrapMode(QTextEdit.NoWrap)
-        self.instrs.setReadOnly(True)
-        self.left.addWidget(self.instrs)
+        i = QWidget()
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setWidget(i)
+        self.instrs = []
+        self.pcs = []
+        self.checkboxes = []
+        self.instr_grid = QGridLayout()
+        self.instr_grid.setSpacing(0)
+
+        i.setLayout(self.instr_grid)
+        self.left.addWidget(scroll)
+        # self.instrs = QTextEdit()
+        # self.instrs.setLineWrapMode(QTextEdit.NoWrap)
+        # self.instrs.setReadOnly(True)
+        # self.left.addWidget(self.instrs)
 
     def init_menubar(self):
         bar = self.menuBar()
@@ -247,6 +261,8 @@ class MainWindow(QMainWindow):
             self.out.setPlainText('')
             self.out_pos = self.out.textCursor().position()
             self.program = Thread(target=self.intr.interpret, daemon=True)
+            for b in self.breakpoints:
+                self.intr.debug.addBreakpoint(b[0], b[1])
             self.program.start()
         elif not self.intr.debug.continueFlag:
             self.intr.pause(False)
@@ -266,6 +282,8 @@ class MainWindow(QMainWindow):
             self.intr.pause_lock.set()
             self.out.setPlainText('')
             self.program = Thread(target=self.intr.interpret, daemon=True)
+            for b in self.breakpoints:
+                self.intr.debug.addBreakpoint(b[0], b[1])
             self.program.start()
         else:
             self.intr.pause_lock.set()
@@ -308,40 +326,47 @@ class MainWindow(QMainWindow):
 
     def fill_instrs(self):
         pc = self.intr.reg['pc']
-        if len(self.instrs.toPlainText()) > 0:
-            fmt = QTextCharFormat()
-            cur = self.instrs.textCursor()
-            cur.select(QTextCursor.Document)
-            cur.setCharFormat(fmt)
-            cur.clearSelection()
-
-            cur = self.instrs.textCursor()
-            block = self.instrs.document().findBlockByLineNumber((pc - settings['initial_pc'] - 4) // 4)
-            cur.setPosition(block.position())
-            fmt = QTextCharFormat()
-            fmt.setBackground(Qt.cyan)
-            cur.select(QTextCursor.LineUnderCursor)
-            cur.setCharFormat(fmt)
+        if len(self.instrs) > 0:
+            # fmt = QTextCharFormat()
+            # self.prev_instr.setTextFormat(fmt)
+            #
+            #
+            # fmt = QTextCharFormat()
+            # fmt.setBackground(Qt.cyan)
+            # self.instrs[pc - settings['initial_pc']].setTextFormat(fmt)
+            self.prev_instr = self.instrs[(pc - settings['initial_pc'])//4]
 
         else:
             mem = self.intr.mem
+            count = 0
             for k in mem.text.keys():
                 if type(mem.text[k]) is not str:
-                    if mem.text[k].is_from_pseudoinstr:
-                        self.instrs.append(f'0x{int(k):08x}\t{mem.text[k].original_text.strip()} ( {mem.text[k].basic_instr()} )')
-
+                    i = mem.text[k]
+                    check = QCheckBox()
+                    check.stateChanged.connect(lambda state, i=i: self.add_breakpoint(('b', str(i.filetag.file_name), str(i.filetag.line_no)), self.intr) if state == Qt.Checked else self.remove_breakpoint((i.filetag.file_name, i.filetag.line_no), self.intr))
+                    self.checkboxes.append(check)
+                    self.instr_grid.addWidget(check, count, 0)
+                    if i.is_from_pseudoinstr:
+                        q = QLabel(f'0x{int(k):08x}\t{i.original_text.strip()} ( {i.basic_instr()} )')
+                        self.instrs.append(q)
+                        self.instr_grid.addWidget(q, count, 1)
                     else:
-                        self.instrs.append(f'0x{int(k):08x}\t{mem.text[k].original_text.strip()}')
-
-            cur = self.instrs.textCursor()
-            block = self.instrs.document().findBlockByLineNumber(0)
-            cur.setPosition(block.position())
-            fmt = QTextCharFormat()
-            fmt.setBackground(Qt.cyan)
-            cur.select(QTextCursor.LineUnderCursor)
-            cur.setCharFormat(fmt)
-            self.instrs.verticalScrollBar().setValue(self.instrs.verticalScrollBar().minimum())
-
+                        q = QLabel(f'0x{int(k):08x}\t{i.original_text.strip()}')
+                        self.instrs.append(q)
+                        self.instr_grid.addWidget(q, count, 1)
+                    count += 1
+            # cur = self.instrs.textCursor()
+            # block = self.instrs.document().findBlockByLineNumber(0)
+            # cur.setPosition(block.position())
+            # fmt = QTextCharFormat()
+            # fmt.setBackground(Qt.cyan)
+            # cur.select(QTextCursor.LineUnderCursor)
+            # cur.setCharFormat(fmt)
+            # self.instrs.verticalScrollBar().setValue(self.instrs.verticalScrollBar().minimum())
+            # fmt = QTextCharFormat()
+            # fmt.setBackground(Qt.cyan)
+            # self.instrs[0].setTextFormat(fmt)
+            # self.prev_instr = self.instrs[0]
     def fill_mem(self):
         self.mem_sem.acquire()
         mem = self.intr.mem
@@ -398,6 +423,13 @@ class MainWindow(QMainWindow):
                 self.intr.set_input(s)
         return super().eventFilter(obj, event)
 
+    def add_breakpoint(self, cmd, interp):
+        self.intr.debug.addBreakpoint(cmd, interp)
+        self.breakpoints.append((cmd, interp))
+
+    def remove_breakpoint(self, cmd, interp):
+        self.intr.debug.removeBreakpoint(cmd, interp)
+        self.breakpoints.remove((cmd, interp))
 
 if __name__ == "__main__":
     app = QApplication()

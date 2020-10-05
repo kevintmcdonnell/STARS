@@ -509,6 +509,8 @@ class Interpreter(QWidget):
                     break
 
                 elif self.debug.debug(self.instr):
+                    if not self.debug.continueFlag:
+                        self.pause_lock.clear()
                     self.debug.listen(self)
 
                 elif settings['gui'] and type(self.instr) is Syscall and (self.reg['$v0'] == 10 or self.reg['$v0'] == 17):

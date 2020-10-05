@@ -219,13 +219,17 @@ class Debug:
         filename = instr.filetag.file_name
         lineno = instr.filetag.line_no
 
+        print(self.breakpoints)
+
+        if settings['debug'] and (filename, str(lineno)) in self.breakpoints:
+            self.continueFlag = False
+            return True
+
         if not self.continueFlag:
             return settings['debug']
 
         # If we encounter a breakpoint while executing, then break
-        elif settings['debug'] and (filename, str(lineno)) in self.breakpoints:
-            self.continueFlag = False
-            return True
+
 
     def push(self, interp) -> None:
         instr = interp.instr
@@ -316,3 +320,6 @@ class Debug:
         else:
             print_usage_text()
         return True
+
+    def removeBreakpoint(self, cmd: List[str], interp) -> bool:
+        self.breakpoints.remove((cmd[0], cmd[1]))
