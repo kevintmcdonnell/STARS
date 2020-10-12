@@ -1,7 +1,7 @@
 from threading import Thread
 
 from PySide2.QtCore import Qt, QSemaphore, QEvent
-from PySide2.QtGui import QTextCharFormat, QTextCursor, QGuiApplication, QPalette, QColor
+from PySide2.QtGui import QTextCursor, QGuiApplication, QPalette, QColor, QFont, QKeySequence
 from PySide2.QtWidgets import *
 
 from constants import REGS
@@ -9,7 +9,7 @@ from interpreter.interpreter import Interpreter
 from preprocess import preprocess
 from sbumips import MipsLexer, MipsParser
 from settings import settings
-
+from controller import Controller
 
 def to_ascii(c):
     if c in range(127):
@@ -37,6 +37,8 @@ class MainWindow(QMainWindow):
     def __init__(self, app):
         super().__init__()
         self.app = app
+
+        self.controller = Controller(None, None)
 
         settings['gui'] = True
         settings['debug'] = True
@@ -102,6 +104,7 @@ class MainWindow(QMainWindow):
         i = 0
         for r in REGS:
             self.regs[r] = QLineEdit()
+            self.regs[r].setFont(QFont("Courier New", 12))
             self.reg_box.addWidget(QLabel(r), i, 0)
             self.reg_box.addWidget(self.regs[r], i, 1)
             i += 1
@@ -143,15 +146,23 @@ class MainWindow(QMainWindow):
         run = bar.addMenu("Run")
         start = QAction("Start", self)
         start.triggered.connect(self.start)
+        start_short = QShortcut(QKeySequence(self.tr("F5")), self)
+        start_short.activated.connect(lambda: start.trigger())
         run.addAction(start)
         step = QAction("Step", self)
         step.triggered.connect(self.step)
+        step_short = QShortcut(QKeySequence(self.tr("F7")), self)
+        step_short.activated.connect(lambda: step.trigger())
         run.addAction(step)
         back = QAction("Back", self)
         back.triggered.connect(self.reverse)
+        back_short = QShortcut(QKeySequence(self.tr("F8")), self)
+        back_short.activated.connect(lambda: back.trigger())
         run.addAction(back)
         pause = QAction('Pause', self)
         pause.triggered.connect(self.pause)
+        pause_short = QShortcut(QKeySequence(self.tr("F9")), self)
+        pause_short.activated.connect(lambda: pause.trigger())
         run.addAction(pause)
 
     def init_out(self):
@@ -191,6 +202,7 @@ class MainWindow(QMainWindow):
                 q.setLineWidth(2)
                 if j == 0:
                     q.setText(f'0x{count:08x}')
+                    q.setFont(QFont("Courier New"))
                     self.addresses[i - 1] = q
                 else:
                     self.mem_vals.append(q)
@@ -219,6 +231,8 @@ class MainWindow(QMainWindow):
             r1 = lexer.tokenize(data)
             self.result = parser.parse(r1)
             self.intr = Interpreter(self.result, [])
+            self.controller.set_interp(self.intr)
+            self.instrs = []
             self.update_screen()
             self.intr.step.connect(self.update_screen)
             self.intr.console_out.connect(self.update_console)
@@ -252,47 +266,49 @@ class MainWindow(QMainWindow):
         self.dark = not self.dark
 
     def start(self):
-        if not self.intr:
+        if not self.controller.good():
             return
         if not self.running:
             self.set_running(True)
             self.assemble(self.filename)
-            self.intr.pause(False)
+            self.controller.set_interp(self.intr)
+            self.controller.pause(False)
             self.out.setPlainText('')
             self.out_pos = self.out.textCursor().position()
             self.program = Thread(target=self.intr.interpret, daemon=True)
             for b in self.breakpoints:
-                self.intr.debug.addBreakpoint(b[0], b[1])
+                self.controller.addBreakpoint(b)
             self.program.start()
-        elif not self.intr.debug.continueFlag:
-            self.intr.pause(False)
+        elif not self.controller.cont():
+            self.controller.pause(False)
 
     def pause(self):
-        if not self.intr:
+        if not self.controller.good():
             return
-        if self.intr.debug.continueFlag:
-            self.intr.pause(True)
+        if self.controller.cont():
+            self.controller.pause(True)
 
     def step(self):
-        if not self.intr:
+        if not self.controller.good():
             return
         if not self.running:
             self.set_running(True)
             self.assemble(self.filename)
-            self.intr.pause_lock.set()
+            self.controller.set_interp(self.intr)
+            self.controller.set_pause(True)
             self.out.setPlainText('')
             self.program = Thread(target=self.intr.interpret, daemon=True)
             for b in self.breakpoints:
-                self.intr.debug.addBreakpoint(b[0], b[1])
+                self.controller.addBreakpoint(b)
             self.program.start()
         else:
-            self.intr.pause_lock.set()
+            self.controller.set_pause(True)
 
     def reverse(self):
-        if not self.intr or not self.running:
+        if not self.controller.good() or not self.running:
             return
         else:
-            self.intr.debug.reverse(None, self.intr)
+            self.controller.reverse()
 
     def change_rep(self, t):
         self.rep = t
@@ -310,6 +326,8 @@ class MainWindow(QMainWindow):
     def set_running(self, run):
         self.run_sem.acquire()
         self.running = run
+        if not run:
+            self.instrs = []
         self.run_sem.release()
 
     def update_screen(self):
@@ -334,7 +352,9 @@ class MainWindow(QMainWindow):
             # fmt = QTextCharFormat()
             # fmt.setBackground(Qt.cyan)
             # self.instrs[pc - settings['initial_pc']].setTextFormat(fmt)
-            self.prev_instr = self.instrs[(pc - settings['initial_pc'])//4]
+            self.prev_instr.setStyleSheet("QLineEdit { background: rgb(255, 255, 255) };")
+            self.prev_instr = self.instrs[(pc - settings['initial_pc'])//4 - 1]
+            self.prev_instr.setStyleSheet("QLineEdit { background: rgb(0, 255, 255) };")
 
         else:
             mem = self.intr.mem
@@ -343,44 +363,37 @@ class MainWindow(QMainWindow):
                 if type(mem.text[k]) is not str:
                     i = mem.text[k]
                     check = QCheckBox()
-                    check.stateChanged.connect(lambda state, i=i: self.add_breakpoint(('b', str(i.filetag.file_name), str(i.filetag.line_no)), self.intr) if state == Qt.Checked else self.remove_breakpoint((i.filetag.file_name, i.filetag.line_no), self.intr))
+                    check.stateChanged.connect(lambda state, i=i: self.add_breakpoint(('b', str(i.filetag.file_name), str(i.filetag.line_no))) if state == Qt.Checked else self.remove_breakpoint((i.filetag.file_name, i.filetag.line_no)))
                     self.checkboxes.append(check)
                     self.instr_grid.addWidget(check, count, 0)
                     if i.is_from_pseudoinstr:
-                        q = QLabel(f'0x{int(k):08x}\t{i.original_text.strip()} ( {i.basic_instr()} )')
+                        q = QLineEdit(f'0x{int(k):08x}\t{i.original_text.strip()} ( {i.basic_instr()} )')
+                        q.setReadOnly(True)
+                        q.setFont(QFont("Courier New", 12))
                         self.instrs.append(q)
                         self.instr_grid.addWidget(q, count, 1)
                     else:
-                        q = QLabel(f'0x{int(k):08x}\t{i.original_text.strip()}')
+                        q = QLineEdit(f'0x{int(k):08x}\t{i.original_text.strip()}')
+                        q.setFont(QFont("Courier New", 12))
+                        q.setReadOnly(True)
                         self.instrs.append(q)
                         self.instr_grid.addWidget(q, count, 1)
                     count += 1
-            # cur = self.instrs.textCursor()
-            # block = self.instrs.document().findBlockByLineNumber(0)
-            # cur.setPosition(block.position())
-            # fmt = QTextCharFormat()
-            # fmt.setBackground(Qt.cyan)
-            # cur.select(QTextCursor.LineUnderCursor)
-            # cur.setCharFormat(fmt)
-            # self.instrs.verticalScrollBar().setValue(self.instrs.verticalScrollBar().minimum())
-            # fmt = QTextCharFormat()
-            # fmt.setBackground(Qt.cyan)
-            # self.instrs[0].setTextFormat(fmt)
-            # self.prev_instr = self.instrs[0]
+            self.instrs[0].setStyleSheet("QLineEdit { background: rgb(0, 255, 255) };")
+            self.prev_instr = self.instrs[0]
+
     def fill_mem(self):
         self.mem_sem.acquire()
-        mem = self.intr.mem
-
         count = self.base_address
         for q in self.mem_vals:
             if self.rep == "Decimal":
-                q.setText(f'{mem.getByte(count + 3, admin=True):3} {mem.getByte(count + 2, admin=True):3} {mem.getByte(count + 1, admin=True):3} {mem.getByte(count, admin=True):3}')
+                q.setText(f'{self.controller.get_byte(count + 3):3} {self.controller.get_byte(count + 2):3} {self.controller.get_byte(count + 1):3} {self.controller.get_byte(count):3}')
             elif self.rep == "ASCII":
                 q.setText(
-                    f'{to_ascii(mem.getByte(count + 3, signed=False, admin=True)):2} {to_ascii(mem.getByte(count + 2, signed=False, admin=True)):2} {to_ascii(mem.getByte(count + 1, signed=False, admin=True)):2} {to_ascii(mem.getByte(count, signed=False, admin=True)):2}')
+                    f'{to_ascii(self.controller.get_byte(count + 3, signed=True)):2} {to_ascii(self.controller.get_byte(count + 2, signed=True)):2} {to_ascii(self.controller.get_byte(count + 1, signed=True)):2} {to_ascii(self.controller.get_byte(count, signed=True)):2}')
             else:
                 q.setText(
-                    f'0x{mem.getByte(count + 3, signed=False, admin=True):02x} 0x{mem.getByte(count + 2, signed=False, admin=True):02x} 0x{mem.getByte(count + 1, signed=False, admin=True):02x} 0x{mem.getByte(count, signed=False, admin=True):02x}')
+                    f'0x{self.controller.get_byte(count + 4):02x} 0x{self.controller.get_byte(count + 3):02x} 0x{self.controller.get_byte(count + 2):02x} 0x{self.controller.get_byte(count):02x}')
             count += 4
         count = self.base_address
         for a in self.addresses:
@@ -423,13 +436,13 @@ class MainWindow(QMainWindow):
                 self.intr.set_input(s)
         return super().eventFilter(obj, event)
 
-    def add_breakpoint(self, cmd, interp):
-        self.intr.debug.addBreakpoint(cmd, interp)
-        self.breakpoints.append((cmd, interp))
+    def add_breakpoint(self, cmd):
+        self.controller.addBreakpoint(cmd)
+        self.breakpoints.append(cmd)
 
-    def remove_breakpoint(self, cmd, interp):
-        self.intr.debug.removeBreakpoint(cmd, interp)
-        self.breakpoints.remove((cmd, interp))
+    def remove_breakpoint(self, cmd):
+        self.controller.removeBreakpoint(cmd)
+        self.breakpoints.remove(cmd)
 
 if __name__ == "__main__":
     app = QApplication()

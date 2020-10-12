@@ -478,6 +478,7 @@ class Interpreter(QWidget):
             raise ex.BreakpointException(f'code = {instr.code}')
 
     def interpret(self) -> None:
+        first = True
         try:
             while True:
                 # Get the next instruction and increment pc
@@ -511,7 +512,10 @@ class Interpreter(QWidget):
                 elif self.debug.debug(self.instr):
                     if not self.debug.continueFlag:
                         self.pause_lock.clear()
-                    self.debug.listen(self)
+                    if not first and settings['gui']:
+                        self.debug.listen(self)
+                    else:
+                        first = False
 
                 elif settings['gui'] and type(self.instr) is Syscall and (self.reg['$v0'] == 10 or self.reg['$v0'] == 17):
                     self.end.emit(False)
@@ -538,13 +542,6 @@ class Interpreter(QWidget):
 
         print('Memory:')
         self.mem.dump()
-
-    def pause(self, pause: bool):
-        self.debug.continueFlag = not pause
-        if pause:
-            self.pause_lock.clear()
-        else:
-            self.pause_lock.set()
 
     def set_input(self, string: str):
         self.lock_input.acquire()
