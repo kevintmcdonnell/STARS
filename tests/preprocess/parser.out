@@ -8,7 +8,7 @@ Rule 4     sect -> tSect
 Rule 5     sect -> dSect
 Rule 6     dSect -> DATA filetag declarations
 Rule 7     tSect -> TEXT filetag instrs
-Rule 8     filetag -> LINE_MARKER STRING NUMBER
+Rule 8     filetag -> LINE_MARKER
 Rule 9     label -> LABEL COLON
 Rule 10    instrs -> label instr filetag instrs
 Rule 11    instrs -> label instr filetag
@@ -29,114 +29,131 @@ Rule 25    iType -> PS_LOADS_I REG CHAR
 Rule 26    iType -> PS_LOADS_I REG NUMBER
 Rule 27    iType -> PS_I_TYPE REG REG CHAR
 Rule 28    iType -> PS_I_TYPE REG REG NUMBER
-Rule 29    iType -> LOADS_R REG LPAREN REG RPAREN
-Rule 30    iType -> LOADS_R REG NUMBER LPAREN REG RPAREN
-Rule 31    iType -> LOADS_I REG CHAR
-Rule 32    iType -> LOADS_I REG NUMBER
-Rule 33    iType -> I_TYPE REG REG CHAR
-Rule 34    iType -> I_TYPE REG REG NUMBER
-Rule 35    rType -> PS_R_FUNCT2 REG REG
-Rule 36    rType -> PS_R_FUNCT3 REG REG REG
-Rule 37    rType -> R_FUNCT2 REG REG
-Rule 38    rType -> R_FUNCT3 REG REG REG
-Rule 39    jType -> J_FUNCTR REG
-Rule 40    jType -> J_FUNCT LABEL
-Rule 41    move -> MOVE REG
-Rule 42    branch -> PS_ZERO_BRANCH REG LABEL
-Rule 43    branch -> PS_BRANCH REG REG LABEL
-Rule 44    branch -> ZERO_BRANCH REG LABEL
-Rule 45    branch -> BRANCH REG REG LABEL
-Rule 46    syscall -> SYSCALL
-Rule 47    nop -> NOP
-Rule 48    breakpoint -> BREAK NUMBER
-Rule 49    breakpoint -> BREAK
-Rule 50    declarations -> declaration filetag
-Rule 51    declarations -> declaration filetag declarations
-Rule 52    declaration -> ALIGN NUMBER
-Rule 53    declaration -> EQV
-Rule 54    declaration -> HALF nums
-Rule 55    declaration -> SPACE nums
-Rule 56    declaration -> ASCII STRING
-Rule 57    declaration -> BYTE chars
-Rule 58    declaration -> WORD nums
-Rule 59    declaration -> ASCIIZ STRING
-Rule 60    declaration -> label HALF nums
-Rule 61    declaration -> label SPACE nums
-Rule 62    declaration -> label ASCII STRING
-Rule 63    declaration -> label BYTE chars
-Rule 64    declaration -> label WORD nums
-Rule 65    declaration -> label ASCIIZ STRING
-Rule 66    nums -> NUMBER nums
-Rule 67    nums -> NUMBER COMMA nums
-Rule 68    nums -> NUMBER
-Rule 69    chars -> NUMBER chars
-Rule 70    chars -> NUMBER COMMA chars
-Rule 71    chars -> NUMBER
-Rule 72    chars -> CHAR chars
-Rule 73    chars -> CHAR COMMA chars
-Rule 74    chars -> CHAR
+Rule 29    iType -> LOADS_F F_REG LPAREN REG RPAREN
+Rule 30    iType -> LOADS_F F_REG NUMBER LPAREN REG RPAREN
+Rule 31    iType -> LOADS_R REG LPAREN REG RPAREN
+Rule 32    iType -> LOADS_R REG NUMBER LPAREN REG RPAREN
+Rule 33    iType -> LOADS_I REG CHAR
+Rule 34    iType -> LOADS_I REG NUMBER
+Rule 35    iType -> I_TYPE REG REG CHAR
+Rule 36    iType -> I_TYPE REG REG NUMBER
+Rule 37    rType -> PS_R_TYPE2 REG REG
+Rule 38    rType -> PS_R_TYPE3 REG REG REG
+Rule 39    rType -> R_TYPE2 REG REG
+Rule 40    rType -> R_TYPE3_F F_REG F_REG F_REG
+Rule 41    rType -> R_TYPE3 REG REG REG
+Rule 42    jType -> J_TYPE_R REG
+Rule 43    jType -> J_TYPE LABEL
+Rule 44    move -> MOVE REG
+Rule 45    branch -> PS_ZERO_BRANCH REG LABEL
+Rule 46    branch -> PS_BRANCH REG REG LABEL
+Rule 47    branch -> ZERO_BRANCH REG LABEL
+Rule 48    branch -> BRANCH REG REG LABEL
+Rule 49    syscall -> SYSCALL
+Rule 50    nop -> NOP
+Rule 51    breakpoint -> BREAK NUMBER
+Rule 52    breakpoint -> BREAK
+Rule 53    declarations -> declaration filetag
+Rule 54    declarations -> declaration filetag declarations
+Rule 55    declaration -> ALIGN NUMBER
+Rule 56    declaration -> EQV
+Rule 57    declaration -> DOUBLE floats
+Rule 58    declaration -> FLOAT floats
+Rule 59    declaration -> HALF nums
+Rule 60    declaration -> SPACE nums
+Rule 61    declaration -> ASCII STRING
+Rule 62    declaration -> BYTE chars
+Rule 63    declaration -> WORD nums
+Rule 64    declaration -> ASCIIZ STRING
+Rule 65    declaration -> label DOUBLE floats
+Rule 66    declaration -> label FLOAT floats
+Rule 67    declaration -> label HALF nums
+Rule 68    declaration -> label SPACE nums
+Rule 69    declaration -> label ASCII STRING
+Rule 70    declaration -> label BYTE chars
+Rule 71    declaration -> label WORD nums
+Rule 72    declaration -> label ASCIIZ STRING
+Rule 73    nums -> NUMBER nums
+Rule 74    nums -> NUMBER COMMA nums
+Rule 75    nums -> NUMBER
+Rule 76    floats -> FLOAT_LITERAL floats
+Rule 77    floats -> FLOAT_LITERAL COMMA floats
+Rule 78    floats -> FLOAT_LITERAL
+Rule 79    chars -> NUMBER chars
+Rule 80    chars -> NUMBER COMMA chars
+Rule 81    chars -> NUMBER
+Rule 82    chars -> CHAR chars
+Rule 83    chars -> CHAR COMMA chars
+Rule 84    chars -> CHAR
 
 Terminals, with rules where they appear:
 
-ALIGN                : 52
-ASCII                : 56 62
-ASCIIZ               : 59 65
-BRANCH               : 45
-BREAK                : 48 49
-BYTE                 : 57 63
-CHAR                 : 25 27 31 33 72 73 74
+ALIGN                : 55
+ASCII                : 61 69
+ASCIIZ               : 64 72
+BRANCH               : 48
+BREAK                : 51 52
+BYTE                 : 62 70
+CHAR                 : 25 27 33 35 82 83 84
 COLON                : 9
-COMMA                : 67 70 73
+COMMA                : 74 77 80 83
 DATA                 : 6
-EQV                  : 53
-HALF                 : 54 60
-I_TYPE               : 33 34
-J_FUNCT              : 40
-J_FUNCTR             : 39
-LABEL                : 9 23 24 40 42 43 44 45
+DOUBLE               : 57 65
+EQV                  : 56
+FLOAT                : 58 66
+FLOAT_LITERAL        : 76 77 78
+F_REG                : 29 30 40 40 40
+HALF                 : 59 67
+I_TYPE               : 35 36
+J_TYPE               : 43
+J_TYPE_R             : 42
+LABEL                : 9 23 24 43 45 46 47 48
 LINE_MARKER          : 8
-LOADS_I              : 31 32
-LOADS_R              : 23 29 30
-LPAREN               : 29 30
-MOVE                 : 41
-NOP                  : 47
-NUMBER               : 8 26 28 30 32 34 48 52 66 67 68 69 70 71
-PS_BRANCH            : 43
+LOADS_F              : 29 30
+LOADS_I              : 33 34
+LOADS_R              : 23 31 32
+LPAREN               : 29 30 31 32
+MOVE                 : 44
+NOP                  : 50
+NUMBER               : 26 28 30 32 34 36 51 55 73 74 75 79 80 81
+PS_BRANCH            : 46
 PS_I_TYPE            : 27 28
 PS_LOADS_A           : 24
 PS_LOADS_I           : 25 26
-PS_R_FUNCT2          : 35
-PS_R_FUNCT3          : 36
-PS_ZERO_BRANCH       : 42
-REG                  : 23 24 25 26 27 27 28 28 29 29 30 30 31 32 33 33 34 34 35 35 36 36 36 37 37 38 38 38 39 41 42 43 43 44 45 45
-RPAREN               : 29 30
-R_FUNCT2             : 37
-R_FUNCT3             : 38
-SPACE                : 55 61
-STRING               : 8 56 59 62 65
-SYSCALL              : 46
+PS_R_TYPE2           : 37
+PS_R_TYPE3           : 38
+PS_ZERO_BRANCH       : 45
+REG                  : 23 24 25 26 27 27 28 28 29 30 31 31 32 32 33 34 35 35 36 36 37 37 38 38 38 39 39 41 41 41 42 44 45 46 46 47 48 48
+RPAREN               : 29 30 31 32
+R_TYPE2              : 39
+R_TYPE3              : 41
+R_TYPE3_F            : 40
+SPACE                : 60 68
+STRING               : 61 64 69 72
+SYSCALL              : 49
 TEXT                 : 7
-WORD                 : 58 64
-ZERO_BRANCH          : 44
+WORD                 : 63 71
+ZERO_BRANCH          : 47
 error                : 
 
 Nonterminals, with rules where they appear:
 
 branch               : 22
 breakpoint           : 14
-chars                : 57 63 69 70 72 73
+chars                : 62 70 79 80 82 83
 dSect                : 5
-declaration          : 50 51
-declarations         : 6 51
-filetag              : 6 7 10 11 12 13 50 51
+declaration          : 53 54
+declarations         : 6 54
+filetag              : 6 7 10 11 12 13 53 54
+floats               : 57 58 65 66 76 77
 iType                : 18
 instr                : 10 11 12 13
 instrs               : 7 10 13
 jType                : 19
-label                : 10 11 16 60 61 62 63 64 65
+label                : 10 11 16 65 66 67 68 69 70 71 72
 move                 : 17
 nop                  : 15
-nums                 : 54 55 58 60 61 64 66 67
+nums                 : 59 60 63 67 68 71 73 74
 program              : 0
 rType                : 21
 sect                 : 2 3
@@ -213,7 +230,7 @@ state 5
 state 6
 
     (7) tSect -> TEXT . filetag instrs
-    (8) filetag -> . LINE_MARKER STRING NUMBER
+    (8) filetag -> . LINE_MARKER
     LINE_MARKER     shift and go to state 10
 
     filetag                        shift and go to state 9
@@ -221,7 +238,7 @@ state 6
 state 7
 
     (6) dSect -> DATA . filetag declarations
-    (8) filetag -> . LINE_MARKER STRING NUMBER
+    (8) filetag -> . LINE_MARKER
     LINE_MARKER     shift and go to state 10
 
     filetag                        shift and go to state 11
@@ -249,33 +266,36 @@ state 9
     (20) instr -> . syscall
     (21) instr -> . rType
     (22) instr -> . branch
-    (48) breakpoint -> . BREAK NUMBER
-    (49) breakpoint -> . BREAK
-    (47) nop -> . NOP
-    (41) move -> . MOVE REG
+    (51) breakpoint -> . BREAK NUMBER
+    (52) breakpoint -> . BREAK
+    (50) nop -> . NOP
+    (44) move -> . MOVE REG
     (23) iType -> . LOADS_R REG LABEL
     (24) iType -> . PS_LOADS_A REG LABEL
     (25) iType -> . PS_LOADS_I REG CHAR
     (26) iType -> . PS_LOADS_I REG NUMBER
     (27) iType -> . PS_I_TYPE REG REG CHAR
     (28) iType -> . PS_I_TYPE REG REG NUMBER
-    (29) iType -> . LOADS_R REG LPAREN REG RPAREN
-    (30) iType -> . LOADS_R REG NUMBER LPAREN REG RPAREN
-    (31) iType -> . LOADS_I REG CHAR
-    (32) iType -> . LOADS_I REG NUMBER
-    (33) iType -> . I_TYPE REG REG CHAR
-    (34) iType -> . I_TYPE REG REG NUMBER
-    (39) jType -> . J_FUNCTR REG
-    (40) jType -> . J_FUNCT LABEL
-    (46) syscall -> . SYSCALL
-    (35) rType -> . PS_R_FUNCT2 REG REG
-    (36) rType -> . PS_R_FUNCT3 REG REG REG
-    (37) rType -> . R_FUNCT2 REG REG
-    (38) rType -> . R_FUNCT3 REG REG REG
-    (42) branch -> . PS_ZERO_BRANCH REG LABEL
-    (43) branch -> . PS_BRANCH REG REG LABEL
-    (44) branch -> . ZERO_BRANCH REG LABEL
-    (45) branch -> . BRANCH REG REG LABEL
+    (29) iType -> . LOADS_F F_REG LPAREN REG RPAREN
+    (30) iType -> . LOADS_F F_REG NUMBER LPAREN REG RPAREN
+    (31) iType -> . LOADS_R REG LPAREN REG RPAREN
+    (32) iType -> . LOADS_R REG NUMBER LPAREN REG RPAREN
+    (33) iType -> . LOADS_I REG CHAR
+    (34) iType -> . LOADS_I REG NUMBER
+    (35) iType -> . I_TYPE REG REG CHAR
+    (36) iType -> . I_TYPE REG REG NUMBER
+    (42) jType -> . J_TYPE_R REG
+    (43) jType -> . J_TYPE LABEL
+    (49) syscall -> . SYSCALL
+    (37) rType -> . PS_R_TYPE2 REG REG
+    (38) rType -> . PS_R_TYPE3 REG REG REG
+    (39) rType -> . R_TYPE2 REG REG
+    (40) rType -> . R_TYPE3_F F_REG F_REG F_REG
+    (41) rType -> . R_TYPE3 REG REG REG
+    (45) branch -> . PS_ZERO_BRANCH REG LABEL
+    (46) branch -> . PS_BRANCH REG REG LABEL
+    (47) branch -> . ZERO_BRANCH REG LABEL
+    (48) branch -> . BRANCH REG REG LABEL
     LABEL           shift and go to state 15
     BREAK           shift and go to state 24
     NOP             shift and go to state 25
@@ -284,19 +304,21 @@ state 9
     PS_LOADS_A      shift and go to state 28
     PS_LOADS_I      shift and go to state 29
     PS_I_TYPE       shift and go to state 30
-    LOADS_I         shift and go to state 31
-    I_TYPE          shift and go to state 32
-    J_FUNCTR        shift and go to state 33
-    J_FUNCT         shift and go to state 34
-    SYSCALL         shift and go to state 35
-    PS_R_FUNCT2     shift and go to state 36
-    PS_R_FUNCT3     shift and go to state 37
-    R_FUNCT2        shift and go to state 38
-    R_FUNCT3        shift and go to state 39
-    PS_ZERO_BRANCH  shift and go to state 40
-    PS_BRANCH       shift and go to state 41
-    ZERO_BRANCH     shift and go to state 42
-    BRANCH          shift and go to state 43
+    LOADS_F         shift and go to state 31
+    LOADS_I         shift and go to state 32
+    I_TYPE          shift and go to state 33
+    J_TYPE_R        shift and go to state 34
+    J_TYPE          shift and go to state 35
+    SYSCALL         shift and go to state 36
+    PS_R_TYPE2      shift and go to state 37
+    PS_R_TYPE3      shift and go to state 38
+    R_TYPE2         shift and go to state 39
+    R_TYPE3_F       shift and go to state 40
+    R_TYPE3         shift and go to state 41
+    PS_ZERO_BRANCH  shift and go to state 42
+    PS_BRANCH       shift and go to state 43
+    ZERO_BRANCH     shift and go to state 44
+    BRANCH          shift and go to state 45
 
     instrs                         shift and go to state 12
     label                          shift and go to state 13
@@ -312,43 +334,84 @@ state 9
 
 state 10
 
-    (8) filetag -> LINE_MARKER . STRING NUMBER
-    STRING          shift and go to state 44
+    (8) filetag -> LINE_MARKER .
+    LABEL           reduce using rule 8 (filetag -> LINE_MARKER .)
+    BREAK           reduce using rule 8 (filetag -> LINE_MARKER .)
+    NOP             reduce using rule 8 (filetag -> LINE_MARKER .)
+    MOVE            reduce using rule 8 (filetag -> LINE_MARKER .)
+    LOADS_R         reduce using rule 8 (filetag -> LINE_MARKER .)
+    PS_LOADS_A      reduce using rule 8 (filetag -> LINE_MARKER .)
+    PS_LOADS_I      reduce using rule 8 (filetag -> LINE_MARKER .)
+    PS_I_TYPE       reduce using rule 8 (filetag -> LINE_MARKER .)
+    LOADS_F         reduce using rule 8 (filetag -> LINE_MARKER .)
+    LOADS_I         reduce using rule 8 (filetag -> LINE_MARKER .)
+    I_TYPE          reduce using rule 8 (filetag -> LINE_MARKER .)
+    J_TYPE_R        reduce using rule 8 (filetag -> LINE_MARKER .)
+    J_TYPE          reduce using rule 8 (filetag -> LINE_MARKER .)
+    SYSCALL         reduce using rule 8 (filetag -> LINE_MARKER .)
+    PS_R_TYPE2      reduce using rule 8 (filetag -> LINE_MARKER .)
+    PS_R_TYPE3      reduce using rule 8 (filetag -> LINE_MARKER .)
+    R_TYPE2         reduce using rule 8 (filetag -> LINE_MARKER .)
+    R_TYPE3_F       reduce using rule 8 (filetag -> LINE_MARKER .)
+    R_TYPE3         reduce using rule 8 (filetag -> LINE_MARKER .)
+    PS_ZERO_BRANCH  reduce using rule 8 (filetag -> LINE_MARKER .)
+    PS_BRANCH       reduce using rule 8 (filetag -> LINE_MARKER .)
+    ZERO_BRANCH     reduce using rule 8 (filetag -> LINE_MARKER .)
+    BRANCH          reduce using rule 8 (filetag -> LINE_MARKER .)
+    ALIGN           reduce using rule 8 (filetag -> LINE_MARKER .)
+    EQV             reduce using rule 8 (filetag -> LINE_MARKER .)
+    DOUBLE          reduce using rule 8 (filetag -> LINE_MARKER .)
+    FLOAT           reduce using rule 8 (filetag -> LINE_MARKER .)
+    HALF            reduce using rule 8 (filetag -> LINE_MARKER .)
+    SPACE           reduce using rule 8 (filetag -> LINE_MARKER .)
+    ASCII           reduce using rule 8 (filetag -> LINE_MARKER .)
+    BYTE            reduce using rule 8 (filetag -> LINE_MARKER .)
+    WORD            reduce using rule 8 (filetag -> LINE_MARKER .)
+    ASCIIZ          reduce using rule 8 (filetag -> LINE_MARKER .)
+    TEXT            reduce using rule 8 (filetag -> LINE_MARKER .)
+    DATA            reduce using rule 8 (filetag -> LINE_MARKER .)
+    $end            reduce using rule 8 (filetag -> LINE_MARKER .)
 
 
 state 11
 
     (6) dSect -> DATA filetag . declarations
-    (50) declarations -> . declaration filetag
-    (51) declarations -> . declaration filetag declarations
-    (52) declaration -> . ALIGN NUMBER
-    (53) declaration -> . EQV
-    (54) declaration -> . HALF nums
-    (55) declaration -> . SPACE nums
-    (56) declaration -> . ASCII STRING
-    (57) declaration -> . BYTE chars
-    (58) declaration -> . WORD nums
-    (59) declaration -> . ASCIIZ STRING
-    (60) declaration -> . label HALF nums
-    (61) declaration -> . label SPACE nums
-    (62) declaration -> . label ASCII STRING
-    (63) declaration -> . label BYTE chars
-    (64) declaration -> . label WORD nums
-    (65) declaration -> . label ASCIIZ STRING
+    (53) declarations -> . declaration filetag
+    (54) declarations -> . declaration filetag declarations
+    (55) declaration -> . ALIGN NUMBER
+    (56) declaration -> . EQV
+    (57) declaration -> . DOUBLE floats
+    (58) declaration -> . FLOAT floats
+    (59) declaration -> . HALF nums
+    (60) declaration -> . SPACE nums
+    (61) declaration -> . ASCII STRING
+    (62) declaration -> . BYTE chars
+    (63) declaration -> . WORD nums
+    (64) declaration -> . ASCIIZ STRING
+    (65) declaration -> . label DOUBLE floats
+    (66) declaration -> . label FLOAT floats
+    (67) declaration -> . label HALF nums
+    (68) declaration -> . label SPACE nums
+    (69) declaration -> . label ASCII STRING
+    (70) declaration -> . label BYTE chars
+    (71) declaration -> . label WORD nums
+    (72) declaration -> . label ASCIIZ STRING
     (9) label -> . LABEL COLON
-    ALIGN           shift and go to state 47
-    EQV             shift and go to state 48
-    HALF            shift and go to state 49
-    SPACE           shift and go to state 50
-    ASCII           shift and go to state 51
-    BYTE            shift and go to state 52
-    WORD            shift and go to state 53
-    ASCIIZ          shift and go to state 54
+    ALIGN           shift and go to state 48
+    EQV             shift and go to state 49
+    DOUBLE          shift and go to state 50
+    FLOAT           shift and go to state 51
+    HALF            shift and go to state 52
+    SPACE           shift and go to state 53
+    ASCII           shift and go to state 54
+    BYTE            shift and go to state 55
+    WORD            shift and go to state 56
+    ASCIIZ          shift and go to state 57
     LABEL           shift and go to state 15
 
-    declarations                   shift and go to state 45
-    declaration                    shift and go to state 46
-    label                          shift and go to state 55
+    declarations                   shift and go to state 46
+    declaration                    shift and go to state 47
+    label                          shift and go to state 58
 
 state 12
 
@@ -372,34 +435,37 @@ state 13
     (20) instr -> . syscall
     (21) instr -> . rType
     (22) instr -> . branch
-    (48) breakpoint -> . BREAK NUMBER
-    (49) breakpoint -> . BREAK
-    (47) nop -> . NOP
+    (51) breakpoint -> . BREAK NUMBER
+    (52) breakpoint -> . BREAK
+    (50) nop -> . NOP
     (9) label -> . LABEL COLON
-    (41) move -> . MOVE REG
+    (44) move -> . MOVE REG
     (23) iType -> . LOADS_R REG LABEL
     (24) iType -> . PS_LOADS_A REG LABEL
     (25) iType -> . PS_LOADS_I REG CHAR
     (26) iType -> . PS_LOADS_I REG NUMBER
     (27) iType -> . PS_I_TYPE REG REG CHAR
     (28) iType -> . PS_I_TYPE REG REG NUMBER
-    (29) iType -> . LOADS_R REG LPAREN REG RPAREN
-    (30) iType -> . LOADS_R REG NUMBER LPAREN REG RPAREN
-    (31) iType -> . LOADS_I REG CHAR
-    (32) iType -> . LOADS_I REG NUMBER
-    (33) iType -> . I_TYPE REG REG CHAR
-    (34) iType -> . I_TYPE REG REG NUMBER
-    (39) jType -> . J_FUNCTR REG
-    (40) jType -> . J_FUNCT LABEL
-    (46) syscall -> . SYSCALL
-    (35) rType -> . PS_R_FUNCT2 REG REG
-    (36) rType -> . PS_R_FUNCT3 REG REG REG
-    (37) rType -> . R_FUNCT2 REG REG
-    (38) rType -> . R_FUNCT3 REG REG REG
-    (42) branch -> . PS_ZERO_BRANCH REG LABEL
-    (43) branch -> . PS_BRANCH REG REG LABEL
-    (44) branch -> . ZERO_BRANCH REG LABEL
-    (45) branch -> . BRANCH REG REG LABEL
+    (29) iType -> . LOADS_F F_REG LPAREN REG RPAREN
+    (30) iType -> . LOADS_F F_REG NUMBER LPAREN REG RPAREN
+    (31) iType -> . LOADS_R REG LPAREN REG RPAREN
+    (32) iType -> . LOADS_R REG NUMBER LPAREN REG RPAREN
+    (33) iType -> . LOADS_I REG CHAR
+    (34) iType -> . LOADS_I REG NUMBER
+    (35) iType -> . I_TYPE REG REG CHAR
+    (36) iType -> . I_TYPE REG REG NUMBER
+    (42) jType -> . J_TYPE_R REG
+    (43) jType -> . J_TYPE LABEL
+    (49) syscall -> . SYSCALL
+    (37) rType -> . PS_R_TYPE2 REG REG
+    (38) rType -> . PS_R_TYPE3 REG REG REG
+    (39) rType -> . R_TYPE2 REG REG
+    (40) rType -> . R_TYPE3_F F_REG F_REG F_REG
+    (41) rType -> . R_TYPE3 REG REG REG
+    (45) branch -> . PS_ZERO_BRANCH REG LABEL
+    (46) branch -> . PS_BRANCH REG REG LABEL
+    (47) branch -> . ZERO_BRANCH REG LABEL
+    (48) branch -> . BRANCH REG REG LABEL
     LINE_MARKER     reduce using rule 16 (instr -> label .)
     BREAK           shift and go to state 24
     NOP             shift and go to state 25
@@ -409,22 +475,24 @@ state 13
     PS_LOADS_A      shift and go to state 28
     PS_LOADS_I      shift and go to state 29
     PS_I_TYPE       shift and go to state 30
-    LOADS_I         shift and go to state 31
-    I_TYPE          shift and go to state 32
-    J_FUNCTR        shift and go to state 33
-    J_FUNCT         shift and go to state 34
-    SYSCALL         shift and go to state 35
-    PS_R_FUNCT2     shift and go to state 36
-    PS_R_FUNCT3     shift and go to state 37
-    R_FUNCT2        shift and go to state 38
-    R_FUNCT3        shift and go to state 39
-    PS_ZERO_BRANCH  shift and go to state 40
-    PS_BRANCH       shift and go to state 41
-    ZERO_BRANCH     shift and go to state 42
-    BRANCH          shift and go to state 43
+    LOADS_F         shift and go to state 31
+    LOADS_I         shift and go to state 32
+    I_TYPE          shift and go to state 33
+    J_TYPE_R        shift and go to state 34
+    J_TYPE          shift and go to state 35
+    SYSCALL         shift and go to state 36
+    PS_R_TYPE2      shift and go to state 37
+    PS_R_TYPE3      shift and go to state 38
+    R_TYPE2         shift and go to state 39
+    R_TYPE3_F       shift and go to state 40
+    R_TYPE3         shift and go to state 41
+    PS_ZERO_BRANCH  shift and go to state 42
+    PS_BRANCH       shift and go to state 43
+    ZERO_BRANCH     shift and go to state 44
+    BRANCH          shift and go to state 45
 
-    label                          shift and go to state 56
-    instr                          shift and go to state 57
+    label                          shift and go to state 59
+    instr                          shift and go to state 60
     breakpoint                     shift and go to state 16
     nop                            shift and go to state 17
     move                           shift and go to state 18
@@ -438,15 +506,15 @@ state 14
 
     (12) instrs -> instr . filetag
     (13) instrs -> instr . filetag instrs
-    (8) filetag -> . LINE_MARKER STRING NUMBER
+    (8) filetag -> . LINE_MARKER
     LINE_MARKER     shift and go to state 10
 
-    filetag                        shift and go to state 58
+    filetag                        shift and go to state 61
 
 state 15
 
     (9) label -> LABEL . COLON
-    COLON           shift and go to state 59
+    COLON           shift and go to state 62
 
 
 state 16
@@ -499,139 +567,146 @@ state 23
 
 state 24
 
-    (48) breakpoint -> BREAK . NUMBER
-    (49) breakpoint -> BREAK .
-    NUMBER          shift and go to state 60
-    LINE_MARKER     reduce using rule 49 (breakpoint -> BREAK .)
+    (51) breakpoint -> BREAK . NUMBER
+    (52) breakpoint -> BREAK .
+    NUMBER          shift and go to state 63
+    LINE_MARKER     reduce using rule 52 (breakpoint -> BREAK .)
 
 
 state 25
 
-    (47) nop -> NOP .
-    LINE_MARKER     reduce using rule 47 (nop -> NOP .)
+    (50) nop -> NOP .
+    LINE_MARKER     reduce using rule 50 (nop -> NOP .)
 
 
 state 26
 
-    (41) move -> MOVE . REG
-    REG             shift and go to state 61
+    (44) move -> MOVE . REG
+    REG             shift and go to state 64
 
 
 state 27
 
     (23) iType -> LOADS_R . REG LABEL
-    (29) iType -> LOADS_R . REG LPAREN REG RPAREN
-    (30) iType -> LOADS_R . REG NUMBER LPAREN REG RPAREN
-    REG             shift and go to state 62
+    (31) iType -> LOADS_R . REG LPAREN REG RPAREN
+    (32) iType -> LOADS_R . REG NUMBER LPAREN REG RPAREN
+    REG             shift and go to state 65
 
 
 state 28
 
     (24) iType -> PS_LOADS_A . REG LABEL
-    REG             shift and go to state 63
+    REG             shift and go to state 66
 
 
 state 29
 
     (25) iType -> PS_LOADS_I . REG CHAR
     (26) iType -> PS_LOADS_I . REG NUMBER
-    REG             shift and go to state 64
+    REG             shift and go to state 67
 
 
 state 30
 
     (27) iType -> PS_I_TYPE . REG REG CHAR
     (28) iType -> PS_I_TYPE . REG REG NUMBER
-    REG             shift and go to state 65
+    REG             shift and go to state 68
 
 
 state 31
 
-    (31) iType -> LOADS_I . REG CHAR
-    (32) iType -> LOADS_I . REG NUMBER
-    REG             shift and go to state 66
+    (29) iType -> LOADS_F . F_REG LPAREN REG RPAREN
+    (30) iType -> LOADS_F . F_REG NUMBER LPAREN REG RPAREN
+    F_REG           shift and go to state 69
 
 
 state 32
 
-    (33) iType -> I_TYPE . REG REG CHAR
-    (34) iType -> I_TYPE . REG REG NUMBER
-    REG             shift and go to state 67
+    (33) iType -> LOADS_I . REG CHAR
+    (34) iType -> LOADS_I . REG NUMBER
+    REG             shift and go to state 70
 
 
 state 33
 
-    (39) jType -> J_FUNCTR . REG
-    REG             shift and go to state 68
+    (35) iType -> I_TYPE . REG REG CHAR
+    (36) iType -> I_TYPE . REG REG NUMBER
+    REG             shift and go to state 71
 
 
 state 34
 
-    (40) jType -> J_FUNCT . LABEL
-    LABEL           shift and go to state 69
+    (42) jType -> J_TYPE_R . REG
+    REG             shift and go to state 72
 
 
 state 35
 
-    (46) syscall -> SYSCALL .
-    LINE_MARKER     reduce using rule 46 (syscall -> SYSCALL .)
+    (43) jType -> J_TYPE . LABEL
+    LABEL           shift and go to state 73
 
 
 state 36
 
-    (35) rType -> PS_R_FUNCT2 . REG REG
-    REG             shift and go to state 70
+    (49) syscall -> SYSCALL .
+    LINE_MARKER     reduce using rule 49 (syscall -> SYSCALL .)
 
 
 state 37
 
-    (36) rType -> PS_R_FUNCT3 . REG REG REG
-    REG             shift and go to state 71
+    (37) rType -> PS_R_TYPE2 . REG REG
+    REG             shift and go to state 74
 
 
 state 38
 
-    (37) rType -> R_FUNCT2 . REG REG
-    REG             shift and go to state 72
+    (38) rType -> PS_R_TYPE3 . REG REG REG
+    REG             shift and go to state 75
 
 
 state 39
 
-    (38) rType -> R_FUNCT3 . REG REG REG
-    REG             shift and go to state 73
+    (39) rType -> R_TYPE2 . REG REG
+    REG             shift and go to state 76
 
 
 state 40
 
-    (42) branch -> PS_ZERO_BRANCH . REG LABEL
-    REG             shift and go to state 74
+    (40) rType -> R_TYPE3_F . F_REG F_REG F_REG
+    F_REG           shift and go to state 77
 
 
 state 41
 
-    (43) branch -> PS_BRANCH . REG REG LABEL
-    REG             shift and go to state 75
+    (41) rType -> R_TYPE3 . REG REG REG
+    REG             shift and go to state 78
 
 
 state 42
 
-    (44) branch -> ZERO_BRANCH . REG LABEL
-    REG             shift and go to state 76
+    (45) branch -> PS_ZERO_BRANCH . REG LABEL
+    REG             shift and go to state 79
 
 
 state 43
 
-    (45) branch -> BRANCH . REG REG LABEL
-    REG             shift and go to state 77
+    (46) branch -> PS_BRANCH . REG REG LABEL
+    REG             shift and go to state 80
 
 
 state 44
 
-    (8) filetag -> LINE_MARKER STRING . NUMBER
-    NUMBER          shift and go to state 78
+    (47) branch -> ZERO_BRANCH . REG LABEL
+    REG             shift and go to state 81
 
 
 state 45
+
+    (48) branch -> BRANCH . REG REG LABEL
+    REG             shift and go to state 82
+
+
+state 46
 
     (6) dSect -> DATA filetag declarations .
     TEXT            reduce using rule 6 (dSect -> DATA filetag declarations .)
@@ -639,115 +714,139 @@ state 45
     $end            reduce using rule 6 (dSect -> DATA filetag declarations .)
 
 
-state 46
-
-    (50) declarations -> declaration . filetag
-    (51) declarations -> declaration . filetag declarations
-    (8) filetag -> . LINE_MARKER STRING NUMBER
-    LINE_MARKER     shift and go to state 10
-
-    filetag                        shift and go to state 79
-
 state 47
 
-    (52) declaration -> ALIGN . NUMBER
-    NUMBER          shift and go to state 80
+    (53) declarations -> declaration . filetag
+    (54) declarations -> declaration . filetag declarations
+    (8) filetag -> . LINE_MARKER
+    LINE_MARKER     shift and go to state 10
 
+    filetag                        shift and go to state 83
 
 state 48
 
-    (53) declaration -> EQV .
-    LINE_MARKER     reduce using rule 53 (declaration -> EQV .)
+    (55) declaration -> ALIGN . NUMBER
+    NUMBER          shift and go to state 84
 
 
 state 49
 
-    (54) declaration -> HALF . nums
-    (66) nums -> . NUMBER nums
-    (67) nums -> . NUMBER COMMA nums
-    (68) nums -> . NUMBER
-    NUMBER          shift and go to state 82
+    (56) declaration -> EQV .
+    LINE_MARKER     reduce using rule 56 (declaration -> EQV .)
 
-    nums                           shift and go to state 81
 
 state 50
 
-    (55) declaration -> SPACE . nums
-    (66) nums -> . NUMBER nums
-    (67) nums -> . NUMBER COMMA nums
-    (68) nums -> . NUMBER
-    NUMBER          shift and go to state 82
+    (57) declaration -> DOUBLE . floats
+    (76) floats -> . FLOAT_LITERAL floats
+    (77) floats -> . FLOAT_LITERAL COMMA floats
+    (78) floats -> . FLOAT_LITERAL
+    FLOAT_LITERAL   shift and go to state 86
 
-    nums                           shift and go to state 83
+    floats                         shift and go to state 85
 
 state 51
 
-    (56) declaration -> ASCII . STRING
-    STRING          shift and go to state 84
+    (58) declaration -> FLOAT . floats
+    (76) floats -> . FLOAT_LITERAL floats
+    (77) floats -> . FLOAT_LITERAL COMMA floats
+    (78) floats -> . FLOAT_LITERAL
+    FLOAT_LITERAL   shift and go to state 86
 
+    floats                         shift and go to state 87
 
 state 52
 
-    (57) declaration -> BYTE . chars
-    (69) chars -> . NUMBER chars
-    (70) chars -> . NUMBER COMMA chars
-    (71) chars -> . NUMBER
-    (72) chars -> . CHAR chars
-    (73) chars -> . CHAR COMMA chars
-    (74) chars -> . CHAR
-    NUMBER          shift and go to state 86
-    CHAR            shift and go to state 87
-
-    chars                          shift and go to state 85
-
-state 53
-
-    (58) declaration -> WORD . nums
-    (66) nums -> . NUMBER nums
-    (67) nums -> . NUMBER COMMA nums
-    (68) nums -> . NUMBER
-    NUMBER          shift and go to state 82
+    (59) declaration -> HALF . nums
+    (73) nums -> . NUMBER nums
+    (74) nums -> . NUMBER COMMA nums
+    (75) nums -> . NUMBER
+    NUMBER          shift and go to state 89
 
     nums                           shift and go to state 88
 
+state 53
+
+    (60) declaration -> SPACE . nums
+    (73) nums -> . NUMBER nums
+    (74) nums -> . NUMBER COMMA nums
+    (75) nums -> . NUMBER
+    NUMBER          shift and go to state 89
+
+    nums                           shift and go to state 90
+
 state 54
 
-    (59) declaration -> ASCIIZ . STRING
-    STRING          shift and go to state 89
+    (61) declaration -> ASCII . STRING
+    STRING          shift and go to state 91
 
 
 state 55
 
-    (60) declaration -> label . HALF nums
-    (61) declaration -> label . SPACE nums
-    (62) declaration -> label . ASCII STRING
-    (63) declaration -> label . BYTE chars
-    (64) declaration -> label . WORD nums
-    (65) declaration -> label . ASCIIZ STRING
-    HALF            shift and go to state 90
-    SPACE           shift and go to state 91
-    ASCII           shift and go to state 92
-    BYTE            shift and go to state 93
-    WORD            shift and go to state 94
-    ASCIIZ          shift and go to state 95
+    (62) declaration -> BYTE . chars
+    (79) chars -> . NUMBER chars
+    (80) chars -> . NUMBER COMMA chars
+    (81) chars -> . NUMBER
+    (82) chars -> . CHAR chars
+    (83) chars -> . CHAR COMMA chars
+    (84) chars -> . CHAR
+    NUMBER          shift and go to state 93
+    CHAR            shift and go to state 94
 
+    chars                          shift and go to state 92
 
 state 56
+
+    (63) declaration -> WORD . nums
+    (73) nums -> . NUMBER nums
+    (74) nums -> . NUMBER COMMA nums
+    (75) nums -> . NUMBER
+    NUMBER          shift and go to state 89
+
+    nums                           shift and go to state 95
+
+state 57
+
+    (64) declaration -> ASCIIZ . STRING
+    STRING          shift and go to state 96
+
+
+state 58
+
+    (65) declaration -> label . DOUBLE floats
+    (66) declaration -> label . FLOAT floats
+    (67) declaration -> label . HALF nums
+    (68) declaration -> label . SPACE nums
+    (69) declaration -> label . ASCII STRING
+    (70) declaration -> label . BYTE chars
+    (71) declaration -> label . WORD nums
+    (72) declaration -> label . ASCIIZ STRING
+    DOUBLE          shift and go to state 97
+    FLOAT           shift and go to state 98
+    HALF            shift and go to state 99
+    SPACE           shift and go to state 100
+    ASCII           shift and go to state 101
+    BYTE            shift and go to state 102
+    WORD            shift and go to state 103
+    ASCIIZ          shift and go to state 104
+
+
+state 59
 
     (16) instr -> label .
     LINE_MARKER     reduce using rule 16 (instr -> label .)
 
 
-state 57
+state 60
 
     (10) instrs -> label instr . filetag instrs
     (11) instrs -> label instr . filetag
-    (8) filetag -> . LINE_MARKER STRING NUMBER
+    (8) filetag -> . LINE_MARKER
     LINE_MARKER     shift and go to state 10
 
-    filetag                        shift and go to state 96
+    filetag                        shift and go to state 105
 
-state 58
+state 61
 
     (12) instrs -> instr filetag .
     (13) instrs -> instr filetag . instrs
@@ -765,33 +864,36 @@ state 58
     (20) instr -> . syscall
     (21) instr -> . rType
     (22) instr -> . branch
-    (48) breakpoint -> . BREAK NUMBER
-    (49) breakpoint -> . BREAK
-    (47) nop -> . NOP
-    (41) move -> . MOVE REG
+    (51) breakpoint -> . BREAK NUMBER
+    (52) breakpoint -> . BREAK
+    (50) nop -> . NOP
+    (44) move -> . MOVE REG
     (23) iType -> . LOADS_R REG LABEL
     (24) iType -> . PS_LOADS_A REG LABEL
     (25) iType -> . PS_LOADS_I REG CHAR
     (26) iType -> . PS_LOADS_I REG NUMBER
     (27) iType -> . PS_I_TYPE REG REG CHAR
     (28) iType -> . PS_I_TYPE REG REG NUMBER
-    (29) iType -> . LOADS_R REG LPAREN REG RPAREN
-    (30) iType -> . LOADS_R REG NUMBER LPAREN REG RPAREN
-    (31) iType -> . LOADS_I REG CHAR
-    (32) iType -> . LOADS_I REG NUMBER
-    (33) iType -> . I_TYPE REG REG CHAR
-    (34) iType -> . I_TYPE REG REG NUMBER
-    (39) jType -> . J_FUNCTR REG
-    (40) jType -> . J_FUNCT LABEL
-    (46) syscall -> . SYSCALL
-    (35) rType -> . PS_R_FUNCT2 REG REG
-    (36) rType -> . PS_R_FUNCT3 REG REG REG
-    (37) rType -> . R_FUNCT2 REG REG
-    (38) rType -> . R_FUNCT3 REG REG REG
-    (42) branch -> . PS_ZERO_BRANCH REG LABEL
-    (43) branch -> . PS_BRANCH REG REG LABEL
-    (44) branch -> . ZERO_BRANCH REG LABEL
-    (45) branch -> . BRANCH REG REG LABEL
+    (29) iType -> . LOADS_F F_REG LPAREN REG RPAREN
+    (30) iType -> . LOADS_F F_REG NUMBER LPAREN REG RPAREN
+    (31) iType -> . LOADS_R REG LPAREN REG RPAREN
+    (32) iType -> . LOADS_R REG NUMBER LPAREN REG RPAREN
+    (33) iType -> . LOADS_I REG CHAR
+    (34) iType -> . LOADS_I REG NUMBER
+    (35) iType -> . I_TYPE REG REG CHAR
+    (36) iType -> . I_TYPE REG REG NUMBER
+    (42) jType -> . J_TYPE_R REG
+    (43) jType -> . J_TYPE LABEL
+    (49) syscall -> . SYSCALL
+    (37) rType -> . PS_R_TYPE2 REG REG
+    (38) rType -> . PS_R_TYPE3 REG REG REG
+    (39) rType -> . R_TYPE2 REG REG
+    (40) rType -> . R_TYPE3_F F_REG F_REG F_REG
+    (41) rType -> . R_TYPE3 REG REG REG
+    (45) branch -> . PS_ZERO_BRANCH REG LABEL
+    (46) branch -> . PS_BRANCH REG REG LABEL
+    (47) branch -> . ZERO_BRANCH REG LABEL
+    (48) branch -> . BRANCH REG REG LABEL
     TEXT            reduce using rule 12 (instrs -> instr filetag .)
     DATA            reduce using rule 12 (instrs -> instr filetag .)
     $end            reduce using rule 12 (instrs -> instr filetag .)
@@ -803,22 +905,24 @@ state 58
     PS_LOADS_A      shift and go to state 28
     PS_LOADS_I      shift and go to state 29
     PS_I_TYPE       shift and go to state 30
-    LOADS_I         shift and go to state 31
-    I_TYPE          shift and go to state 32
-    J_FUNCTR        shift and go to state 33
-    J_FUNCT         shift and go to state 34
-    SYSCALL         shift and go to state 35
-    PS_R_FUNCT2     shift and go to state 36
-    PS_R_FUNCT3     shift and go to state 37
-    R_FUNCT2        shift and go to state 38
-    R_FUNCT3        shift and go to state 39
-    PS_ZERO_BRANCH  shift and go to state 40
-    PS_BRANCH       shift and go to state 41
-    ZERO_BRANCH     shift and go to state 42
-    BRANCH          shift and go to state 43
+    LOADS_F         shift and go to state 31
+    LOADS_I         shift and go to state 32
+    I_TYPE          shift and go to state 33
+    J_TYPE_R        shift and go to state 34
+    J_TYPE          shift and go to state 35
+    SYSCALL         shift and go to state 36
+    PS_R_TYPE2      shift and go to state 37
+    PS_R_TYPE3      shift and go to state 38
+    R_TYPE2         shift and go to state 39
+    R_TYPE3_F       shift and go to state 40
+    R_TYPE3         shift and go to state 41
+    PS_ZERO_BRANCH  shift and go to state 42
+    PS_BRANCH       shift and go to state 43
+    ZERO_BRANCH     shift and go to state 44
+    BRANCH          shift and go to state 45
 
     instr                          shift and go to state 14
-    instrs                         shift and go to state 97
+    instrs                         shift and go to state 106
     label                          shift and go to state 13
     breakpoint                     shift and go to state 16
     nop                            shift and go to state 17
@@ -829,7 +933,7 @@ state 58
     rType                          shift and go to state 22
     branch                         shift and go to state 23
 
-state 59
+state 62
 
     (9) label -> LABEL COLON .
     BREAK           reduce using rule 9 (label -> LABEL COLON .)
@@ -840,20 +944,24 @@ state 59
     PS_LOADS_A      reduce using rule 9 (label -> LABEL COLON .)
     PS_LOADS_I      reduce using rule 9 (label -> LABEL COLON .)
     PS_I_TYPE       reduce using rule 9 (label -> LABEL COLON .)
+    LOADS_F         reduce using rule 9 (label -> LABEL COLON .)
     LOADS_I         reduce using rule 9 (label -> LABEL COLON .)
     I_TYPE          reduce using rule 9 (label -> LABEL COLON .)
-    J_FUNCTR        reduce using rule 9 (label -> LABEL COLON .)
-    J_FUNCT         reduce using rule 9 (label -> LABEL COLON .)
+    J_TYPE_R        reduce using rule 9 (label -> LABEL COLON .)
+    J_TYPE          reduce using rule 9 (label -> LABEL COLON .)
     SYSCALL         reduce using rule 9 (label -> LABEL COLON .)
-    PS_R_FUNCT2     reduce using rule 9 (label -> LABEL COLON .)
-    PS_R_FUNCT3     reduce using rule 9 (label -> LABEL COLON .)
-    R_FUNCT2        reduce using rule 9 (label -> LABEL COLON .)
-    R_FUNCT3        reduce using rule 9 (label -> LABEL COLON .)
+    PS_R_TYPE2      reduce using rule 9 (label -> LABEL COLON .)
+    PS_R_TYPE3      reduce using rule 9 (label -> LABEL COLON .)
+    R_TYPE2         reduce using rule 9 (label -> LABEL COLON .)
+    R_TYPE3_F       reduce using rule 9 (label -> LABEL COLON .)
+    R_TYPE3         reduce using rule 9 (label -> LABEL COLON .)
     PS_ZERO_BRANCH  reduce using rule 9 (label -> LABEL COLON .)
     PS_BRANCH       reduce using rule 9 (label -> LABEL COLON .)
     ZERO_BRANCH     reduce using rule 9 (label -> LABEL COLON .)
     BRANCH          reduce using rule 9 (label -> LABEL COLON .)
     LINE_MARKER     reduce using rule 9 (label -> LABEL COLON .)
+    DOUBLE          reduce using rule 9 (label -> LABEL COLON .)
+    FLOAT           reduce using rule 9 (label -> LABEL COLON .)
     HALF            reduce using rule 9 (label -> LABEL COLON .)
     SPACE           reduce using rule 9 (label -> LABEL COLON .)
     ASCII           reduce using rule 9 (label -> LABEL COLON .)
@@ -862,348 +970,377 @@ state 59
     ASCIIZ          reduce using rule 9 (label -> LABEL COLON .)
 
 
-state 60
-
-    (48) breakpoint -> BREAK NUMBER .
-    LINE_MARKER     reduce using rule 48 (breakpoint -> BREAK NUMBER .)
-
-
-state 61
-
-    (41) move -> MOVE REG .
-    LINE_MARKER     reduce using rule 41 (move -> MOVE REG .)
-
-
-state 62
-
-    (23) iType -> LOADS_R REG . LABEL
-    (29) iType -> LOADS_R REG . LPAREN REG RPAREN
-    (30) iType -> LOADS_R REG . NUMBER LPAREN REG RPAREN
-    LABEL           shift and go to state 98
-    LPAREN          shift and go to state 99
-    NUMBER          shift and go to state 100
-
-
 state 63
 
-    (24) iType -> PS_LOADS_A REG . LABEL
-    LABEL           shift and go to state 101
+    (51) breakpoint -> BREAK NUMBER .
+    LINE_MARKER     reduce using rule 51 (breakpoint -> BREAK NUMBER .)
 
 
 state 64
 
-    (25) iType -> PS_LOADS_I REG . CHAR
-    (26) iType -> PS_LOADS_I REG . NUMBER
-    CHAR            shift and go to state 102
-    NUMBER          shift and go to state 103
+    (44) move -> MOVE REG .
+    LINE_MARKER     reduce using rule 44 (move -> MOVE REG .)
 
 
 state 65
 
-    (27) iType -> PS_I_TYPE REG . REG CHAR
-    (28) iType -> PS_I_TYPE REG . REG NUMBER
-    REG             shift and go to state 104
+    (23) iType -> LOADS_R REG . LABEL
+    (31) iType -> LOADS_R REG . LPAREN REG RPAREN
+    (32) iType -> LOADS_R REG . NUMBER LPAREN REG RPAREN
+    LABEL           shift and go to state 107
+    LPAREN          shift and go to state 108
+    NUMBER          shift and go to state 109
 
 
 state 66
 
-    (31) iType -> LOADS_I REG . CHAR
-    (32) iType -> LOADS_I REG . NUMBER
-    CHAR            shift and go to state 105
-    NUMBER          shift and go to state 106
+    (24) iType -> PS_LOADS_A REG . LABEL
+    LABEL           shift and go to state 110
 
 
 state 67
 
-    (33) iType -> I_TYPE REG . REG CHAR
-    (34) iType -> I_TYPE REG . REG NUMBER
-    REG             shift and go to state 107
+    (25) iType -> PS_LOADS_I REG . CHAR
+    (26) iType -> PS_LOADS_I REG . NUMBER
+    CHAR            shift and go to state 111
+    NUMBER          shift and go to state 112
 
 
 state 68
 
-    (39) jType -> J_FUNCTR REG .
-    LINE_MARKER     reduce using rule 39 (jType -> J_FUNCTR REG .)
+    (27) iType -> PS_I_TYPE REG . REG CHAR
+    (28) iType -> PS_I_TYPE REG . REG NUMBER
+    REG             shift and go to state 113
 
 
 state 69
 
-    (40) jType -> J_FUNCT LABEL .
-    LINE_MARKER     reduce using rule 40 (jType -> J_FUNCT LABEL .)
+    (29) iType -> LOADS_F F_REG . LPAREN REG RPAREN
+    (30) iType -> LOADS_F F_REG . NUMBER LPAREN REG RPAREN
+    LPAREN          shift and go to state 114
+    NUMBER          shift and go to state 115
 
 
 state 70
 
-    (35) rType -> PS_R_FUNCT2 REG . REG
-    REG             shift and go to state 108
+    (33) iType -> LOADS_I REG . CHAR
+    (34) iType -> LOADS_I REG . NUMBER
+    CHAR            shift and go to state 116
+    NUMBER          shift and go to state 117
 
 
 state 71
 
-    (36) rType -> PS_R_FUNCT3 REG . REG REG
-    REG             shift and go to state 109
+    (35) iType -> I_TYPE REG . REG CHAR
+    (36) iType -> I_TYPE REG . REG NUMBER
+    REG             shift and go to state 118
 
 
 state 72
 
-    (37) rType -> R_FUNCT2 REG . REG
-    REG             shift and go to state 110
+    (42) jType -> J_TYPE_R REG .
+    LINE_MARKER     reduce using rule 42 (jType -> J_TYPE_R REG .)
 
 
 state 73
 
-    (38) rType -> R_FUNCT3 REG . REG REG
-    REG             shift and go to state 111
+    (43) jType -> J_TYPE LABEL .
+    LINE_MARKER     reduce using rule 43 (jType -> J_TYPE LABEL .)
 
 
 state 74
 
-    (42) branch -> PS_ZERO_BRANCH REG . LABEL
-    LABEL           shift and go to state 112
+    (37) rType -> PS_R_TYPE2 REG . REG
+    REG             shift and go to state 119
 
 
 state 75
 
-    (43) branch -> PS_BRANCH REG . REG LABEL
-    REG             shift and go to state 113
+    (38) rType -> PS_R_TYPE3 REG . REG REG
+    REG             shift and go to state 120
 
 
 state 76
 
-    (44) branch -> ZERO_BRANCH REG . LABEL
-    LABEL           shift and go to state 114
+    (39) rType -> R_TYPE2 REG . REG
+    REG             shift and go to state 121
 
 
 state 77
 
-    (45) branch -> BRANCH REG . REG LABEL
-    REG             shift and go to state 115
+    (40) rType -> R_TYPE3_F F_REG . F_REG F_REG
+    F_REG           shift and go to state 122
 
 
 state 78
 
-    (8) filetag -> LINE_MARKER STRING NUMBER .
-    LABEL           reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    BREAK           reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    NOP             reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    MOVE            reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    LOADS_R         reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    PS_LOADS_A      reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    PS_LOADS_I      reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    PS_I_TYPE       reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    LOADS_I         reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    I_TYPE          reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    J_FUNCTR        reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    J_FUNCT         reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    SYSCALL         reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    PS_R_FUNCT2     reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    PS_R_FUNCT3     reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    R_FUNCT2        reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    R_FUNCT3        reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    PS_ZERO_BRANCH  reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    PS_BRANCH       reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    ZERO_BRANCH     reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    BRANCH          reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    ALIGN           reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    EQV             reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    HALF            reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    SPACE           reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    ASCII           reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    BYTE            reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    WORD            reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    ASCIIZ          reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    TEXT            reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    DATA            reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
-    $end            reduce using rule 8 (filetag -> LINE_MARKER STRING NUMBER .)
+    (41) rType -> R_TYPE3 REG . REG REG
+    REG             shift and go to state 123
 
 
 state 79
 
-    (50) declarations -> declaration filetag .
-    (51) declarations -> declaration filetag . declarations
-    (50) declarations -> . declaration filetag
-    (51) declarations -> . declaration filetag declarations
-    (52) declaration -> . ALIGN NUMBER
-    (53) declaration -> . EQV
-    (54) declaration -> . HALF nums
-    (55) declaration -> . SPACE nums
-    (56) declaration -> . ASCII STRING
-    (57) declaration -> . BYTE chars
-    (58) declaration -> . WORD nums
-    (59) declaration -> . ASCIIZ STRING
-    (60) declaration -> . label HALF nums
-    (61) declaration -> . label SPACE nums
-    (62) declaration -> . label ASCII STRING
-    (63) declaration -> . label BYTE chars
-    (64) declaration -> . label WORD nums
-    (65) declaration -> . label ASCIIZ STRING
-    (9) label -> . LABEL COLON
-    TEXT            reduce using rule 50 (declarations -> declaration filetag .)
-    DATA            reduce using rule 50 (declarations -> declaration filetag .)
-    $end            reduce using rule 50 (declarations -> declaration filetag .)
-    ALIGN           shift and go to state 47
-    EQV             shift and go to state 48
-    HALF            shift and go to state 49
-    SPACE           shift and go to state 50
-    ASCII           shift and go to state 51
-    BYTE            shift and go to state 52
-    WORD            shift and go to state 53
-    ASCIIZ          shift and go to state 54
-    LABEL           shift and go to state 15
+    (45) branch -> PS_ZERO_BRANCH REG . LABEL
+    LABEL           shift and go to state 124
 
-    declaration                    shift and go to state 46
-    declarations                   shift and go to state 116
-    label                          shift and go to state 55
 
 state 80
 
-    (52) declaration -> ALIGN NUMBER .
-    LINE_MARKER     reduce using rule 52 (declaration -> ALIGN NUMBER .)
+    (46) branch -> PS_BRANCH REG . REG LABEL
+    REG             shift and go to state 125
 
 
 state 81
 
-    (54) declaration -> HALF nums .
-    LINE_MARKER     reduce using rule 54 (declaration -> HALF nums .)
+    (47) branch -> ZERO_BRANCH REG . LABEL
+    LABEL           shift and go to state 126
 
 
 state 82
 
-    (66) nums -> NUMBER . nums
-    (67) nums -> NUMBER . COMMA nums
-    (68) nums -> NUMBER .
-    (66) nums -> . NUMBER nums
-    (67) nums -> . NUMBER COMMA nums
-    (68) nums -> . NUMBER
-    COMMA           shift and go to state 118
-    LINE_MARKER     reduce using rule 68 (nums -> NUMBER .)
-    NUMBER          shift and go to state 82
+    (48) branch -> BRANCH REG . REG LABEL
+    REG             shift and go to state 127
 
-    nums                           shift and go to state 117
 
 state 83
 
-    (55) declaration -> SPACE nums .
-    LINE_MARKER     reduce using rule 55 (declaration -> SPACE nums .)
+    (53) declarations -> declaration filetag .
+    (54) declarations -> declaration filetag . declarations
+    (53) declarations -> . declaration filetag
+    (54) declarations -> . declaration filetag declarations
+    (55) declaration -> . ALIGN NUMBER
+    (56) declaration -> . EQV
+    (57) declaration -> . DOUBLE floats
+    (58) declaration -> . FLOAT floats
+    (59) declaration -> . HALF nums
+    (60) declaration -> . SPACE nums
+    (61) declaration -> . ASCII STRING
+    (62) declaration -> . BYTE chars
+    (63) declaration -> . WORD nums
+    (64) declaration -> . ASCIIZ STRING
+    (65) declaration -> . label DOUBLE floats
+    (66) declaration -> . label FLOAT floats
+    (67) declaration -> . label HALF nums
+    (68) declaration -> . label SPACE nums
+    (69) declaration -> . label ASCII STRING
+    (70) declaration -> . label BYTE chars
+    (71) declaration -> . label WORD nums
+    (72) declaration -> . label ASCIIZ STRING
+    (9) label -> . LABEL COLON
+    TEXT            reduce using rule 53 (declarations -> declaration filetag .)
+    DATA            reduce using rule 53 (declarations -> declaration filetag .)
+    $end            reduce using rule 53 (declarations -> declaration filetag .)
+    ALIGN           shift and go to state 48
+    EQV             shift and go to state 49
+    DOUBLE          shift and go to state 50
+    FLOAT           shift and go to state 51
+    HALF            shift and go to state 52
+    SPACE           shift and go to state 53
+    ASCII           shift and go to state 54
+    BYTE            shift and go to state 55
+    WORD            shift and go to state 56
+    ASCIIZ          shift and go to state 57
+    LABEL           shift and go to state 15
 
+    declaration                    shift and go to state 47
+    declarations                   shift and go to state 128
+    label                          shift and go to state 58
 
 state 84
 
-    (56) declaration -> ASCII STRING .
-    LINE_MARKER     reduce using rule 56 (declaration -> ASCII STRING .)
+    (55) declaration -> ALIGN NUMBER .
+    LINE_MARKER     reduce using rule 55 (declaration -> ALIGN NUMBER .)
 
 
 state 85
 
-    (57) declaration -> BYTE chars .
-    LINE_MARKER     reduce using rule 57 (declaration -> BYTE chars .)
+    (57) declaration -> DOUBLE floats .
+    LINE_MARKER     reduce using rule 57 (declaration -> DOUBLE floats .)
 
 
 state 86
 
-    (69) chars -> NUMBER . chars
-    (70) chars -> NUMBER . COMMA chars
-    (71) chars -> NUMBER .
-    (69) chars -> . NUMBER chars
-    (70) chars -> . NUMBER COMMA chars
-    (71) chars -> . NUMBER
-    (72) chars -> . CHAR chars
-    (73) chars -> . CHAR COMMA chars
-    (74) chars -> . CHAR
-    COMMA           shift and go to state 120
-    LINE_MARKER     reduce using rule 71 (chars -> NUMBER .)
-    NUMBER          shift and go to state 86
-    CHAR            shift and go to state 87
+    (76) floats -> FLOAT_LITERAL . floats
+    (77) floats -> FLOAT_LITERAL . COMMA floats
+    (78) floats -> FLOAT_LITERAL .
+    (76) floats -> . FLOAT_LITERAL floats
+    (77) floats -> . FLOAT_LITERAL COMMA floats
+    (78) floats -> . FLOAT_LITERAL
+    COMMA           shift and go to state 130
+    LINE_MARKER     reduce using rule 78 (floats -> FLOAT_LITERAL .)
+    FLOAT_LITERAL   shift and go to state 86
 
-    chars                          shift and go to state 119
+    floats                         shift and go to state 129
 
 state 87
 
-    (72) chars -> CHAR . chars
-    (73) chars -> CHAR . COMMA chars
-    (74) chars -> CHAR .
-    (69) chars -> . NUMBER chars
-    (70) chars -> . NUMBER COMMA chars
-    (71) chars -> . NUMBER
-    (72) chars -> . CHAR chars
-    (73) chars -> . CHAR COMMA chars
-    (74) chars -> . CHAR
-    COMMA           shift and go to state 122
-    LINE_MARKER     reduce using rule 74 (chars -> CHAR .)
-    NUMBER          shift and go to state 86
-    CHAR            shift and go to state 87
+    (58) declaration -> FLOAT floats .
+    LINE_MARKER     reduce using rule 58 (declaration -> FLOAT floats .)
 
-    chars                          shift and go to state 121
 
 state 88
 
-    (58) declaration -> WORD nums .
-    LINE_MARKER     reduce using rule 58 (declaration -> WORD nums .)
+    (59) declaration -> HALF nums .
+    LINE_MARKER     reduce using rule 59 (declaration -> HALF nums .)
 
 
 state 89
 
-    (59) declaration -> ASCIIZ STRING .
-    LINE_MARKER     reduce using rule 59 (declaration -> ASCIIZ STRING .)
+    (73) nums -> NUMBER . nums
+    (74) nums -> NUMBER . COMMA nums
+    (75) nums -> NUMBER .
+    (73) nums -> . NUMBER nums
+    (74) nums -> . NUMBER COMMA nums
+    (75) nums -> . NUMBER
+    COMMA           shift and go to state 132
+    LINE_MARKER     reduce using rule 75 (nums -> NUMBER .)
+    NUMBER          shift and go to state 89
 
+    nums                           shift and go to state 131
 
 state 90
 
-    (60) declaration -> label HALF . nums
-    (66) nums -> . NUMBER nums
-    (67) nums -> . NUMBER COMMA nums
-    (68) nums -> . NUMBER
-    NUMBER          shift and go to state 82
+    (60) declaration -> SPACE nums .
+    LINE_MARKER     reduce using rule 60 (declaration -> SPACE nums .)
 
-    nums                           shift and go to state 123
 
 state 91
 
-    (61) declaration -> label SPACE . nums
-    (66) nums -> . NUMBER nums
-    (67) nums -> . NUMBER COMMA nums
-    (68) nums -> . NUMBER
-    NUMBER          shift and go to state 82
+    (61) declaration -> ASCII STRING .
+    LINE_MARKER     reduce using rule 61 (declaration -> ASCII STRING .)
 
-    nums                           shift and go to state 124
 
 state 92
 
-    (62) declaration -> label ASCII . STRING
-    STRING          shift and go to state 125
+    (62) declaration -> BYTE chars .
+    LINE_MARKER     reduce using rule 62 (declaration -> BYTE chars .)
 
 
 state 93
 
-    (63) declaration -> label BYTE . chars
-    (69) chars -> . NUMBER chars
-    (70) chars -> . NUMBER COMMA chars
-    (71) chars -> . NUMBER
-    (72) chars -> . CHAR chars
-    (73) chars -> . CHAR COMMA chars
-    (74) chars -> . CHAR
-    NUMBER          shift and go to state 86
-    CHAR            shift and go to state 87
+    (79) chars -> NUMBER . chars
+    (80) chars -> NUMBER . COMMA chars
+    (81) chars -> NUMBER .
+    (79) chars -> . NUMBER chars
+    (80) chars -> . NUMBER COMMA chars
+    (81) chars -> . NUMBER
+    (82) chars -> . CHAR chars
+    (83) chars -> . CHAR COMMA chars
+    (84) chars -> . CHAR
+    COMMA           shift and go to state 134
+    LINE_MARKER     reduce using rule 81 (chars -> NUMBER .)
+    NUMBER          shift and go to state 93
+    CHAR            shift and go to state 94
 
-    chars                          shift and go to state 126
+    chars                          shift and go to state 133
 
 state 94
 
-    (64) declaration -> label WORD . nums
-    (66) nums -> . NUMBER nums
-    (67) nums -> . NUMBER COMMA nums
-    (68) nums -> . NUMBER
-    NUMBER          shift and go to state 82
+    (82) chars -> CHAR . chars
+    (83) chars -> CHAR . COMMA chars
+    (84) chars -> CHAR .
+    (79) chars -> . NUMBER chars
+    (80) chars -> . NUMBER COMMA chars
+    (81) chars -> . NUMBER
+    (82) chars -> . CHAR chars
+    (83) chars -> . CHAR COMMA chars
+    (84) chars -> . CHAR
+    COMMA           shift and go to state 136
+    LINE_MARKER     reduce using rule 84 (chars -> CHAR .)
+    NUMBER          shift and go to state 93
+    CHAR            shift and go to state 94
 
-    nums                           shift and go to state 127
+    chars                          shift and go to state 135
 
 state 95
 
-    (65) declaration -> label ASCIIZ . STRING
-    STRING          shift and go to state 128
+    (63) declaration -> WORD nums .
+    LINE_MARKER     reduce using rule 63 (declaration -> WORD nums .)
 
 
 state 96
+
+    (64) declaration -> ASCIIZ STRING .
+    LINE_MARKER     reduce using rule 64 (declaration -> ASCIIZ STRING .)
+
+
+state 97
+
+    (65) declaration -> label DOUBLE . floats
+    (76) floats -> . FLOAT_LITERAL floats
+    (77) floats -> . FLOAT_LITERAL COMMA floats
+    (78) floats -> . FLOAT_LITERAL
+    FLOAT_LITERAL   shift and go to state 86
+
+    floats                         shift and go to state 137
+
+state 98
+
+    (66) declaration -> label FLOAT . floats
+    (76) floats -> . FLOAT_LITERAL floats
+    (77) floats -> . FLOAT_LITERAL COMMA floats
+    (78) floats -> . FLOAT_LITERAL
+    FLOAT_LITERAL   shift and go to state 86
+
+    floats                         shift and go to state 138
+
+state 99
+
+    (67) declaration -> label HALF . nums
+    (73) nums -> . NUMBER nums
+    (74) nums -> . NUMBER COMMA nums
+    (75) nums -> . NUMBER
+    NUMBER          shift and go to state 89
+
+    nums                           shift and go to state 139
+
+state 100
+
+    (68) declaration -> label SPACE . nums
+    (73) nums -> . NUMBER nums
+    (74) nums -> . NUMBER COMMA nums
+    (75) nums -> . NUMBER
+    NUMBER          shift and go to state 89
+
+    nums                           shift and go to state 140
+
+state 101
+
+    (69) declaration -> label ASCII . STRING
+    STRING          shift and go to state 141
+
+
+state 102
+
+    (70) declaration -> label BYTE . chars
+    (79) chars -> . NUMBER chars
+    (80) chars -> . NUMBER COMMA chars
+    (81) chars -> . NUMBER
+    (82) chars -> . CHAR chars
+    (83) chars -> . CHAR COMMA chars
+    (84) chars -> . CHAR
+    NUMBER          shift and go to state 93
+    CHAR            shift and go to state 94
+
+    chars                          shift and go to state 142
+
+state 103
+
+    (71) declaration -> label WORD . nums
+    (73) nums -> . NUMBER nums
+    (74) nums -> . NUMBER COMMA nums
+    (75) nums -> . NUMBER
+    NUMBER          shift and go to state 89
+
+    nums                           shift and go to state 143
+
+state 104
+
+    (72) declaration -> label ASCIIZ . STRING
+    STRING          shift and go to state 144
+
+
+state 105
 
     (10) instrs -> label instr filetag . instrs
     (11) instrs -> label instr filetag .
@@ -1221,33 +1358,36 @@ state 96
     (20) instr -> . syscall
     (21) instr -> . rType
     (22) instr -> . branch
-    (48) breakpoint -> . BREAK NUMBER
-    (49) breakpoint -> . BREAK
-    (47) nop -> . NOP
-    (41) move -> . MOVE REG
+    (51) breakpoint -> . BREAK NUMBER
+    (52) breakpoint -> . BREAK
+    (50) nop -> . NOP
+    (44) move -> . MOVE REG
     (23) iType -> . LOADS_R REG LABEL
     (24) iType -> . PS_LOADS_A REG LABEL
     (25) iType -> . PS_LOADS_I REG CHAR
     (26) iType -> . PS_LOADS_I REG NUMBER
     (27) iType -> . PS_I_TYPE REG REG CHAR
     (28) iType -> . PS_I_TYPE REG REG NUMBER
-    (29) iType -> . LOADS_R REG LPAREN REG RPAREN
-    (30) iType -> . LOADS_R REG NUMBER LPAREN REG RPAREN
-    (31) iType -> . LOADS_I REG CHAR
-    (32) iType -> . LOADS_I REG NUMBER
-    (33) iType -> . I_TYPE REG REG CHAR
-    (34) iType -> . I_TYPE REG REG NUMBER
-    (39) jType -> . J_FUNCTR REG
-    (40) jType -> . J_FUNCT LABEL
-    (46) syscall -> . SYSCALL
-    (35) rType -> . PS_R_FUNCT2 REG REG
-    (36) rType -> . PS_R_FUNCT3 REG REG REG
-    (37) rType -> . R_FUNCT2 REG REG
-    (38) rType -> . R_FUNCT3 REG REG REG
-    (42) branch -> . PS_ZERO_BRANCH REG LABEL
-    (43) branch -> . PS_BRANCH REG REG LABEL
-    (44) branch -> . ZERO_BRANCH REG LABEL
-    (45) branch -> . BRANCH REG REG LABEL
+    (29) iType -> . LOADS_F F_REG LPAREN REG RPAREN
+    (30) iType -> . LOADS_F F_REG NUMBER LPAREN REG RPAREN
+    (31) iType -> . LOADS_R REG LPAREN REG RPAREN
+    (32) iType -> . LOADS_R REG NUMBER LPAREN REG RPAREN
+    (33) iType -> . LOADS_I REG CHAR
+    (34) iType -> . LOADS_I REG NUMBER
+    (35) iType -> . I_TYPE REG REG CHAR
+    (36) iType -> . I_TYPE REG REG NUMBER
+    (42) jType -> . J_TYPE_R REG
+    (43) jType -> . J_TYPE LABEL
+    (49) syscall -> . SYSCALL
+    (37) rType -> . PS_R_TYPE2 REG REG
+    (38) rType -> . PS_R_TYPE3 REG REG REG
+    (39) rType -> . R_TYPE2 REG REG
+    (40) rType -> . R_TYPE3_F F_REG F_REG F_REG
+    (41) rType -> . R_TYPE3 REG REG REG
+    (45) branch -> . PS_ZERO_BRANCH REG LABEL
+    (46) branch -> . PS_BRANCH REG REG LABEL
+    (47) branch -> . ZERO_BRANCH REG LABEL
+    (48) branch -> . BRANCH REG REG LABEL
     TEXT            reduce using rule 11 (instrs -> label instr filetag .)
     DATA            reduce using rule 11 (instrs -> label instr filetag .)
     $end            reduce using rule 11 (instrs -> label instr filetag .)
@@ -1259,23 +1399,25 @@ state 96
     PS_LOADS_A      shift and go to state 28
     PS_LOADS_I      shift and go to state 29
     PS_I_TYPE       shift and go to state 30
-    LOADS_I         shift and go to state 31
-    I_TYPE          shift and go to state 32
-    J_FUNCTR        shift and go to state 33
-    J_FUNCT         shift and go to state 34
-    SYSCALL         shift and go to state 35
-    PS_R_FUNCT2     shift and go to state 36
-    PS_R_FUNCT3     shift and go to state 37
-    R_FUNCT2        shift and go to state 38
-    R_FUNCT3        shift and go to state 39
-    PS_ZERO_BRANCH  shift and go to state 40
-    PS_BRANCH       shift and go to state 41
-    ZERO_BRANCH     shift and go to state 42
-    BRANCH          shift and go to state 43
+    LOADS_F         shift and go to state 31
+    LOADS_I         shift and go to state 32
+    I_TYPE          shift and go to state 33
+    J_TYPE_R        shift and go to state 34
+    J_TYPE          shift and go to state 35
+    SYSCALL         shift and go to state 36
+    PS_R_TYPE2      shift and go to state 37
+    PS_R_TYPE3      shift and go to state 38
+    R_TYPE2         shift and go to state 39
+    R_TYPE3_F       shift and go to state 40
+    R_TYPE3         shift and go to state 41
+    PS_ZERO_BRANCH  shift and go to state 42
+    PS_BRANCH       shift and go to state 43
+    ZERO_BRANCH     shift and go to state 44
+    BRANCH          shift and go to state 45
 
     label                          shift and go to state 13
     instr                          shift and go to state 14
-    instrs                         shift and go to state 129
+    instrs                         shift and go to state 145
     breakpoint                     shift and go to state 16
     nop                            shift and go to state 17
     move                           shift and go to state 18
@@ -1285,7 +1427,7 @@ state 96
     rType                          shift and go to state 22
     branch                         shift and go to state 23
 
-state 97
+state 106
 
     (13) instrs -> instr filetag instrs .
     TEXT            reduce using rule 13 (instrs -> instr filetag instrs .)
@@ -1293,219 +1435,265 @@ state 97
     $end            reduce using rule 13 (instrs -> instr filetag instrs .)
 
 
-state 98
+state 107
 
     (23) iType -> LOADS_R REG LABEL .
     LINE_MARKER     reduce using rule 23 (iType -> LOADS_R REG LABEL .)
 
 
-state 99
+state 108
 
-    (29) iType -> LOADS_R REG LPAREN . REG RPAREN
-    REG             shift and go to state 130
-
-
-state 100
-
-    (30) iType -> LOADS_R REG NUMBER . LPAREN REG RPAREN
-    LPAREN          shift and go to state 131
+    (31) iType -> LOADS_R REG LPAREN . REG RPAREN
+    REG             shift and go to state 146
 
 
-state 101
+state 109
+
+    (32) iType -> LOADS_R REG NUMBER . LPAREN REG RPAREN
+    LPAREN          shift and go to state 147
+
+
+state 110
 
     (24) iType -> PS_LOADS_A REG LABEL .
     LINE_MARKER     reduce using rule 24 (iType -> PS_LOADS_A REG LABEL .)
 
 
-state 102
+state 111
 
     (25) iType -> PS_LOADS_I REG CHAR .
     LINE_MARKER     reduce using rule 25 (iType -> PS_LOADS_I REG CHAR .)
 
 
-state 103
+state 112
 
     (26) iType -> PS_LOADS_I REG NUMBER .
     LINE_MARKER     reduce using rule 26 (iType -> PS_LOADS_I REG NUMBER .)
 
 
-state 104
+state 113
 
     (27) iType -> PS_I_TYPE REG REG . CHAR
     (28) iType -> PS_I_TYPE REG REG . NUMBER
-    CHAR            shift and go to state 132
-    NUMBER          shift and go to state 133
-
-
-state 105
-
-    (31) iType -> LOADS_I REG CHAR .
-    LINE_MARKER     reduce using rule 31 (iType -> LOADS_I REG CHAR .)
-
-
-state 106
-
-    (32) iType -> LOADS_I REG NUMBER .
-    LINE_MARKER     reduce using rule 32 (iType -> LOADS_I REG NUMBER .)
-
-
-state 107
-
-    (33) iType -> I_TYPE REG REG . CHAR
-    (34) iType -> I_TYPE REG REG . NUMBER
-    CHAR            shift and go to state 134
-    NUMBER          shift and go to state 135
-
-
-state 108
-
-    (35) rType -> PS_R_FUNCT2 REG REG .
-    LINE_MARKER     reduce using rule 35 (rType -> PS_R_FUNCT2 REG REG .)
-
-
-state 109
-
-    (36) rType -> PS_R_FUNCT3 REG REG . REG
-    REG             shift and go to state 136
-
-
-state 110
-
-    (37) rType -> R_FUNCT2 REG REG .
-    LINE_MARKER     reduce using rule 37 (rType -> R_FUNCT2 REG REG .)
-
-
-state 111
-
-    (38) rType -> R_FUNCT3 REG REG . REG
-    REG             shift and go to state 137
-
-
-state 112
-
-    (42) branch -> PS_ZERO_BRANCH REG LABEL .
-    LINE_MARKER     reduce using rule 42 (branch -> PS_ZERO_BRANCH REG LABEL .)
-
-
-state 113
-
-    (43) branch -> PS_BRANCH REG REG . LABEL
-    LABEL           shift and go to state 138
+    CHAR            shift and go to state 148
+    NUMBER          shift and go to state 149
 
 
 state 114
 
-    (44) branch -> ZERO_BRANCH REG LABEL .
-    LINE_MARKER     reduce using rule 44 (branch -> ZERO_BRANCH REG LABEL .)
+    (29) iType -> LOADS_F F_REG LPAREN . REG RPAREN
+    REG             shift and go to state 150
 
 
 state 115
 
-    (45) branch -> BRANCH REG REG . LABEL
-    LABEL           shift and go to state 139
+    (30) iType -> LOADS_F F_REG NUMBER . LPAREN REG RPAREN
+    LPAREN          shift and go to state 151
 
 
 state 116
 
-    (51) declarations -> declaration filetag declarations .
-    TEXT            reduce using rule 51 (declarations -> declaration filetag declarations .)
-    DATA            reduce using rule 51 (declarations -> declaration filetag declarations .)
-    $end            reduce using rule 51 (declarations -> declaration filetag declarations .)
+    (33) iType -> LOADS_I REG CHAR .
+    LINE_MARKER     reduce using rule 33 (iType -> LOADS_I REG CHAR .)
 
 
 state 117
 
-    (66) nums -> NUMBER nums .
-    LINE_MARKER     reduce using rule 66 (nums -> NUMBER nums .)
+    (34) iType -> LOADS_I REG NUMBER .
+    LINE_MARKER     reduce using rule 34 (iType -> LOADS_I REG NUMBER .)
 
 
 state 118
 
-    (67) nums -> NUMBER COMMA . nums
-    (66) nums -> . NUMBER nums
-    (67) nums -> . NUMBER COMMA nums
-    (68) nums -> . NUMBER
-    NUMBER          shift and go to state 82
+    (35) iType -> I_TYPE REG REG . CHAR
+    (36) iType -> I_TYPE REG REG . NUMBER
+    CHAR            shift and go to state 152
+    NUMBER          shift and go to state 153
 
-    nums                           shift and go to state 140
 
 state 119
 
-    (69) chars -> NUMBER chars .
-    LINE_MARKER     reduce using rule 69 (chars -> NUMBER chars .)
+    (37) rType -> PS_R_TYPE2 REG REG .
+    LINE_MARKER     reduce using rule 37 (rType -> PS_R_TYPE2 REG REG .)
 
 
 state 120
 
-    (70) chars -> NUMBER COMMA . chars
-    (69) chars -> . NUMBER chars
-    (70) chars -> . NUMBER COMMA chars
-    (71) chars -> . NUMBER
-    (72) chars -> . CHAR chars
-    (73) chars -> . CHAR COMMA chars
-    (74) chars -> . CHAR
-    NUMBER          shift and go to state 86
-    CHAR            shift and go to state 87
+    (38) rType -> PS_R_TYPE3 REG REG . REG
+    REG             shift and go to state 154
 
-    chars                          shift and go to state 141
 
 state 121
 
-    (72) chars -> CHAR chars .
-    LINE_MARKER     reduce using rule 72 (chars -> CHAR chars .)
+    (39) rType -> R_TYPE2 REG REG .
+    LINE_MARKER     reduce using rule 39 (rType -> R_TYPE2 REG REG .)
 
 
 state 122
 
-    (73) chars -> CHAR COMMA . chars
-    (69) chars -> . NUMBER chars
-    (70) chars -> . NUMBER COMMA chars
-    (71) chars -> . NUMBER
-    (72) chars -> . CHAR chars
-    (73) chars -> . CHAR COMMA chars
-    (74) chars -> . CHAR
-    NUMBER          shift and go to state 86
-    CHAR            shift and go to state 87
+    (40) rType -> R_TYPE3_F F_REG F_REG . F_REG
+    F_REG           shift and go to state 155
 
-    chars                          shift and go to state 142
 
 state 123
 
-    (60) declaration -> label HALF nums .
-    LINE_MARKER     reduce using rule 60 (declaration -> label HALF nums .)
+    (41) rType -> R_TYPE3 REG REG . REG
+    REG             shift and go to state 156
 
 
 state 124
 
-    (61) declaration -> label SPACE nums .
-    LINE_MARKER     reduce using rule 61 (declaration -> label SPACE nums .)
+    (45) branch -> PS_ZERO_BRANCH REG LABEL .
+    LINE_MARKER     reduce using rule 45 (branch -> PS_ZERO_BRANCH REG LABEL .)
 
 
 state 125
 
-    (62) declaration -> label ASCII STRING .
-    LINE_MARKER     reduce using rule 62 (declaration -> label ASCII STRING .)
+    (46) branch -> PS_BRANCH REG REG . LABEL
+    LABEL           shift and go to state 157
 
 
 state 126
 
-    (63) declaration -> label BYTE chars .
-    LINE_MARKER     reduce using rule 63 (declaration -> label BYTE chars .)
+    (47) branch -> ZERO_BRANCH REG LABEL .
+    LINE_MARKER     reduce using rule 47 (branch -> ZERO_BRANCH REG LABEL .)
 
 
 state 127
 
-    (64) declaration -> label WORD nums .
-    LINE_MARKER     reduce using rule 64 (declaration -> label WORD nums .)
+    (48) branch -> BRANCH REG REG . LABEL
+    LABEL           shift and go to state 158
 
 
 state 128
 
-    (65) declaration -> label ASCIIZ STRING .
-    LINE_MARKER     reduce using rule 65 (declaration -> label ASCIIZ STRING .)
+    (54) declarations -> declaration filetag declarations .
+    TEXT            reduce using rule 54 (declarations -> declaration filetag declarations .)
+    DATA            reduce using rule 54 (declarations -> declaration filetag declarations .)
+    $end            reduce using rule 54 (declarations -> declaration filetag declarations .)
 
 
 state 129
+
+    (76) floats -> FLOAT_LITERAL floats .
+    LINE_MARKER     reduce using rule 76 (floats -> FLOAT_LITERAL floats .)
+
+
+state 130
+
+    (77) floats -> FLOAT_LITERAL COMMA . floats
+    (76) floats -> . FLOAT_LITERAL floats
+    (77) floats -> . FLOAT_LITERAL COMMA floats
+    (78) floats -> . FLOAT_LITERAL
+    FLOAT_LITERAL   shift and go to state 86
+
+    floats                         shift and go to state 159
+
+state 131
+
+    (73) nums -> NUMBER nums .
+    LINE_MARKER     reduce using rule 73 (nums -> NUMBER nums .)
+
+
+state 132
+
+    (74) nums -> NUMBER COMMA . nums
+    (73) nums -> . NUMBER nums
+    (74) nums -> . NUMBER COMMA nums
+    (75) nums -> . NUMBER
+    NUMBER          shift and go to state 89
+
+    nums                           shift and go to state 160
+
+state 133
+
+    (79) chars -> NUMBER chars .
+    LINE_MARKER     reduce using rule 79 (chars -> NUMBER chars .)
+
+
+state 134
+
+    (80) chars -> NUMBER COMMA . chars
+    (79) chars -> . NUMBER chars
+    (80) chars -> . NUMBER COMMA chars
+    (81) chars -> . NUMBER
+    (82) chars -> . CHAR chars
+    (83) chars -> . CHAR COMMA chars
+    (84) chars -> . CHAR
+    NUMBER          shift and go to state 93
+    CHAR            shift and go to state 94
+
+    chars                          shift and go to state 161
+
+state 135
+
+    (82) chars -> CHAR chars .
+    LINE_MARKER     reduce using rule 82 (chars -> CHAR chars .)
+
+
+state 136
+
+    (83) chars -> CHAR COMMA . chars
+    (79) chars -> . NUMBER chars
+    (80) chars -> . NUMBER COMMA chars
+    (81) chars -> . NUMBER
+    (82) chars -> . CHAR chars
+    (83) chars -> . CHAR COMMA chars
+    (84) chars -> . CHAR
+    NUMBER          shift and go to state 93
+    CHAR            shift and go to state 94
+
+    chars                          shift and go to state 162
+
+state 137
+
+    (65) declaration -> label DOUBLE floats .
+    LINE_MARKER     reduce using rule 65 (declaration -> label DOUBLE floats .)
+
+
+state 138
+
+    (66) declaration -> label FLOAT floats .
+    LINE_MARKER     reduce using rule 66 (declaration -> label FLOAT floats .)
+
+
+state 139
+
+    (67) declaration -> label HALF nums .
+    LINE_MARKER     reduce using rule 67 (declaration -> label HALF nums .)
+
+
+state 140
+
+    (68) declaration -> label SPACE nums .
+    LINE_MARKER     reduce using rule 68 (declaration -> label SPACE nums .)
+
+
+state 141
+
+    (69) declaration -> label ASCII STRING .
+    LINE_MARKER     reduce using rule 69 (declaration -> label ASCII STRING .)
+
+
+state 142
+
+    (70) declaration -> label BYTE chars .
+    LINE_MARKER     reduce using rule 70 (declaration -> label BYTE chars .)
+
+
+state 143
+
+    (71) declaration -> label WORD nums .
+    LINE_MARKER     reduce using rule 71 (declaration -> label WORD nums .)
+
+
+state 144
+
+    (72) declaration -> label ASCIIZ STRING .
+    LINE_MARKER     reduce using rule 72 (declaration -> label ASCIIZ STRING .)
+
+
+state 145
 
     (10) instrs -> label instr filetag instrs .
     TEXT            reduce using rule 10 (instrs -> label instr filetag instrs .)
@@ -1513,97 +1701,139 @@ state 129
     $end            reduce using rule 10 (instrs -> label instr filetag instrs .)
 
 
-state 130
+state 146
 
-    (29) iType -> LOADS_R REG LPAREN REG . RPAREN
-    RPAREN          shift and go to state 143
-
-
-state 131
-
-    (30) iType -> LOADS_R REG NUMBER LPAREN . REG RPAREN
-    REG             shift and go to state 144
+    (31) iType -> LOADS_R REG LPAREN REG . RPAREN
+    RPAREN          shift and go to state 163
 
 
-state 132
+state 147
+
+    (32) iType -> LOADS_R REG NUMBER LPAREN . REG RPAREN
+    REG             shift and go to state 164
+
+
+state 148
 
     (27) iType -> PS_I_TYPE REG REG CHAR .
     LINE_MARKER     reduce using rule 27 (iType -> PS_I_TYPE REG REG CHAR .)
 
 
-state 133
+state 149
 
     (28) iType -> PS_I_TYPE REG REG NUMBER .
     LINE_MARKER     reduce using rule 28 (iType -> PS_I_TYPE REG REG NUMBER .)
 
 
-state 134
+state 150
 
-    (33) iType -> I_TYPE REG REG CHAR .
-    LINE_MARKER     reduce using rule 33 (iType -> I_TYPE REG REG CHAR .)
-
-
-state 135
-
-    (34) iType -> I_TYPE REG REG NUMBER .
-    LINE_MARKER     reduce using rule 34 (iType -> I_TYPE REG REG NUMBER .)
+    (29) iType -> LOADS_F F_REG LPAREN REG . RPAREN
+    RPAREN          shift and go to state 165
 
 
-state 136
+state 151
 
-    (36) rType -> PS_R_FUNCT3 REG REG REG .
-    LINE_MARKER     reduce using rule 36 (rType -> PS_R_FUNCT3 REG REG REG .)
-
-
-state 137
-
-    (38) rType -> R_FUNCT3 REG REG REG .
-    LINE_MARKER     reduce using rule 38 (rType -> R_FUNCT3 REG REG REG .)
+    (30) iType -> LOADS_F F_REG NUMBER LPAREN . REG RPAREN
+    REG             shift and go to state 166
 
 
-state 138
+state 152
 
-    (43) branch -> PS_BRANCH REG REG LABEL .
-    LINE_MARKER     reduce using rule 43 (branch -> PS_BRANCH REG REG LABEL .)
-
-
-state 139
-
-    (45) branch -> BRANCH REG REG LABEL .
-    LINE_MARKER     reduce using rule 45 (branch -> BRANCH REG REG LABEL .)
+    (35) iType -> I_TYPE REG REG CHAR .
+    LINE_MARKER     reduce using rule 35 (iType -> I_TYPE REG REG CHAR .)
 
 
-state 140
+state 153
 
-    (67) nums -> NUMBER COMMA nums .
-    LINE_MARKER     reduce using rule 67 (nums -> NUMBER COMMA nums .)
-
-
-state 141
-
-    (70) chars -> NUMBER COMMA chars .
-    LINE_MARKER     reduce using rule 70 (chars -> NUMBER COMMA chars .)
+    (36) iType -> I_TYPE REG REG NUMBER .
+    LINE_MARKER     reduce using rule 36 (iType -> I_TYPE REG REG NUMBER .)
 
 
-state 142
+state 154
 
-    (73) chars -> CHAR COMMA chars .
-    LINE_MARKER     reduce using rule 73 (chars -> CHAR COMMA chars .)
-
-
-state 143
-
-    (29) iType -> LOADS_R REG LPAREN REG RPAREN .
-    LINE_MARKER     reduce using rule 29 (iType -> LOADS_R REG LPAREN REG RPAREN .)
+    (38) rType -> PS_R_TYPE3 REG REG REG .
+    LINE_MARKER     reduce using rule 38 (rType -> PS_R_TYPE3 REG REG REG .)
 
 
-state 144
+state 155
 
-    (30) iType -> LOADS_R REG NUMBER LPAREN REG . RPAREN
-    RPAREN          shift and go to state 145
+    (40) rType -> R_TYPE3_F F_REG F_REG F_REG .
+    LINE_MARKER     reduce using rule 40 (rType -> R_TYPE3_F F_REG F_REG F_REG .)
 
 
-state 145
+state 156
 
-    (30) iType -> LOADS_R REG NUMBER LPAREN REG RPAREN .
-    LINE_MARKER     reduce using rule 30 (iType -> LOADS_R REG NUMBER LPAREN REG RPAREN .)
+    (41) rType -> R_TYPE3 REG REG REG .
+    LINE_MARKER     reduce using rule 41 (rType -> R_TYPE3 REG REG REG .)
+
+
+state 157
+
+    (46) branch -> PS_BRANCH REG REG LABEL .
+    LINE_MARKER     reduce using rule 46 (branch -> PS_BRANCH REG REG LABEL .)
+
+
+state 158
+
+    (48) branch -> BRANCH REG REG LABEL .
+    LINE_MARKER     reduce using rule 48 (branch -> BRANCH REG REG LABEL .)
+
+
+state 159
+
+    (77) floats -> FLOAT_LITERAL COMMA floats .
+    LINE_MARKER     reduce using rule 77 (floats -> FLOAT_LITERAL COMMA floats .)
+
+
+state 160
+
+    (74) nums -> NUMBER COMMA nums .
+    LINE_MARKER     reduce using rule 74 (nums -> NUMBER COMMA nums .)
+
+
+state 161
+
+    (80) chars -> NUMBER COMMA chars .
+    LINE_MARKER     reduce using rule 80 (chars -> NUMBER COMMA chars .)
+
+
+state 162
+
+    (83) chars -> CHAR COMMA chars .
+    LINE_MARKER     reduce using rule 83 (chars -> CHAR COMMA chars .)
+
+
+state 163
+
+    (31) iType -> LOADS_R REG LPAREN REG RPAREN .
+    LINE_MARKER     reduce using rule 31 (iType -> LOADS_R REG LPAREN REG RPAREN .)
+
+
+state 164
+
+    (32) iType -> LOADS_R REG NUMBER LPAREN REG . RPAREN
+    RPAREN          shift and go to state 167
+
+
+state 165
+
+    (29) iType -> LOADS_F F_REG LPAREN REG RPAREN .
+    LINE_MARKER     reduce using rule 29 (iType -> LOADS_F F_REG LPAREN REG RPAREN .)
+
+
+state 166
+
+    (30) iType -> LOADS_F F_REG NUMBER LPAREN REG . RPAREN
+    RPAREN          shift and go to state 168
+
+
+state 167
+
+    (32) iType -> LOADS_R REG NUMBER LPAREN REG RPAREN .
+    LINE_MARKER     reduce using rule 32 (iType -> LOADS_R REG NUMBER LPAREN REG RPAREN .)
+
+
+state 168
+
+    (30) iType -> LOADS_F F_REG NUMBER LPAREN REG RPAREN .
+    LINE_MARKER     reduce using rule 30 (iType -> LOADS_F F_REG NUMBER LPAREN REG RPAREN .)

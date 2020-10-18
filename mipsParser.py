@@ -16,7 +16,8 @@ class MipsParser(Parser):
     def __init__(self, original_text):
         self.labels = {}
         self.original_text = original_text
-
+        self.filename = None
+        self.line_no = 1
     # Top level section (Data, Text)
     @_('sects')
     def program(self, p):
@@ -41,10 +42,13 @@ class MipsParser(Parser):
     def tSect(self, p):
         return p.instrs
 
-    @_('LINE_MARKER STRING NUMBER')
+    @_('LINE_MARKER')
     def filetag(self, p):
-        file_name = p[1][1:-1]
-        line_number = p[2]
+        x = p[0].split()
+        file_name = x[1][1:-1]
+        line_number = int(x[2])
+        self.filename = x[1]
+        self.line_no = x[2]
         return FileTag(file_name, line_number)
 
     @_('LABEL COLON')
@@ -395,5 +399,7 @@ class MipsParser(Parser):
 
         if p:
             message = f'Unexpected {p}'
+            if self.filename:
+                message += f' on {self.filename}:{self.line_no}'
 
         raise SyntaxError(message)

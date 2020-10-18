@@ -1,4 +1,5 @@
 from typing import Dict
+import re
 
 from constants import *
 from settings import settings
@@ -83,12 +84,15 @@ class MipsLexer(Lexer):
     SPACE = r'\.space'
     EQV = r'\.eqv .*? .*?(?=\x81)'
     ALIGN = r'\.align'
-
-    @_(r'(\x81\x82|\x81\x83)')
+# \x81\x83
+    @_(r'(\x81\x82|\x81\x83) ".*" \d+')
     def LINE_MARKER(self, t):
-        if t.value == FILE_MARKER:
+        x = t.value.split()
+        if x[0] == FILE_MARKER:
             # Reset line number
-            self.lineno = 1
+            line = x[2]
+            self.filename = x[1]
+            self.lineno = int(line)
 
         return t
 
@@ -132,6 +136,7 @@ class MipsLexer(Lexer):
 
     @_(r'\#[^\x81\n]*')
     def ignore_comments(self, t):
+        self.lineno += t.value.count('\n')
         pass
 
     # Line number tracking
@@ -142,7 +147,8 @@ class MipsLexer(Lexer):
     @_(r'\.(include|globl)[^\n]*')
     def ignore_directives(self, t):
         # These were already taken care of during the preprocessing stage, so we don't need them
+        self.lineno += t.value.count('\n')
         pass
 
     def error(self, t):
-        raise SyntaxError(f'Line {self.lineno}: Bad character {t.value[0]}')
+        raise SyntaxError(f'File {self.filename} Line {self.lineno}: Bad character {t.value[0]}')

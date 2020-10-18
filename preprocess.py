@@ -114,14 +114,15 @@ def preprocess(filename: str, lexer: Lexer) -> Tuple[str, Dict[str, List[str]]]:
 
         filename_fslash = filename.as_posix()
         original_text[filename_fslash] = file.readlines()
-
+        first_line = True
         for line in original_text[filename_fslash]:
             line = line.strip()
 
             if line == '' or line[0] == '#':
                 texts[i] += line + '\n'
-            elif count == 1:  # Beginning of a new file
+            elif first_line:  # Beginning of a new file
                 texts[i] += line + f' {FILE_MARKER} \"{filename_fslash}\" {count}\n'
+                first_line = False
             else:
                 texts[i] += line + f' {LINE_MARKER} \"{filename_fslash}\" {count}\n'
 

@@ -277,7 +277,7 @@ class MainWindow(QMainWindow):
             self.out_pos = self.out.textCursor().position()
             self.program = Thread(target=self.intr.interpret, daemon=True)
             for b in self.breakpoints:
-                self.controller.addBreakpoint(b)
+                self.controller.add_breakpoint(b)
             self.program.start()
         elif not self.controller.cont():
             self.controller.pause(False)
@@ -299,7 +299,7 @@ class MainWindow(QMainWindow):
             self.out.setPlainText('')
             self.program = Thread(target=self.intr.interpret, daemon=True)
             for b in self.breakpoints:
-                self.controller.addBreakpoint(b)
+                self.controller.add_breakpoint(b)
             self.program.start()
         else:
             self.controller.set_pause(True)
@@ -353,7 +353,7 @@ class MainWindow(QMainWindow):
             # fmt.setBackground(Qt.cyan)
             # self.instrs[pc - settings['initial_pc']].setTextFormat(fmt)
             self.prev_instr.setStyleSheet("QLineEdit { background: rgb(255, 255, 255) };")
-            self.prev_instr = self.instrs[(pc - settings['initial_pc'])//4 - 1]
+            self.prev_instr = self.instrs[(pc - 4 - settings['initial_pc'])//4]
             self.prev_instr.setStyleSheet("QLineEdit { background: rgb(0, 255, 255) };")
 
         else:
@@ -363,7 +363,7 @@ class MainWindow(QMainWindow):
                 if type(mem.text[k]) is not str:
                     i = mem.text[k]
                     check = QCheckBox()
-                    check.stateChanged.connect(lambda state, i=i: self.add_breakpoint(('b', str(i.filetag.file_name), str(i.filetag.line_no))) if state == Qt.Checked else self.remove_breakpoint((i.filetag.file_name, i.filetag.line_no)))
+                    check.stateChanged.connect(lambda state, i=i: self.add_breakpoint(('b', str(i.filetag.file_name), str(i.filetag.line_no))) if state == Qt.Checked else self.remove_breakpoint(('b', str(i.filetag.file_name), str(i.filetag.line_no))))
                     self.checkboxes.append(check)
                     self.instr_grid.addWidget(check, count, 0)
                     if i.is_from_pseudoinstr:
@@ -437,11 +437,11 @@ class MainWindow(QMainWindow):
         return super().eventFilter(obj, event)
 
     def add_breakpoint(self, cmd):
-        self.controller.addBreakpoint(cmd)
+        self.controller.add_breakpoint(cmd)
         self.breakpoints.append(cmd)
 
     def remove_breakpoint(self, cmd):
-        self.controller.removeBreakpoint(cmd)
+        self.controller.remove_breakpoint((cmd[1], cmd[2]))
         self.breakpoints.remove(cmd)
 
 if __name__ == "__main__":
