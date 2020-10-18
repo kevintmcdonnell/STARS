@@ -455,7 +455,7 @@ class Interpreter(QWidget):
             rt = self.get_register(instr.rt)
 
             if 'z' in op:
-                result = instrs.table[op[:-1]](rs)
+                result = instrs.table[op](rs)
             else:
                 result = instrs.table[op](rs, rt)
 
