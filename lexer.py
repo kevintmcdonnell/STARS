@@ -61,7 +61,7 @@ class MipsLexer(Lexer):
     PS_ZERO_BRANCH = rf'\b({pseudoOps["ZERO_BRANCH"]})\b'
 
     # Strings
-    LABEL = r'[a-zA-Z_][a-zA-Z0-9_]*'
+    LABEL = r'[a-zA-Z_][a-zA-Z0-9_\.]*'
     STRING = r'"(.|\s)*?"'
 
     # Special symbols
