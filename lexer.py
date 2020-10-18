@@ -1,5 +1,4 @@
 from typing import Dict
-import re
 
 from constants import *
 from settings import settings
@@ -84,7 +83,8 @@ class MipsLexer(Lexer):
     SPACE = r'\.space'
     EQV = r'\.eqv .*? .*?(?=\x81)'
     ALIGN = r'\.align'
-# \x81\x83
+
+    # \x81\x83
     @_(r'(\x81\x82|\x81\x83) ".*" \d+')
     def LINE_MARKER(self, t):
         x = t.value.split()
@@ -96,7 +96,7 @@ class MipsLexer(Lexer):
 
         return t
 
-    @_(r'[$](a[0123t]|s[01234567]|t[0123456789]|v[01]|ra|sp|fp|gp|3[01]|[12]?\d),?')
+    @_(r'[$](a[0123t]|s[01234567]|t[0123456789]|v[01]|ra|sp|fp|gp|zero|3[01]|[12]?\d),?')
     def REG(self, t):
         if t.value[-1] == ',':
             t.value = t.value[:-1]

@@ -241,7 +241,7 @@ class Interpreter(QWidget):
         return instrs.overflow_detect(self.reg[key])
 
     def set_register(self, reg: str, data: int) -> None:
-        if reg == '$0':
+        if reg == '$0' or reg == '$zero':
             raise ex.WritingToZeroRegister(f' {self.line_info}')
 
         key = reg
