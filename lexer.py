@@ -21,7 +21,7 @@ def makeRegex() -> Dict[str, str]:
 class MipsLexer(Lexer):
     tokens = {HALF, ALIGN, EQV, LABEL, ZERO_BRANCH, BRANCH, I_TYPE, LOADS_I,
               LOADS_R, J_TYPE, J_TYPE_R, R_TYPE3, SYSCALL, R_TYPE2, NOP, BREAK, MOVE,
-              LOADS_F, R_TYPE3_F,
+              LOADS_F, R_TYPE3_F, R_TYPE2_F,
               REG, F_REG, LABEL, NUMBER, STRING, CHAR, FLOAT_LITERAL,
               LPAREN, RPAREN, COMMA, COLON, LINE_MARKER,
               TEXT, DATA, WORD, BYTE, FLOAT, DOUBLE, ASCIIZ, ASCII, SPACE,
@@ -32,6 +32,7 @@ class MipsLexer(Lexer):
     # Basic floating point instructions
     LOADS_F = r'\b(l|s)\.[sd]\b'
     R_TYPE3_F = r'\b(add|sub|mul|div)\.[sd]\b'
+    R_TYPE2_F = r'\b(abs|ceil\.w|floor\.w|mov|neg|round\.w|trunc\.w|sqrt)\.[sd]\b'
 
     # Basic instructions
     R_TYPE3 = r'\b(and|addu?|mul|[xn]?or|sllv|srav|slt[u]?|sub[u]?|mov[nz])\b'

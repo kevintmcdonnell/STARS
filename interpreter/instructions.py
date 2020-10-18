@@ -455,7 +455,30 @@ def div_f(a: Union[float32, float], b: Union[float32, float]) -> Union[float32, 
     return result
 
 
-table = {'add': add,
+def _abs(a: Union[float32, float]) -> Union[float32, float]:
+    return abs(a)
+
+
+def mov(a: Union[float32, float]) -> Union[float32, float]:
+    return a
+
+
+def neg(a: Union[float32, float]) -> Union[float32, float]:
+    return -a
+
+
+def sqrt(a: Union[float32, float]) -> Union[float32, float]:
+    if a < 0:
+        if type(a) is float32:
+            return float32('nan')
+        else:
+            return float('nan')
+
+    return a ** 0.5
+
+
+table = {'abs': _abs,
+         'add': add,
          'add_f': add_f,
          'addu': addu,
          'addi': addi,
@@ -467,6 +490,7 @@ table = {'add': add,
          'div_f': div_f,
          'clo': clo,
          'clz': clz,
+         'neg': neg,
          'nor': nor,
          'or': _or,
          'ori': ori,
@@ -480,6 +504,7 @@ table = {'add': add,
          'srav': srav,
          'srl': srl,
          'srlv': srlv,
+         'sqrt': sqrt,
          'sub': sub,
          'sub_f': sub_f,
          'subu': subu,
@@ -508,6 +533,7 @@ table = {'add': add,
          'b': j,
          'j': j,
          'jr': jr,
+         'mov': mov,
          'movz': movz,
          'movn': movz
          }

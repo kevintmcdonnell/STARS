@@ -94,7 +94,7 @@ class MipsParser(Parser):
     def rType(self, p):
         return RType(p[0], [p[1], p[2], p[3]])
 
-    @_('R_TYPE2 REG REG')
+    @_('R_TYPE2 REG REG', 'R_TYPE2_F F_REG F_REG')
     def rType(self, p):
         return RType(p[0], [p[1], p[2]])
 

@@ -336,7 +336,15 @@ class Interpreter(QWidget):
             r1 = instr.regs[0]
             r2 = instr.regs[1]
 
-            if op in {'mult', 'multu', 'madd', 'maddu', 'msub', 'msubu'}:
+            if is_float_single(op):
+                result = instrs.table[op[:-2]](self.get_reg_float(r2))
+                self.set_reg_float(r1, result)
+
+            elif is_float_double(op):
+                result = instrs.table[op[:-2]](self.get_reg_double(r2))
+                self.set_reg_double(r1, result)
+
+            elif op in {'mult', 'multu', 'madd', 'maddu', 'msub', 'msubu'}:
                 signed = op[-1] == 'u'
                 r1_data = self.get_register(r1)
                 r2_data = self.get_register(r2)
