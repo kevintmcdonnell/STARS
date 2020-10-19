@@ -20,7 +20,7 @@ def isValid(s: str, lexer: Lexer) -> bool:
 
 
 def walk(filename: Path, files: List[Path], eqv: Dict[str, str], abs_to_rel: Dict[Path, str], lexer: Lexer, parent: Path) -> None:
-    f = filename.open(mode='r')
+    f = filename.open(mode='r', errors='ignore')
 
     # Patterns to detect if line is an .eqv or .include directive
     eq_pattern = re.compile(r'[.]eqv (.*?)? (.*)')
@@ -109,7 +109,7 @@ def preprocess(filename: str, lexer: Lexer) -> Tuple[str, Dict[str, List[str]]]:
 
     # Step 2: Add file markers and line markers
     for i, filename in enumerate(files):
-        file = filename.open()
+        file = filename.open(mode='r', errors='ignore')
         count = 1
 
         filename_fslash = filename.as_posix()
