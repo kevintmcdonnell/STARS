@@ -297,6 +297,13 @@ class Interpreter(QWidget):
         def is_float_double(op: str) -> bool:
             return op[-2:] == '.d'
 
+        def is_conversion_to_int(op: str) -> bool:
+            return op[-4:-2] == '.w'
+
+        def interpret_as_float(x: int) -> float32:
+            x_bytes = struct.pack('>i', x)
+            return struct.unpack('>f', x_bytes)[0]
+
         # Instruction with 3 registers
         if type(instr) is RType and len(instr.regs) == 3:
             op = instr.operation
@@ -336,7 +343,15 @@ class Interpreter(QWidget):
             r1 = instr.regs[0]
             r2 = instr.regs[1]
 
-            if is_float_single(op):
+            if is_conversion_to_int(op):
+                if is_float_single(op):
+                    result = instrs.table[op[:-4]](self.get_reg_float(r2))
+                else:
+                    result = instrs.table[op[:-4]](self.get_reg_double(r2))
+
+                self.set_reg_float(r1, interpret_as_float(result))
+
+            elif is_float_single(op):
                 result = instrs.table[op[:-2]](self.get_reg_float(r2))
                 self.set_reg_float(r1, result)
 

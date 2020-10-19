@@ -1,9 +1,10 @@
+import math
 import warnings
 from typing import Union, Tuple, Dict
 
 from numpy import float32
 
-from constants import WORD_SIZE, HALF_SIZE, WORD_MASK
+from constants import WORD_SIZE, HALF_SIZE, WORD_MASK, WORD_MAX, WORD_MIN
 from interpreter import exceptions as ex
 
 
@@ -477,6 +478,35 @@ def sqrt(a: Union[float32, float]) -> Union[float32, float]:
     return a ** 0.5
 
 
+# Helper method for float -> int conversion instructions
+def nan_or_inf(a: Union[float32, float]) -> bool:
+    return math.isnan(a) or math.isinf(a)
+
+
+def convert_to_int(a: Union[float32, float], func) -> int:
+    if nan_or_inf(a):
+        return WORD_MAX
+
+    result = func(a)
+    return result if WORD_MIN <= result <= WORD_MAX else WORD_MAX
+
+
+def ceil(a: Union[float32, float]) -> int:
+    return convert_to_int(a, math.ceil)
+
+
+def floor(a: Union[float32, float]) -> int:
+    return convert_to_int(a, math.floor)
+
+
+def _round(a: Union[float32, float]) -> int:
+    return convert_to_int(a, round)
+
+
+def trunc(a: Union[float32, float]) -> int:
+    return convert_to_int(a, math.trunc)
+
+
 table = {'abs': _abs,
          'add': add,
          'add_f': add_f,
@@ -488,12 +518,15 @@ table = {'abs': _abs,
          'mul': mul,
          'mul_f': mul_f,
          'div_f': div_f,
+         'ceil': ceil,
          'clo': clo,
          'clz': clz,
+         'floor': floor,
          'neg': neg,
          'nor': nor,
          'or': _or,
          'ori': ori,
+         'round': _round,
          'sll': sll,
          'sllv': sllv,
          'slt': slt,
@@ -508,6 +541,7 @@ table = {'abs': _abs,
          'sub': sub,
          'sub_f': sub_f,
          'subu': subu,
+         'trunc': trunc,
          'xor': xor,
          'xori': xori,
          'lw': lw,
