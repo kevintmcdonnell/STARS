@@ -13,10 +13,10 @@ class MipsParser(Parser):
     tokens = MipsLexer.tokens
     debugfile = 'parser.out'
 
-    def __init__(self, original_text):
+    def __init__(self, original_text, filename):
         self.labels = {}
         self.original_text = original_text
-        self.filename = None
+        self.filename = filename
 
     # Top level section (Data, Text)
     @_('sects')
@@ -45,7 +45,7 @@ class MipsParser(Parser):
     @_('LINE_MARKER')
     def filetag(self, p):
         x = p[0].split()
-        file_name = x[1][1:-1]
+        file_name = self.filename
         line_number = int(x[2])
         self.filename = x[1]
         return FileTag(file_name, line_number)
@@ -62,12 +62,12 @@ class MipsParser(Parser):
         if type(p.instr) is PseudoInstr:
             for i in range(len(p.instr.instrs)):
                 p.instr.instrs[i].filetag = p.filetag
-                p.instr.instrs[i].original_text = self.original_text[p.filetag.file_name][p.filetag.line_no - 1]
+                p.instr.instrs[i].original_text = self.original_text[p.filetag.line_no - 1]
                 p.instr.instrs[i].is_from_pseudoinstr = True
 
         else:
             p.instr.filetag = p.filetag
-            p.instr.original_text = self.original_text[p.filetag.file_name][p.filetag.line_no - 1]
+            p.instr.original_text = self.original_text[p.filetag.line_no - 1]
             p.instr.is_from_pseudoinstr = False
 
         if 'label' in p._namemap:
@@ -395,9 +395,8 @@ class MipsParser(Parser):
 
     def error(self, p):
         message = ''
-
         if p:
-            message = f'Unexpected {p}'
+            message = f"Unexpected '{p.value}'"
             if self.filename:
                 message += f' on {self.filename}:{p.lineno}'
 

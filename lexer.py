@@ -86,14 +86,10 @@ class MipsLexer(Lexer):
     ALIGN = r'\.align'
 
     # \x81\x83
-    @_(r'(\x81\x82|\x81\x83) ".*" \d+')
+    @_(r'(\x81\x82|\x81\x83) ".*?" \d+')
     def LINE_MARKER(self, t):
         x = t.value.split()
-        if x[0] == FILE_MARKER:
-            # Reset line number
-            line = x[2]
-            self.filename = x[1]
-            self.lineno = int(line)
+        self.filename = x[1]
 
         return t
 
@@ -138,7 +134,7 @@ class MipsLexer(Lexer):
     @_(r'\#[^\x81\n]*')
     def ignore_comments(self, t):
         self.lineno += t.value.count('\n')
-        pass
+
 
     # Line number tracking
     @_(r'\n+')
@@ -149,7 +145,7 @@ class MipsLexer(Lexer):
     def ignore_directives(self, t):
         # These were already taken care of during the preprocessing stage, so we don't need them
         self.lineno += t.value.count('\n')
-        pass
+
 
     def error(self, t):
         raise SyntaxError(f'File {self.filename} Line {self.lineno}: Bad character {t.value[0]}')

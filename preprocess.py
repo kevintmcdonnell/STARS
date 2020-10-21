@@ -148,3 +148,34 @@ def preprocess(filename: str, lexer: Lexer) -> Tuple[str, Dict[str, List[str]]]:
 
     newText = newText.strip()
     return newText, original_text
+
+def eqv(contents: Dict[str, str], eqv: Dict[str, str]) -> None:
+    for k in contents.keys():
+        newText = ''
+        count = 1
+        first_line = True
+        for line in contents[k].split('\n'):
+            line = line.strip()
+            line = substitute(line, eqv)
+
+            if line == '' or line[0] == '#':
+                line = line + '\n'
+            elif first_line:  # Beginning of a new file
+                line = line + f' {FILE_MARKER} \"{k}\" {count}\n'
+                first_line = False
+            else:
+                line = line + f' {LINE_MARKER} \"{k}\" {count}\n'
+
+            count += 1
+            newText += line
+
+        newText = newText.strip()
+        contents[k] = newText
+
+def link(files: List[str], contents: Dict[str, str], abs_to_rel: Dict[str, str]):
+    text = contents[files[0]]
+    for name, content in zip(files, contents):
+        if name in abs_to_rel:
+            pattern = rf'\.include "{abs_to_rel[name]}".*?\n'
+            text = re.sub(pattern, contents, text)
+    return text

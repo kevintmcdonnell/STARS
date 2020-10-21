@@ -3,8 +3,9 @@ import argparse
 from interpreter.interpreter import *
 from lexer import MipsLexer
 from mipsParser import MipsParser
-from preprocess import preprocess
+from preprocess import preprocess, walk, link, eqv
 from settings import settings
+from pathlib import Path
 
 if __name__ == '__main__':
     p = argparse.ArgumentParser()
@@ -18,37 +19,48 @@ if __name__ == '__main__':
     p.add_argument('-w', '--warnings', help='Enables warnings', action='store_true')
     p.add_argument('-pa', type=str, nargs='+', help='Program arguments for the MIPS program')
 
+    args = p.parse_args()
+    pArgs = []
+
+    if args.assemble:
+        settings['assemble'] = True
+    if args.debug:
+        settings['debug'] = True
+    if args.garbage:
+        settings['garbage_memory'] = True
+        settings['garbage_registers'] = True
+    if args.disp_instr_count:
+        settings['disp_instr_count'] = True
+    if args.warnings:
+        settings['warnings'] = True
+    if args.max_instructions:
+        settings['max_instructions'] = args.max_instructions
+    if args.pa:
+        pArgs = args.pa
+
     try:
-        args = p.parse_args()
-        pArgs = []
-
-        if args.assemble:
-            settings['assemble'] = True
-        if args.debug:
-            settings['debug'] = True
-        if args.garbage:
-            settings['garbage_memory'] = True
-            settings['garbage_registers'] = True
-        if args.disp_instr_count:
-            settings['disp_instr_count'] = True
-        if args.warnings:
-            settings['warnings'] = True
-        if args.max_instructions:
-            settings['max_instructions'] = args.max_instructions
-        if args.pa:
-            pArgs = args.pa
-
         lexer = MipsLexer()
-        new_text, original_text = preprocess(args.filename, lexer)
-        parser = MipsParser(original_text)
-
-        tokenized = lexer.tokenize(new_text)
-        result = parser.parse(tokenized)
+        files = []
+        path = Path(args.filename)
+        path.resolve()
+        eqv_dict = {}
+        abs_to_rel = {}
+        walk(path, files, eqv_dict, abs_to_rel, lexer, path.parent)
+        contents = {}
+        for file in files:
+            with file.open() as f:
+                s = f.readlines()
+                contents[file] = ''.join(s)
+                eqv(contents, eqv_dict)
+                parser = MipsParser(contents[file], file)
+                tokenized = lexer.tokenize(contents[file])
+                result = parser.parse(tokenized)
 
         if settings['assemble']:
             print('Program assembled successfully.')
             exit()
 
+        result = link(files, contents, abs_to_rel)
         inter = Interpreter(result, pArgs)
         inter.interpret()
 
