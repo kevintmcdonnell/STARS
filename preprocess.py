@@ -149,33 +149,33 @@ def preprocess(filename: str, lexer: Lexer) -> Tuple[str, Dict[str, List[str]]]:
     newText = newText.strip()
     return newText, original_text
 
-def eqv(contents: Dict[str, str], eqv: Dict[str, str]) -> None:
-    for k in contents.keys():
-        newText = ''
-        count = 1
-        first_line = True
-        for line in contents[k].split('\n'):
-            line = line.strip()
-            line = substitute(line, eqv)
+def eqv(contents: str, file: str, eqv: Dict[str, str]) -> str:
 
-            if line == '' or line[0] == '#':
-                line = line + '\n'
-            elif first_line:  # Beginning of a new file
-                line = line + f' {FILE_MARKER} \"{k}\" {count}\n'
-                first_line = False
-            else:
-                line = line + f' {LINE_MARKER} \"{k}\" {count}\n'
+    newText = ''
+    count = 1
+    first_line = True
+    for line in contents.split('\n'):
+        line = line.strip()
+        line = substitute(line, eqv)
 
-            count += 1
-            newText += line
+        if line == '' or line[0] == '#':
+            line = line + '\n'
+        elif first_line:  # Beginning of a new file
+            line = line + f' {FILE_MARKER} \"{file}\" {count}\n'
+            first_line = False
+        else:
+            line = line + f' {LINE_MARKER} \"{file}\" {count}\n'
 
-        newText = newText.strip()
-        contents[k] = newText
+        count += 1
+        newText += line
+
+    newText = newText.strip()
+    return newText
 
 def link(files: List[str], contents: Dict[str, str], abs_to_rel: Dict[str, str]):
-    text = contents[files[0]]
-    for name, content in zip(files, contents):
+    text = contents[files[0].as_posix()]
+    for name, content in zip(contents.keys(), contents):
         if name in abs_to_rel:
             pattern = rf'\.include "{abs_to_rel[name]}".*?\n'
-            text = re.sub(pattern, contents, text)
+            text = re.sub(pattern, contents[name], text)
     return text

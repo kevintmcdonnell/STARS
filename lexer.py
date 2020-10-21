@@ -142,7 +142,7 @@ class MipsLexer(Lexer):
         self.lineno += t.value.count('\n')
 
     @_(r'\.(include|globl)[^\n]*')
-    def ignore_directives(self, t):
+    def ignore_globl(self, t):
         # These were already taken care of during the preprocessing stage, so we don't need them
         self.lineno += t.value.count('\n')
 

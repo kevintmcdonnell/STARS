@@ -81,11 +81,7 @@ class MainWindow(QMainWindow):
 
     def init_ui(self):
         self.setWindowTitle("STARS")
-        self.lay = QHBoxLayout()
-        self.left = QVBoxLayout()
-        self.right = QVBoxLayout()
-        self.lay.addLayout(self.left)
-        self.lay.addLayout(self.right)
+        self.lay = QGridLayout()
         self.init_menubar()
         self.init_instrs()
         self.init_mem()
@@ -108,7 +104,7 @@ class MainWindow(QMainWindow):
             self.reg_box.addWidget(QLabel(r), i, 0)
             self.reg_box.addWidget(self.regs[r], i, 1)
             i += 1
-        self.right.addLayout(self.reg_box)
+        self.lay.addLayout(self.reg_box, 0, 3, 4, 0)
 
     def init_instrs(self):
         i = QWidget()
@@ -122,7 +118,7 @@ class MainWindow(QMainWindow):
         self.instr_grid.setSpacing(0)
 
         i.setLayout(self.instr_grid)
-        self.left.addWidget(scroll)
+        self.lay.addWidget(scroll, 0, 0, 0, 3)
         # self.instrs = QTextEdit()
         # self.instrs.setLineWrapMode(QTextEdit.NoWrap)
         # self.instrs.setReadOnly(True)
@@ -168,7 +164,7 @@ class MainWindow(QMainWindow):
     def init_out(self):
         self.out = QTextEdit()
         self.out.installEventFilter(self)
-        self.left.addWidget(self.out)
+        self.lay.addWidget(self.out, 2, 0, 0, 2)
 
     def init_mem(self):
         grid = QGridLayout()
@@ -208,7 +204,7 @@ class MainWindow(QMainWindow):
                     self.mem_vals.append(q)
                 grid.addWidget(q, i, j)
             count += 16
-        self.left.addLayout(grid)
+        self.lay.addLayout(grid, 1, 0, 0, 2)
 
     def open_file(self):
         try:
