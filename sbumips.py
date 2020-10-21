@@ -38,38 +38,45 @@ if __name__ == '__main__':
     if args.pa:
         pArgs = args.pa
 
-    try:
-        lexer = MipsLexer()
-        files = []
-        path = Path(args.filename)
-        path.resolve()
-        eqv_dict = {}
-        abs_to_rel = {}
-        walk(path, files, eqv_dict, abs_to_rel, lexer, path.parent)
-        contents = {}
-        for file in files:
-            with file.open() as f:
-                s = f.readlines()
-                contents[file] = ''.join(s)
-                eqv(contents, eqv_dict)
-                parser = MipsParser(contents[file], file)
-                tokenized = lexer.tokenize(contents[file])
-                result = parser.parse(tokenized)
+    # try:
+    lexer = MipsLexer(None)
+    files = []
+    path = Path(args.filename)
+    path.resolve()
+    eqv_dict = {}
+    abs_to_rel = {}
+    walk(path, files, eqv_dict, abs_to_rel, lexer, path.parent)
+    contents = {}
+    results ={}
+    for file in files:
+        with file.open() as f:
+            s = f.readlines()
+            file = file.as_posix()
+            contents[file] = ''.join(s)
+            contents[file] = eqv(contents[file], file, eqv_dict)
+            lexer = MipsLexer(file)
+            parser = MipsParser(contents[file], file)
+            tokenized = lexer.tokenize(contents[file])
+            results[file] = parser.parse(tokenized)
 
-        if settings['assemble']:
-            print('Program assembled successfully.')
-            exit()
+    if settings['assemble']:
+        print('Program assembled successfully.')
+        exit()
 
-        result = link(files, contents, abs_to_rel)
-        inter = Interpreter(result, pArgs)
-        inter.interpret()
+    result = link(files, contents, abs_to_rel)
+    parser = MipsParser(result, files[0])
+    lexer = MipsLexer(files[0].as_posix())
+    t = lexer.tokenize(result)
+    result = parser.parse(t)
+    inter = Interpreter(result, pArgs)
+    inter.interpret()
 
-        if settings['disp_instr_count']:
-            print(f'\nInstruction count: {inter.instruction_count}')
+    if settings['disp_instr_count']:
+        print(f'\nInstruction count: {inter.instruction_count}')
 
-    except Exception as e:
-        if hasattr(e, 'message'):
-            print(type(e).__name__ + ": " + e.message, file=sys.stderr)
-
-        else:
-            print(type(e).__name__ + ": " + str(e), file=sys.stderr)
+    # except Exception as e:
+    #     if hasattr(e, 'message'):
+    #         print(type(e).__name__ + ": " + e.message, file=sys.stderr)
+    #
+    #     else:
+    #         print(type(e).__name__ + ": " + str(e), file=sys.stderr)

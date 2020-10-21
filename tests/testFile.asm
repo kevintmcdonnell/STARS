@@ -58,7 +58,6 @@ yeet:
     li $v0,10
     syscall
 .include "test2.asm"
-
 	.data
 w: .word 2157882611
 msg1:	.asciiz	"Enter A:   "

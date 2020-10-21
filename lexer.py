@@ -85,11 +85,12 @@ class MipsLexer(Lexer):
     EQV = r'\.eqv .*? .*?(?=\x81)'
     ALIGN = r'\.align'
 
+    def __init__(self, filename):
+        self.filename = filename
+        self.lineno = 1
     # \x81\x83
     @_(r'(\x81\x82|\x81\x83) ".*?" \d+')
     def LINE_MARKER(self, t):
-        x = t.value.split()
-        self.filename = x[1]
 
         return t
 
@@ -148,4 +149,4 @@ class MipsLexer(Lexer):
 
 
     def error(self, t):
-        raise SyntaxError(f'File {self.filename} Line {self.lineno}: Bad character {t.value[0]}')
+        raise SyntaxError(f'File {self.filename} Line {self.lineno + 1 if self.lineno > 1 else self.lineno}: Bad character {t.value[0]}')
