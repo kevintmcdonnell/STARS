@@ -3,23 +3,24 @@ from typing import Tuple, Dict
 from constants import FILE_MARKER, LINE_MARKER
 from interpreter.exceptions import *
 from interpreter.interpreter import *
+from lexer import MipsLexer
 from settings import settings
 from sly.lex import Lexer
 from pathlib import Path
 
 
 # Determine if the replacement string for eqv is valid
-def isValid(s: str, lexer: Lexer) -> bool:
+def isValid(s: str) -> bool:
     restrictedTokens = settings['pseudo_ops'].keys()
 
     for attr in restrictedTokens:
-        if re.search(getattr(lexer, attr), s):
+        if re.search(getattr(MipsLexer, attr), s):
             return False
 
     return True
 
 
-def walk(filename: Path, files: List[Path], eqv: Dict[str, str], abs_to_rel: Dict[Path, str], lexer: Lexer, parent: Path) -> None:
+def walk(filename: Path, files: List[Path], eqv: Dict[str, str], abs_to_rel: Dict[Path, str], parent: Path) -> None:
     f = filename.open(mode='r', errors='ignore')
 
     # Patterns to detect if line is an .eqv or .include directive
@@ -42,7 +43,7 @@ def walk(filename: Path, files: List[Path], eqv: Dict[str, str], abs_to_rel: Dic
             original = eq_match.group(1)
             substitution = eq_match.group(2)
 
-            if isValid(original, lexer):
+            if isValid(original):
                 eqv[rf'\b{original}\b'] = substitution
 
             else:
@@ -60,7 +61,7 @@ def walk(filename: Path, files: List[Path], eqv: Dict[str, str], abs_to_rel: Dic
                 f.close()
                 raise FileAlreadyIncluded(f'{filename}, line number: {line_count}: {file} already included.')
 
-            walk(file, files, eqv, abs_to_rel, lexer, parent)
+            walk(file, files, eqv, abs_to_rel, parent)
 
     f.close()
 
@@ -93,67 +94,11 @@ def substitute(line: str, eqv: Dict[str, str]) -> str:
     return line
 
 
-def preprocess(filename: str, lexer: Lexer) -> Tuple[str, Dict[str, List[str]]]:
-    files = []
-    eqv = {}
-    abs_to_rel = {}
-
-    # Step 1: Do a depth-first search of the .include tree, gathering file names and
-    # .eqv definitions along the way
-    path = Path(filename)
-    path.resolve()
-
-    walk(path, files, eqv, abs_to_rel, lexer, path.parent)
-    texts = [''] * len(files)
-    original_text = {}
-
-    # Step 2: Add file markers and line markers
-    for i, filename in enumerate(files):
-        file = filename.open(mode='r', errors='ignore')
-        count = 1
-
-        filename_fslash = filename.as_posix()
-        original_text[filename_fslash] = file.readlines()
-        first_line = True
-        for line in original_text[filename_fslash]:
-            line = line.strip()
-
-            if line == '' or line[0] == '#':
-                texts[i] += line + '\n'
-            elif first_line:  # Beginning of a new file
-                texts[i] += line + f' {FILE_MARKER} \"{filename_fslash}\" {count}\n'
-                first_line = False
-            else:
-                texts[i] += line + f' {LINE_MARKER} \"{filename_fslash}\" {count}\n'
-
-            count += 1
-
-        file.close()
-
-    # Step 3: Replace .include directives with the actual contents of the files
-    text = texts[0]
-
-    for filename, contents in zip(files, texts):
-        if filename in abs_to_rel:
-            pattern = rf'\.include "{abs_to_rel[filename]}".*?\n'
-            text = re.sub(pattern, contents, text)
-
-    newText = ''
-
-    # Step 4: Do eqv substitution
-    for line in text.split('\n'):
-        line = line.strip()
-        line = substitute(line, eqv)
-        newText += (line + '\n')
-
-    newText = newText.strip()
-    return newText, original_text
-
-def eqv(contents: str, file: str, eqv: Dict[str, str]) -> str:
-
+def preprocess(contents: str, file: str, eqv: Dict[str, str]) -> str:
     newText = ''
     count = 1
     first_line = True
+
     for line in contents.split('\n'):
         line = line.strip()
         line = substitute(line, eqv)
@@ -172,10 +117,13 @@ def eqv(contents: str, file: str, eqv: Dict[str, str]) -> str:
     newText = newText.strip()
     return newText
 
-def link(files: List[str], contents: Dict[str, str], abs_to_rel: Dict[str, str]):
+
+def link(files: List[Path], contents: Dict[str, str], abs_to_rel: Dict[str, str]):
     text = contents[files[0].as_posix()]
-    for name, content in zip(contents.keys(), contents):
+
+    for name, content in contents.items():
         if name in abs_to_rel:
             pattern = rf'\.include "{abs_to_rel[name]}".*?\n'
-            text = re.sub(pattern, contents[name], text)
+            text = re.sub(pattern, content, text)
+
     return text

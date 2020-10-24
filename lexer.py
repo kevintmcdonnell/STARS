@@ -88,10 +88,10 @@ class MipsLexer(Lexer):
     def __init__(self, filename):
         self.filename = filename
         self.lineno = 1
+
     # \x81\x83
     @_(r'(\x81\x82|\x81\x83) ".*?" \d+')
     def LINE_MARKER(self, t):
-
         return t
 
     @_(r'[$](a[0123t]|s[01234567]|t[0123456789]|v[01]|ra|sp|fp|gp|zero|3[01]|[12]?\d),?')
@@ -136,7 +136,6 @@ class MipsLexer(Lexer):
     def ignore_comments(self, t):
         self.lineno += t.value.count('\n')
 
-
     # Line number tracking
     @_(r'\n+')
     def ignore_newline(self, t):
@@ -146,7 +145,6 @@ class MipsLexer(Lexer):
     def ignore_globl(self, t):
         # These were already taken care of during the preprocessing stage, so we don't need them
         self.lineno += t.value.count('\n')
-
 
     def error(self, t):
         raise SyntaxError(f'File {self.filename} Line {self.lineno + 1 if self.lineno > 1 else self.lineno}: Bad character {t.value[0]}')

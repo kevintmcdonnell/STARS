@@ -6,10 +6,10 @@ from PySide2.QtWidgets import *
 
 from constants import REGS
 from interpreter.interpreter import Interpreter
-from preprocess import preprocess
-from sbumips import MipsLexer, MipsParser
+from sbumips import assemble
 from settings import settings
 from controller import Controller
+
 
 def to_ascii(c):
     if c in range(127):
@@ -220,12 +220,7 @@ class MainWindow(QMainWindow):
 
     def assemble(self, filename):
         try:
-            lexer = MipsLexer()
-            data, lines = preprocess(filename, lexer)
-            parser = MipsParser(lines)
-
-            r1 = lexer.tokenize(data)
-            self.result = parser.parse(r1)
+            self.result = assemble(filename)
             self.intr = Interpreter(self.result, [])
             self.controller.set_interp(self.intr)
             self.instrs = []
@@ -349,7 +344,7 @@ class MainWindow(QMainWindow):
             # fmt.setBackground(Qt.cyan)
             # self.instrs[pc - settings['initial_pc']].setTextFormat(fmt)
             self.prev_instr.setStyleSheet("QLineEdit { background: rgb(255, 255, 255) };")
-            self.prev_instr = self.instrs[(pc - 4 - settings['initial_pc'])//4]
+            self.prev_instr = self.instrs[(pc - 4 - settings['initial_pc']) // 4]
             self.prev_instr.setStyleSheet("QLineEdit { background: rgb(0, 255, 255) };")
 
         else:
@@ -359,7 +354,8 @@ class MainWindow(QMainWindow):
                 if type(mem.text[k]) is not str:
                     i = mem.text[k]
                     check = QCheckBox()
-                    check.stateChanged.connect(lambda state, i=i: self.add_breakpoint(('b', str(i.filetag.file_name), str(i.filetag.line_no))) if state == Qt.Checked else self.remove_breakpoint(('b', str(i.filetag.file_name), str(i.filetag.line_no))))
+                    check.stateChanged.connect(lambda state, i=i: self.add_breakpoint(('b', str(i.filetag.file_name), str(i.filetag.line_no))) if state == Qt.Checked else self.remove_breakpoint(
+                        ('b', str(i.filetag.file_name), str(i.filetag.line_no))))
                     self.checkboxes.append(check)
                     self.instr_grid.addWidget(check, count, 0)
                     if i.is_from_pseudoinstr:
@@ -439,6 +435,7 @@ class MainWindow(QMainWindow):
     def remove_breakpoint(self, cmd):
         self.controller.remove_breakpoint((cmd[1], cmd[2]))
         self.breakpoints.remove(cmd)
+
 
 if __name__ == "__main__":
     app = QApplication()

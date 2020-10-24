@@ -1,13 +1,14 @@
 import argparse
+from pathlib import Path
 
 from interpreter.interpreter import *
 from lexer import MipsLexer
 from mipsParser import MipsParser
-from preprocess import preprocess, walk, link, eqv
+from preprocess import walk, link, preprocess
 from settings import settings
-from pathlib import Path
 
-if __name__ == '__main__':
+
+def init_args() -> argparse.Namespace:
     p = argparse.ArgumentParser()
     p.add_argument('filename', type=str, help='Input MIPS Assembly file.')
 
@@ -19,43 +20,44 @@ if __name__ == '__main__':
     p.add_argument('-w', '--warnings', help='Enables warnings', action='store_true')
     p.add_argument('-pa', type=str, nargs='+', help='Program arguments for the MIPS program')
 
-    args = p.parse_args()
-    pArgs = []
+    return p.parse_args()
 
-    if args.assemble:
-        settings['assemble'] = True
-    if args.debug:
-        settings['debug'] = True
-    if args.garbage:
-        settings['garbage_memory'] = True
-        settings['garbage_registers'] = True
-    if args.disp_instr_count:
-        settings['disp_instr_count'] = True
-    if args.warnings:
-        settings['warnings'] = True
+
+def init_settings(args: argparse.Namespace) -> None:
+    settings['assemble'] = args.assemble
+    settings['debug'] = args.debug
+    settings['garbage_memory'] = args.garbage
+    settings['garbage_registers'] = args.garbage
+    settings['disp_instr_count'] = args.disp_instr_count
+    settings['warnings'] = args.warnings
+
     if args.max_instructions:
         settings['max_instructions'] = args.max_instructions
-    if args.pa:
-        pArgs = args.pa
 
-    # try:
-    lexer = MipsLexer(None)
-    files = []
-    path = Path(args.filename)
+
+def assemble(filename: str) -> List:
+    path = Path(filename)
     path.resolve()
+
+    files = []
     eqv_dict = {}
     abs_to_rel = {}
-    walk(path, files, eqv_dict, abs_to_rel, lexer, path.parent)
+
+    walk(path, files, eqv_dict, abs_to_rel, path.parent)
     contents = {}
-    results ={}
+    results = {}
+
     for file in files:
         with file.open() as f:
             s = f.readlines()
             file = file.as_posix()
+
             contents[file] = ''.join(s)
-            contents[file] = eqv(contents[file], file, eqv_dict)
+            contents[file] = preprocess(contents[file], file, eqv_dict)
+
             lexer = MipsLexer(file)
             parser = MipsParser(contents[file], file)
+
             tokenized = lexer.tokenize(contents[file])
             results[file] = parser.parse(tokenized)
 
@@ -66,17 +68,28 @@ if __name__ == '__main__':
     result = link(files, contents, abs_to_rel)
     parser = MipsParser(result, files[0])
     lexer = MipsLexer(files[0].as_posix())
+
     t = lexer.tokenize(result)
-    result = parser.parse(t)
-    inter = Interpreter(result, pArgs)
-    inter.interpret()
+    return parser.parse(t)
 
-    if settings['disp_instr_count']:
-        print(f'\nInstruction count: {inter.instruction_count}')
 
-    # except Exception as e:
-    #     if hasattr(e, 'message'):
-    #         print(type(e).__name__ + ": " + e.message, file=sys.stderr)
-    #
-    #     else:
-    #         print(type(e).__name__ + ": " + str(e), file=sys.stderr)
+if __name__ == '__main__':
+    args = init_args()
+    init_settings(args)
+
+    pArgs = args.pa if args.pa else []
+
+    try:
+        result = assemble(args.filename)
+        inter = Interpreter(result, pArgs)
+        inter.interpret()
+
+        if settings['disp_instr_count']:
+            print(f'\nInstruction count: {inter.instruction_count}')
+
+    except Exception as e:
+        if hasattr(e, 'message'):
+            print(type(e).__name__ + ": " + e.message, file=sys.stderr)
+
+        else:
+            print(type(e).__name__ + ": " + str(e), file=sys.stderr)

@@ -13,7 +13,7 @@ settings = {
     'initial_lo': 0,
     'initial_$ra': 0,
 
-    'max_instructions': 1000000,  # Maximum instruction count
+    'max_instructions': 1_000_000,  # Maximum instruction count
     'garbage_registers': False,  # Garbage values in registers / memory
     'garbage_memory': False,
 
