@@ -119,7 +119,7 @@ class MipsLexer(Lexer):
         t.value = float(t.value)
         return t
 
-    @_(r'(0x[0-9A-Fa-f]+|-?\d+)')
+    @_(r'-?(0x[0-9A-Fa-f]+|\d+)')
     def NUMBER(self, t):
         t.value = int(t.value, 0)
         return t
