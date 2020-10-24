@@ -147,4 +147,4 @@ class MipsLexer(Lexer):
         self.lineno += t.value.count('\n')
 
     def error(self, t):
-        raise SyntaxError(f'File {self.filename} Line {self.lineno + 1 if self.lineno > 1 else self.lineno}: Bad character {t.value[0]}')
+        raise SyntaxError(f'File {self.filename} Line {self.lineno}: Bad character {t.value[0]}')

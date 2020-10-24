@@ -114,7 +114,6 @@ def preprocess(contents: str, file: str, eqv: Dict[str, str]) -> str:
         count += 1
         newText += line
 
-    newText = newText.strip()
     return newText
 
 
