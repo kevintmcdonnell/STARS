@@ -3,6 +3,7 @@ from typing import Dict
 from constants import *
 from settings import settings
 from sly.lex import Lexer
+import re
 
 
 def makeRegex() -> Dict[str, str]:
@@ -16,6 +17,15 @@ def makeRegex() -> Dict[str, str]:
         ret[k] = regex[1:]
 
     return ret
+
+
+def get_reg_value(reg: str) -> str:
+    match = re.search(r'[ ,]', reg)
+
+    if match:
+        return reg[:match.start()]
+
+    return reg
 
 
 class MipsLexer(Lexer):
@@ -94,16 +104,14 @@ class MipsLexer(Lexer):
     def LINE_MARKER(self, t):
         return t
 
-    @_(r'[$](a[0123t]|s[01234567]|t[0123456789]|v[01]|ra|sp|fp|gp|zero|3[01]|[12]?\d),?')
+    @_(r'[$](a[0123t]|s[01234567]|t[0123456789]|v[01]|ra|sp|fp|gp|zero|3[01]|[12]?\d) *,?')
     def REG(self, t):
-        if t.value[-1] == ',':
-            t.value = t.value[:-1]
+        t.value = get_reg_value(t.value)
         return t
 
     @_(r'[$]f(3[01]|[12]?\d),?')
     def F_REG(self, t):
-        if t.value[-1] == ',':
-            t.value = t.value[:-1]
+        t.value = get_reg_value(t.value)
         return t
 
     @_(r'[-+]?[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?')
