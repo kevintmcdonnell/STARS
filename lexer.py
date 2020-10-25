@@ -127,7 +127,6 @@ class MipsLexer(Lexer):
     @_(r"'(\\[\\0rnt']|.|\s)'")
     def CHAR(self, t):
         char = t.value[1: -1]
-        print('xxx', char)
         if char == '\\0':
             char = '\0'
         elif char == '\\n':
