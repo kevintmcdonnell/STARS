@@ -124,10 +124,10 @@ class MipsLexer(Lexer):
         t.value = int(t.value, 0)
         return t
 
-    @_(r"'(\\[0rnt']|.|\s)'")
+    @_(r"'(\\[\\0rnt']|.|\s)'")
     def CHAR(self, t):
         char = t.value[1: -1]
-
+        print('xxx', char)
         if char == '\\0':
             char = '\0'
         elif char == '\\n':
@@ -138,6 +138,8 @@ class MipsLexer(Lexer):
             char = '\t'
         elif char == "\\'":
             char = '\''
+        elif char == "\\\\":
+            char = '\\'
 
         t.value = ord(char)
         return t
