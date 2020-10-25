@@ -55,7 +55,7 @@ def walk(filename: Path, files: List[Path], eqv: Dict[str, str], abs_to_rel: Dic
             file = parent.joinpath(rel)
             file.resolve()
 
-            abs_to_rel[file] = rel
+            abs_to_rel[file.as_posix()] = rel
 
             if file in files:
                 f.close()
