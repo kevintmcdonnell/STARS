@@ -45,6 +45,22 @@ class JType:
         self.target = target
 
 
+class Convert:
+    def __init__(self, format_from: str, format_to: str, rs: str, rt: str):
+        self.format_from = format_from
+        self.format_to = format_to
+        self.rs = rs
+        self.rt = rt
+
+
+class Compare:
+    def __init__(self, op: str, rs: str, rt: str, flag: int):
+        self.operation = op
+        self.rs = rs
+        self.rt = rt
+        self.flag = flag
+
+
 class Branch:
     def __init__(self, op: str, rs: str, rt: str, label: Label):
         self.operation = op
@@ -55,6 +71,12 @@ class Branch:
     def basic_instr(self) -> str:
         return f'{self.operation} {self.rs}, {self.rt}, {self.label.name}'
 
+
+class BranchFloat:
+    def __init__(self, op: str, label: Label, flag: int):
+        self.operation = op
+        self.label = label
+        self.flag = flag
 
 class LoadImm:
     def __init__(self, op: str, reg: str, imm: int):

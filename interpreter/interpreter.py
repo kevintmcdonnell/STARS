@@ -24,6 +24,7 @@ class Interpreter(QWidget):
     console_out = Signal(str)
     end = Signal(bool)
     start = Signal()
+
     def out(self, s: str, end='') -> None:
         if settings['gui']:
             self.console_out.emit(f'{s}{end}')
@@ -45,6 +46,7 @@ class Interpreter(QWidget):
         self.reg_initialized = set()
         self.reg = OrderedDict()
         self.f_reg = dict()
+        self.condition_flags = [False] * 8
 
         self.pause_lock = Event()
         self.input_lock = Event()
@@ -290,6 +292,14 @@ class Interpreter(QWidget):
         self.f_reg[reg] = lower
         self.f_reg[next_reg] = upper
 
+    def get_reg_word(self, reg: str) -> int:
+        bytes = struct.pack('>f', self.f_reg[reg])
+        return struct.unpack('>i', bytes)[0]
+
+    def set_reg_word(self, reg: str, data: int) -> None:
+        bytes = struct.pack('>i', data)
+        self.f_reg[reg] = struct.unpack('>f', bytes)[0]
+
     def execute_instr(self, instr) -> None:
         def is_float_single(op: str) -> bool:
             return op[-2:] == '.s'
@@ -471,6 +481,49 @@ class Interpreter(QWidget):
             else:
                 raise ex.InvalidSyscall('Not a valid syscall code:')
 
+        # Compare float
+        elif type(instr) is Compare:
+            op = instr.operation
+
+            if is_float_single(op):
+                rs = self.get_reg_float(instr.rs)
+                rt = self.get_reg_float(instr.rt)
+            else:
+                rs = self.get_reg_double(instr.rs)
+                rt = self.get_reg_double(instr.rs)
+
+            compare_op = op[2:4]
+            flag = instr.flag
+
+            if not 0 <= flag <= 7:
+                raise ex.InvalidArgument('Condition flag number must be between 0 - 7')
+
+            if compare_op == 'eq':
+                self.condition_flags[flag] = rs == rt
+            elif compare_op == 'le':
+                self.condition_flags[flag] = rs <= rt
+            elif compare_op == 'lt':
+                self.condition_flags[flag] = rs < rt
+
+        # Convert float
+        elif type(instr) is Convert:
+            format_from = instr.format_from
+            format_to = instr.format_to
+
+            if format_from == 'w':
+                data = self.get_reg_word(instr.rt)
+            elif format_from == 's':
+                data = self.get_reg_float(instr.rt)
+            else:
+                data = self.get_reg_double(instr.rt)
+
+            if format_to == 'w':
+                self.set_reg_word(instr.rs, int(data))
+            elif format_to == 's':
+                self.set_reg_float(instr.rs, float32(data))
+            else:
+                self.set_reg_double(instr.rs, float(data))
+
         # Branches
         elif type(instr) is Branch:
             op = instr.operation
@@ -493,6 +546,20 @@ class Interpreter(QWidget):
                     instrs.jal(self.reg, self.mem, label)
                 else:
                     self.set_register('pc', addr)
+
+        # Branches (float)
+        elif type(instr) is BranchFloat:
+            op = instr.operation
+            flag = instr.flag
+
+            if (self.condition_flags[flag] and op == 'bc1t') or (not self.condition_flags[flag] and op == 'bc1f'):
+                label = instr.label.name
+                addr = self.mem.getLabel(label)
+
+                if addr is None:
+                    raise ex.InvalidLabel(f'{label} is not a valid label.')
+
+                self.set_register('pc', addr)
 
         elif type(instr) is Nop:
             pass

@@ -89,6 +89,17 @@ class MipsParser(Parser):
     def iType(self, p):
         return IType(p.I_TYPE, [p[1], p[2]], p[3])
 
+    @_('COMPARE_F F_REG F_REG', 'COMPARE_F NUMBER F_REG F_REG', 'COMPARE_F NUMBER COMMA F_REG F_REG')
+    def iType(self, p):
+        if len(p) == 3:
+            return Compare(p.COMPARE_F, p.F_REG0, p.F_REG1, 0)
+
+        return Compare(p.COMPARE_F, p.F_REG0, p.F_REG1, p.NUMBER)
+
+    @_('CONVERT_F F_REG F_REG')
+    def iType(self, p):
+        return Convert(p.CONVERT_F[-1], p.CONVERT_F[-3], p.F_REG0, p.F_REG1)
+
     @_('R_TYPE3 REG REG REG', 'R_TYPE3_F F_REG F_REG F_REG')
     def rType(self, p):
         return RType(p[0], [p[1], p[2], p[3]])
@@ -126,6 +137,13 @@ class MipsParser(Parser):
 
         else:
             return Branch(p[0], p[1], '$0', Label(p[2]))
+
+    @_('BRANCH_F LABEL', 'BRANCH_F NUMBER LABEL', 'BRANCH_F NUMBER COMMA LABEL')
+    def branch(self, p):
+        if len(p) == 2:
+            return BranchFloat(p[0], Label(p[1]), 0)
+
+        return BranchFloat(p[0], Label(p.LABEL), p.NUMBER)
 
     @_('SYSCALL')
     def syscall(self, p):
