@@ -23,7 +23,7 @@ class Interpreter(QWidget):
     step = Signal()
     console_out = Signal(str)
     end = Signal(bool)
-
+    start = Signal()
     def out(self, s: str, end='') -> None:
         if settings['gui']:
             self.console_out.emit(f'{s}{end}')
@@ -502,6 +502,8 @@ class Interpreter(QWidget):
 
     def interpret(self) -> None:
         first = True
+        if settings['gui']:
+            self.start.emit()
         try:
             while True:
                 # Get the next instruction and increment pc
@@ -536,6 +538,8 @@ class Interpreter(QWidget):
                     if not self.debug.continueFlag:
                         self.pause_lock.clear()
                     if not first and settings['gui']:
+                        self.debug.listen(self)
+                    elif not settings['gui'] and settings['debug']:
                         self.debug.listen(self)
                     else:
                         first = False

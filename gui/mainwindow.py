@@ -9,7 +9,7 @@ from interpreter.interpreter import Interpreter
 from sbumips import assemble
 from settings import settings
 from controller import Controller
-
+from gui.vt100 import VT100
 
 def to_ascii(c):
     if c in range(127):
@@ -36,6 +36,8 @@ class MainWindow(QMainWindow):
 
     def __init__(self, app):
         super().__init__()
+        self.vt100 = None
+
         self.app = app
 
         self.controller = Controller(None, None)
@@ -95,16 +97,21 @@ class MainWindow(QMainWindow):
 
     def init_regs(self):
         self.reg_box = QGridLayout()
-        self.reg_box.setSpacing(0)
         self.regs = {}
+        self.reg_box.setSpacing(0)
         i = 0
         for r in REGS:
-            self.regs[r] = QLineEdit()
-            self.regs[r].setFont(QFont("Courier New", 12))
-            self.reg_box.addWidget(QLabel(r), i, 0)
+            self.regs[r] = QLabel('0x00000000')
+            self.regs[r].setFont(QFont("Courier New", 8))
+            self.regs[r].setFrameShape(QFrame.Box)
+            self.regs[r].setFrameShadow(QFrame.Raised)
+            #self.regs[r].setLineWidth(2)
+            reg_label = QLabel(r)
+            reg_label.setFont(QFont("Courier New", 8))
+            self.reg_box.addWidget(reg_label, i, 0)
             self.reg_box.addWidget(self.regs[r], i, 1)
             i += 1
-        self.lay.addLayout(self.reg_box, 0, 3, 4, 0)
+        self.lay.addLayout(self.reg_box, 0, 3, 2, 1)
 
     def init_instrs(self):
         i = QWidget()
@@ -118,7 +125,8 @@ class MainWindow(QMainWindow):
         self.instr_grid.setSpacing(0)
 
         i.setLayout(self.instr_grid)
-        self.lay.addWidget(scroll, 0, 0, 0, 3)
+        scroll.setMaximumHeight(300)
+        self.lay.addWidget(scroll, 0, 0)
         # self.instrs = QTextEdit()
         # self.instrs.setLineWrapMode(QTextEdit.NoWrap)
         # self.instrs.setReadOnly(True)
@@ -136,6 +144,9 @@ class MainWindow(QMainWindow):
         dark_mode = QAction("Dark Mode", self)
         dark_mode.triggered.connect(self.change_theme)
         tools.addAction(dark_mode)
+        vt = QAction("MMIO Display", self)
+        vt.triggered.connect(self.launch_vt100)
+        tools.addAction(vt)
 
         help_ = bar.addMenu("Help")
 
@@ -164,7 +175,7 @@ class MainWindow(QMainWindow):
     def init_out(self):
         self.out = QTextEdit()
         self.out.installEventFilter(self)
-        self.lay.addWidget(self.out, 2, 0, 0, 2)
+        self.lay.addWidget(self.out, 2, 0)
 
     def init_mem(self):
         grid = QGridLayout()
@@ -204,7 +215,7 @@ class MainWindow(QMainWindow):
                     self.mem_vals.append(q)
                 grid.addWidget(q, i, j)
             count += 16
-        self.lay.addLayout(grid, 1, 0, 0, 2)
+        self.lay.addLayout(grid, 1, 0)
 
     def open_file(self):
         try:
@@ -331,7 +342,10 @@ class MainWindow(QMainWindow):
             if self.rep == "Decimal":
                 self.regs[r].setText(str(self.intr.reg[r]))
             else:
-                self.regs[r].setText(f'0x{self.intr.reg[r]:08x}')
+                a = self.intr.reg[r]
+                if a < 0:
+                    a += 2**32
+                self.regs[r].setText(f'0x{a:08x}')
 
     def fill_instrs(self):
         pc = self.intr.reg['pc']
@@ -361,12 +375,12 @@ class MainWindow(QMainWindow):
                     if i.is_from_pseudoinstr:
                         q = QLineEdit(f'0x{int(k):08x}\t{i.original_text.strip()} ( {i.basic_instr()} )')
                         q.setReadOnly(True)
-                        q.setFont(QFont("Courier New", 12))
+                        q.setFont(QFont("Courier New", 10))
                         self.instrs.append(q)
                         self.instr_grid.addWidget(q, count, 1)
                     else:
                         q = QLineEdit(f'0x{int(k):08x}\t{i.original_text.strip()}')
-                        q.setFont(QFont("Courier New", 12))
+                        q.setFont(QFont("Courier New", 10))
                         q.setReadOnly(True)
                         self.instrs.append(q)
                         self.instr_grid.addWidget(q, count, 1)
@@ -436,6 +450,10 @@ class MainWindow(QMainWindow):
         self.controller.remove_breakpoint((cmd[1], cmd[2]))
         self.breakpoints.remove(cmd)
 
+    def launch_vt100(self):
+        if self.vt100:
+            self.vt100.close()
+        self.vt100 = VT100(self.controller)
 
 if __name__ == "__main__":
     app = QApplication()

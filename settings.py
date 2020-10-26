@@ -1,7 +1,7 @@
 settings = {
     'data_min': 0x10010000,  # Lower bound of memory segment
     'data_max': 0x80000000,  # Upper bound of memory segment,
-
+    'mmio_base': 0xffff0000, # Start of the mmio region of memory
     # Initial register contents
     'initial_$0': 0,
     'initial_$gp': 0x10008000,

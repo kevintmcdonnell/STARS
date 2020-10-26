@@ -15,7 +15,7 @@ class MipsParser(Parser):
 
     def __init__(self, original_text, filename):
         self.labels = {}
-        self.original_text = original_text
+        self.original_text = original_text.split('\n')
         self.filename = filename
 
     # Top level section (Data, Text)

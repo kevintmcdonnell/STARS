@@ -3,7 +3,7 @@ import struct
 import sys
 from collections import OrderedDict
 from typing import List, Union
-
+from constants import WORD_SIZE
 from numpy import float32
 
 from constants import WORD_MASK
@@ -15,9 +15,10 @@ from settings import settings
 
 # Check for out of bounds
 def check_bounds(addr: int) -> None:
-    if addr < settings['data_min'] or addr > settings['data_max']:
+    if addr < 0:
+        return
+    if addr < settings['data_min']:
         raise ex.MemoryOutOfBounds(f"{utility.format_hex(addr)} is not within the data section or heap/stack.")
-
 
 class Memory:
     def __init__(self, toggle_garbage: bool = False):
@@ -43,6 +44,8 @@ class Memory:
     def setByte(self, addr: int, data: int, admin=False) -> None:
         # Addr : Address in memory (int)
         # Data = Contents of the byte (0 to 0xFF)
+        if addr < 0:
+            addr += 2**32
         if not admin:
             check_bounds(addr)
         self.data[str(addr)] = data
