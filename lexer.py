@@ -44,8 +44,8 @@ def get_reg_value(reg: str) -> str:
 
 class MipsLexer(Lexer):
     tokens = {HALF, ALIGN, EQV, LABEL, ZERO_BRANCH, BRANCH, I_TYPE, LOADS_I,
-              LOADS_F, R_TYPE3_F, R_TYPE2_F, COMPARE_F, BRANCH_F, CONVERT_F, MOVE_BTWN_F, MOVE_F,
-              LOADS_R, J_TYPE, J_TYPE_R, R_TYPE3, SYSCALL, R_TYPE2, NOP, BREAK, MOVE,
+              LOADS_F, R_TYPE3_F, R_TYPE2_F, COMPARE_F, BRANCH_F, CONVERT_F, MOVE_BTWN_F, MOVE_F, MOVE_COND_F,
+              LOADS_R, J_TYPE, J_TYPE_R, R_TYPE3, SYSCALL, R_TYPE2, NOP, BREAK, MOVE, MOVE_COND,
               REG, F_REG, LABEL, NUMBER, STRING, CHAR, FLOAT_LITERAL,
               LPAREN, RPAREN, COMMA, COLON, LINE_MARKER,
               TEXT, DATA, WORD, BYTE, FLOAT, DOUBLE, ASCIIZ, ASCII, SPACE,
@@ -62,12 +62,14 @@ class MipsLexer(Lexer):
     CONVERT_F = r'\b(cvt\.(w\.[ds]|s\.[dw]|d\.[sw]))\b'
     MOVE_BTWN_F = r'\b(m[ft]c1)\b'
     MOVE_F = r'\b(mov[nz])\.[sd]\b'
+    MOVE_COND_F = r'\b(mov[ft])\.[sd]\b'
 
     # Basic instructions
     R_TYPE3 = r'\b(and|addu?|mul|[xn]?or|sllv|srav|slt[u]?|sub[u]?|mov[nz])\b'
     R_TYPE2 = r'\b(div[u]?|mult[u]?|madd[u]?|msub[u]?|cl[oz])\b'
 
     MOVE = r'\b(m[tf]hi|m[tf]lo)\b'
+    MOVE_COND = r'\b(mov[ft])\b'
 
     J_TYPE = r'\b(j|b|jal)\b'
     J_TYPE_R = r'\b(jalr|jr)\b'

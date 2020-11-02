@@ -519,6 +519,26 @@ class Interpreter(QWidget):
                         rt_data = self.get_reg_double(rt)
                         self.set_reg_double(rs, rt_data)
 
+        elif type(instr) is MoveCond:
+            op = instr.operation
+            flag = self.condition_flags[instr.flag]
+
+            rs = instr.rs
+            rt = instr.rt
+
+            if (op[3] == 't' and flag) or (op[3] == 'f' and not flag):
+                if is_float_single(op):
+                    rt_data = self.get_reg_float(rt)
+                    self.set_reg_float(rs, rt_data)
+
+                elif is_float_double(op):
+                    rt_data = self.get_reg_double(rt)
+                    self.set_reg_double(rs, rt_data)
+
+                else:
+                    rt_data = self.get_register(rt)
+                    self.set_register(rs, rt_data)
+
         # syscall
         elif type(instr) is Syscall:
             code = self.get_register('$v0')

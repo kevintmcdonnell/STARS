@@ -130,6 +130,14 @@ class MoveFloat:
         self.rd = rd
 
 
+class MoveCond:
+    def __init__(self, op: str, rs: str, rt: str, flag: int):
+        self.operation = op
+        self.rs = rs
+        self.rt = rt
+        self.flag = flag
+
+
 class Nop:
     def __init__(self):
         pass

@@ -132,6 +132,13 @@ class MipsParser(Parser):
     def move(self, p):
         return Move(p[0], p[1])
 
+    @_('MOVE_COND REG REG', 'MOVE_COND REG REG NUMBER')
+    def iType(self, p):
+        if len(p) == 3:
+            return MoveCond(p.MOVE_COND, p.REG0, p.REG1, 0)
+
+        return MoveCond(p.MOVE_COND, p.REG0, p.REG1, p.NUMBER)
+
     @_('BRANCH REG REG LABEL', 'ZERO_BRANCH REG LABEL')
     def branch(self, p):
         if len(p) == 4:
@@ -188,6 +195,13 @@ class MipsParser(Parser):
     @_('MOVE_F F_REG F_REG REG')
     def rType(self, p):
         return MoveFloat(p.MOVE_F, p.F_REG0, p.F_REG1, p.REG)
+
+    @_('MOVE_COND_F F_REG F_REG', 'MOVE_COND_F F_REG F_REG NUMBER')
+    def iType(self, p):
+        if len(p) == 3:
+            return MoveCond(p.MOVE_COND_F, p.F_REG0, p.F_REG1, 0)
+
+        return MoveCond(p.MOVE_COND_F, p.F_REG0, p.F_REG1, p.NUMBER)
 
     # PSEUDO INSTRUCTIONS
     @_('PS_I_TYPE REG REG NUMBER', 'PS_I_TYPE REG REG CHAR')
