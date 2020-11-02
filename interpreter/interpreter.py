@@ -493,7 +493,7 @@ class Interpreter(QWidget):
             self.set_register(dest, self.get_register(src))
 
         # Floating point move instructions
-        elif type(instr) is MoveF:
+        elif type(instr) is MoveFloat:
             op = instr.operation
             rs = instr.rs
             rt = instr.rt

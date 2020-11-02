@@ -122,7 +122,7 @@ class Move:
         self.reg = reg
 
 
-class MoveF:
+class MoveFloat:
     def __init__(self, op: str, rs: str, rt: str, rd: str = ''):
         self.operation = op
         self.rs = rs
