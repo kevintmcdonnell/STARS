@@ -16,6 +16,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 '''
 
+
 class Label:
     def __init__(self, name: str):
         self.name = name
@@ -23,8 +24,8 @@ class Label:
 
 class RType:
     # Two or Three registers
-    def __init__(self, operation: str, regs: List[str]):
-        self.operation = operation
+    def __init__(self, op: str, regs: List[str]):
+        self.operation = op
         self.regs = regs
 
     def basic_instr(self) -> str:
@@ -37,8 +38,8 @@ class RType:
 
 class IType:
     # Two registers and an immediate
-    def __init__(self, operation: str, regs: List[str], imm: int):
-        self.operation = operation
+    def __init__(self, op: str, regs: List[str], imm: int):
+        self.operation = op
         self.regs = regs
         self.imm = imm
 
@@ -53,8 +54,8 @@ class IType:
 
 class JType:
     # A label or a register as a target
-    def __init__(self, operation: str, target: Union[str, Label]):
-        self.operation = operation
+    def __init__(self, op: str, target: Union[str, Label]):
+        self.operation = op
         self.target = target
 
 
@@ -91,6 +92,7 @@ class BranchFloat:
         self.label = label
         self.flag = flag
 
+
 class LoadImm:
     def __init__(self, op: str, reg: str, imm: int):
         self.operation = op
@@ -103,8 +105,8 @@ class LoadImm:
 
 
 class LoadMem:
-    def __init__(self, operation: str, reg: str, addr: str, imm: int):
-        self.operation = operation
+    def __init__(self, op: str, reg: str, addr: str, imm: int):
+        self.operation = op
         self.reg = reg
         self.addr = addr
         self.imm = imm
@@ -115,9 +117,17 @@ class LoadMem:
 
 
 class Move:
-    def __init__(self, operation: str, reg: str):
-        self.operation = operation
+    def __init__(self, op: str, reg: str):
+        self.operation = op
         self.reg = reg
+
+
+class MoveF:
+    def __init__(self, op: str, rs: str, rt: str, rd: str = ''):
+        self.operation = op
+        self.rs = rs
+        self.rt = rt
+        self.rd = rd
 
 
 class Nop:
@@ -138,8 +148,8 @@ class Declaration:
 
 
 class PseudoInstr:
-    def __init__(self, operation: str, instrs: List):
-        self.operation = operation
+    def __init__(self, op: str, instrs: List):
+        self.operation = op
         self.instrs = instrs
 
 

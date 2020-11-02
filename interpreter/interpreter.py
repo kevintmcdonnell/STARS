@@ -328,6 +328,10 @@ class Interpreter(QWidget):
             x_bytes = struct.pack('>i', x)
             return struct.unpack('>f', x_bytes)[0]
 
+        def interpret_as_int(x: float32) -> int:
+            x_bytes = struct.pack('>f', x)
+            return struct.unpack('>i', x_bytes)[0]
+
         # Instruction with 3 registers
         if type(instr) is RType and len(instr.regs) == 3:
             op = instr.operation
@@ -473,6 +477,7 @@ class Interpreter(QWidget):
                 instrs.table[op](addr, self.mem, self.get_register(reg))
             if settings['gui']:
                 self.mem_access.emit()
+
         # Mfhi, mflo, mthi, mtlo
         elif type(instr) is Move:
             op = instr.operation
@@ -486,6 +491,33 @@ class Interpreter(QWidget):
                 dest = op[2:]
 
             self.set_register(dest, self.get_register(src))
+
+        # Floating point move instructions
+        elif type(instr) is MoveF:
+            op = instr.operation
+            rs = instr.rs
+            rt = instr.rt
+
+            if op == 'mfc1':
+                rt_float = self.get_reg_float(rt)
+                rt_int = interpret_as_int(rt_float)
+                self.set_register(rs, rt_int)
+
+            elif op == 'mtc1':
+                rs_int = self.get_register(rs)
+                rs_float = interpret_as_float(rs_int)
+                self.set_reg_float(rt, rs_float)
+
+            elif op[:4] in ['movn', 'movz']:
+                rd_data = self.get_register(instr.rd)
+
+                if (op[3] == 'z' and rd_data == 0) or (op[3] == 'n' and rd_data != 0):
+                    if is_float_single(op):
+                        rt_data = self.get_reg_float(rt)
+                        self.set_reg_float(rs, rt_data)
+                    else:
+                        rt_data = self.get_reg_double(rt)
+                        self.set_reg_double(rs, rt_data)
 
         # syscall
         elif type(instr) is Syscall:

@@ -19,6 +19,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 '''
 
+
 def makeRegex() -> Dict[str, str]:
     ret = {}
 
@@ -43,8 +44,8 @@ def get_reg_value(reg: str) -> str:
 
 class MipsLexer(Lexer):
     tokens = {HALF, ALIGN, EQV, LABEL, ZERO_BRANCH, BRANCH, I_TYPE, LOADS_I,
+              LOADS_F, R_TYPE3_F, R_TYPE2_F, COMPARE_F, BRANCH_F, CONVERT_F, MOVE_BTWN_F, MOVE_F,
               LOADS_R, J_TYPE, J_TYPE_R, R_TYPE3, SYSCALL, R_TYPE2, NOP, BREAK, MOVE,
-              LOADS_F, R_TYPE3_F, R_TYPE2_F, COMPARE_F, BRANCH_F, CONVERT_F,
               REG, F_REG, LABEL, NUMBER, STRING, CHAR, FLOAT_LITERAL,
               LPAREN, RPAREN, COMMA, COLON, LINE_MARKER,
               TEXT, DATA, WORD, BYTE, FLOAT, DOUBLE, ASCIIZ, ASCII, SPACE,
@@ -59,6 +60,8 @@ class MipsLexer(Lexer):
     COMPARE_F = r'\b(c\.(eq|le|lt)\.[ds])\b'
     BRANCH_F = r'\b(bc1[ft])\b'
     CONVERT_F = r'\b(cvt\.(w\.[ds]|s\.[dw]|d\.[sw]))\b'
+    MOVE_BTWN_F = r'\b(m[ft]c1)\b'
+    MOVE_F = r'\b(mov[nz])\.[sd]\b'
 
     # Basic instructions
     R_TYPE3 = r'\b(and|addu?|mul|[xn]?or|sllv|srav|slt[u]?|sub[u]?|mov[nz])\b'
