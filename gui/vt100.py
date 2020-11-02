@@ -1,10 +1,9 @@
 from PySide2.QtWidgets import *
 from PySide2.QtGui import QFont
-from PySide2.QtCore import QTimer
+from PySide2.QtCore import QTimer, Signal
 
 from controller import Controller
 from settings import settings
-
 '''
 Copyright 2020 Kevin McDonnell, Jihu Mun, and Ian Peitzsch
 
@@ -20,16 +19,18 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 '''
 
 class VT100(QWidget):
-    def __init__(self, cont: Controller) -> None:
+    def __init__(self, cont: Controller, start: Signal) -> None:
         super().__init__()
         self.controller = cont
         self.init_gui()
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.update_screen)
-        self.timer.start(100)
         self.reveal = False
         self.update_screen()
+        start.connect(self.connect_to_interp)
         self.show()
+
+    def connect_to_interp(self):
+        self.controller.interp.mem_access.connect(self.update_screen)
+        self.update_screen()
 
     def init_gui(self) -> None:
         self.setWindowTitle('MMIO Display')

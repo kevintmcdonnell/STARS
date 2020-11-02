@@ -1,6 +1,6 @@
 from threading import Thread
 
-from PySide2.QtCore import Qt, QSemaphore, QEvent
+from PySide2.QtCore import Qt, QSemaphore, QEvent, Signal
 from PySide2.QtGui import QTextCursor, QGuiApplication, QPalette, QColor, QFont, QKeySequence
 from PySide2.QtWidgets import *
 
@@ -45,6 +45,8 @@ def to_ascii(c):
 
 
 class MainWindow(QMainWindow):
+
+    changed_interp = Signal()
 
     def __init__(self, app):
         super().__init__()
@@ -163,6 +165,11 @@ class MainWindow(QMainWindow):
         help_ = bar.addMenu("Help")
 
         run = bar.addMenu("Run")
+        asm = QAction("Assemble", self)
+        asm.triggered.connect(lambda : self.assemble(self.filename) if self.filename else None)
+        asm_short = QShortcut(QKeySequence(self.tr("F3")), self)
+        asm_short.activated.connect(lambda: asm.trigger())
+        run.addAction(asm)
         start = QAction("Start", self)
         start.triggered.connect(self.start)
         start_short = QShortcut(QKeySequence(self.tr("F5")), self)
@@ -183,6 +190,22 @@ class MainWindow(QMainWindow):
         pause_short = QShortcut(QKeySequence(self.tr("F9")), self)
         pause_short.activated.connect(lambda: pause.trigger())
         run.addAction(pause)
+
+        asm_but = QAction("✇", self)
+        asm_but.triggered.connect(lambda : asm.trigger())
+        bar.addAction(asm_but)
+        start_but = QAction("▶️", self)
+        start_but.triggered.connect(lambda : start.trigger())
+        bar.addAction(start_but)
+        step_but = QAction("⏭", self)
+        step_but.triggered.connect(lambda : step.trigger())
+        bar.addAction(step_but)
+        back_but = QAction("⏮", self)
+        back_but.triggered.connect(lambda : back.trigger())
+        bar.addAction(back_but)
+        pause_but = QAction("⏸", self)
+        pause_but.triggered.connect(lambda : pause.trigger())
+        bar.addAction(pause_but)
 
     def init_out(self):
         self.out = QTextEdit()
@@ -254,6 +277,8 @@ class MainWindow(QMainWindow):
             self.mem_left.clicked.connect(self.mem_leftclick)
             self.intr.end.connect(self.set_running)
 
+            self.changed_interp.emit()
+            self.breakpoints = []
             self.setWindowTitle(f'STARS: {filename}')
             self.filename = filename
         except Exception as e:
@@ -284,7 +309,6 @@ class MainWindow(QMainWindow):
             return
         if not self.running:
             self.set_running(True)
-            self.assemble(self.filename)
             self.controller.set_interp(self.intr)
             self.controller.pause(False)
             self.out.setPlainText('')
@@ -307,7 +331,6 @@ class MainWindow(QMainWindow):
             return
         if not self.running:
             self.set_running(True)
-            self.assemble(self.filename)
             self.controller.set_interp(self.intr)
             self.controller.set_pause(True)
             self.out.setPlainText('')
@@ -465,7 +488,7 @@ class MainWindow(QMainWindow):
     def launch_vt100(self):
         if self.vt100:
             self.vt100.close()
-        self.vt100 = VT100(self.controller)
+        self.vt100 = VT100(self.controller, self.changed_interp)
 
 if __name__ == "__main__":
     app = QApplication()

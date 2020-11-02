@@ -37,6 +37,7 @@ class Interpreter(QWidget):
     console_out = Signal(str)
     end = Signal(bool)
     start = Signal()
+    mem_access = Signal()
 
     def out(self, s: str, end='') -> None:
         if settings['gui']:
@@ -470,7 +471,8 @@ class Interpreter(QWidget):
 
             else:  # Other store instructions
                 instrs.table[op](addr, self.mem, self.get_register(reg))
-
+            if settings['gui']:
+                self.mem_access.emit()
         # Mfhi, mflo, mthi, mtlo
         elif type(instr) is Move:
             op = instr.operation
