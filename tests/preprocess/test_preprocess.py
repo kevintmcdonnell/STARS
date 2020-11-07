@@ -20,49 +20,138 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 class TestPreprocess(unittest.TestCase):
 
-    def test_eqv_success(self):
-        lexer = MipsLexer()
-        data = preprocess('eqvTest.asm', lexer)
-        self.assertEqual(data, '''.data \x81\x82 "eqvTest.asm" 1
-.eqv word "hello" \x81\x83 "eqvTest.asm" 2
-.asciiz word \x81\x83 "eqvTest.asm" 3
-.asciiz " word " # word \x81\x83 "eqvTest.asm" 4
+    def test_walk_include_success(self):
+        path = Path('includeSuccess.asm')
+        path.resolve()
 
-.text \x81\x83 "eqvTest.asm" 6
-li $t0, 0 \x81\x83 "eqvTest.asm" 7
+        files = []
+        eqv_dict = {}
+        abs_to_rel = {}
+        walk(path, files, eqv_dict, abs_to_rel, path.parent)
+        res = [f.name for f in files]
+        self.assertEqual(res, ['includeSuccess.asm', 'toInclude.asm'], msg='Failed test_walk_include_success.')
 
-li $v0, 30 \x81\x83 "eqvTest.asm" 9
-li $a0, 0x10000000 \x81\x83 "eqvTest.asm" 10
-li $a1, 0x10000010 \x81\x83 "eqvTest.asm" 11
-syscall \x81\x83 "eqvTest.asm" 12''')
+    def test_walk_include_already_included(self):
+        path = Path('alreadyIncluded.asm')
+        path.resolve()
 
-    def test_file_include_success(self):
-        lexer = MipsLexer()
-        data = preprocess('includeSuccess.asm', lexer)
-        self.assertEqual(data, '''.text \x81\x82 "toInclude.asm" 1
-li $v0, 10 \x81\x83 "toInclude.asm" 2
-syscall \x81\x83 "toInclude.asm" 3
+        files = []
+        eqv_dict = {}
+        abs_to_rel = {}
+        self.assertRaises(FileAlreadyIncluded,  walk, path, files, eqv_dict, abs_to_rel, path.parent)
 
-.data \x81\x83 "toInclude.asm" 5
-jello: .word 4 \x81\x83 "toInclude.asm" 6
-.text \x81\x83 "includeSuccess.asm" 2
-li $a0, 24 \x81\x83 "includeSuccess.asm" 3
-li $v0, 4 \x81\x83 "includeSuccess.asm" 4
-syscall \x81\x83 "includeSuccess.asm" 5
-li $v0, 10 \x81\x83 "includeSuccess.asm" 6
-syscall \x81\x83 "includeSuccess.asm" 7
+    def test_walk_include_file_dne(self):
+        path = Path('invalidFile.asm')
+        path.resolve()
 
-.data \x81\x83 "includeSuccess.asm" 9
-UvU: .asciiz "owo what's this?" \x81\x83 "includeSuccess.asm" 10''')
+        files = []
+        eqv_dict = {}
+        abs_to_rel = {}
+        self.assertRaises(FileNotFoundError,  walk, path, files, eqv_dict, abs_to_rel, path.parent)
 
-    def test_file_not_found(self):
-        lexer = MipsLexer()
-        self.assertRaises(FileNotFoundError, preprocess, 'invalidFile.asm', lexer)
+    def test_walk_eqv_success(self):
+        path = Path('eqvTest.asm')
+        path.resolve()
 
-    def test_file_already_included(self):
-        lexer = MipsLexer()
-        self.assertRaises(FileAlreadyIncluded, preprocess, 'alreadyIncluded.asm', lexer)
+        files = []
+        eqv_dict = {}
+        abs_to_rel = {}
+        walk(path, files, eqv_dict, abs_to_rel, path.parent)
+        expected = {r'\bword\b': '"hello"'}
+        self.assertEqual(eqv_dict, expected, msg='Failed test_walk_eqv_success.')
 
     def test_eqv_restricted_token(self):
-        lexer = MipsLexer()
-        self.assertRaises(InvalidEQV, preprocess, 'eqvRestricted.asm', lexer)
+        path = Path('eqvRestricted.asm')
+        path.resolve()
+
+        files = []
+        eqv_dict = {}
+        abs_to_rel = {}
+        self.assertRaises(InvalidEQV, walk, path, files, eqv_dict, abs_to_rel, path.parent)
+
+    def test_preprocess_eqv_success(self):
+        path = Path('eqvTest.asm')
+        path.resolve()
+
+        files = []
+        eqv_dict = {}
+        abs_to_rel = {}
+        walk(path, files, eqv_dict, abs_to_rel, path.parent)
+        file = files[0]
+        contents = ''
+        with file.open() as f:
+            s = f.readlines()
+            contents = ''.join(s)
+        data = preprocess(contents, file, eqv_dict)
+
+        self.assertEqual(data, '''.data  "eqvTest.asm" 1
+.eqv "hello" "hello"  "eqvTest.asm" 2
+.asciiz "hello"  "eqvTest.asm" 3
+.asciiz " word " # word  "eqvTest.asm" 4
+
+.text  "eqvTest.asm" 6
+
+main:  "eqvTest.asm" 8
+li $t0, 0  "eqvTest.asm" 9
+
+li $v0, 30  "eqvTest.asm" 11
+li $a0, 0x10010000  "eqvTest.asm" 12
+li $a1, 0x10010010  "eqvTest.asm" 13
+syscall  "eqvTest.asm" 14
+''', msg='Failed test_preprocess_eqv_success.')
+
+    def test_preprocess_include_success(self):
+        path = Path('includeSuccess.asm')
+        path.resolve()
+
+        files = []
+        eqv_dict = {}
+        abs_to_rel = {}
+        walk(path, files, eqv_dict, abs_to_rel, path.parent)
+        expected = {files[0].as_posix(): '''.include "toInclude.asm"  "includeSuccess.asm" 1
+.text  "includeSuccess.asm" 2
+li $a0, 24  "includeSuccess.asm" 3
+li $v0, 4  "includeSuccess.asm" 4
+syscall  "includeSuccess.asm" 5
+li $v0, 10  "includeSuccess.asm" 6
+syscall  "includeSuccess.asm" 7
+
+.data  "includeSuccess.asm" 9
+UvU: .asciiz "owo what's this?"  "includeSuccess.asm" 10
+''',
+                    files[1].as_posix(): '''.text  "toInclude.asm" 1
+li $v0, 10  "toInclude.asm" 2
+syscall  "toInclude.asm" 3
+
+.data  "toInclude.asm" 5
+jello: .word 4  "toInclude.asm" 6
+'''}
+        contents = {}
+        for file in files:
+            with file.open() as f:
+                contents[file.as_posix()] = ''.join(f.readlines())
+                contents[file.as_posix()] = preprocess(contents[file.as_posix()], file, eqv_dict)
+            self.assertEqual(contents[file.as_posix()], expected[file.as_posix()], msg=f"Failed test_preprocess_include_success on file {file.name}.")
+
+        final = link(files, contents, abs_to_rel)
+        self.assertEqual(final, '''.text  "toInclude.asm" 1
+li $v0, 10  "toInclude.asm" 2
+syscall  "toInclude.asm" 3
+
+.data  "toInclude.asm" 5
+jello: .word 4  "toInclude.asm" 6
+.text  "includeSuccess.asm" 2
+li $a0, 24  "includeSuccess.asm" 3
+li $v0, 4  "includeSuccess.asm" 4
+syscall  "includeSuccess.asm" 5
+li $v0, 10  "includeSuccess.asm" 6
+syscall  "includeSuccess.asm" 7
+
+.data  "includeSuccess.asm" 9
+UvU: .asciiz "owo what's this?"  "includeSuccess.asm" 10
+''', msg="Failed test_preprocess_include_success on linking.")
+
+
+
+
+
