@@ -230,7 +230,7 @@ class Interpreter(QWidget):
             if f'initial_{r}' in settings.keys():
                 self.reg[r] = settings[f'initial_{r}']
 
-            elif randomize:
+            elif randomize and r not in const.CONST_REGS:
                 self.reg[r] = random.randint(0, 2 ** 32 - 1)
 
             else:

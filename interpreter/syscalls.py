@@ -166,6 +166,8 @@ def sbrk(inter) -> None:
 def _exit(inter) -> None:
     if settings['gui']:
         inter.end.emit(False)
+    if settings['disp_instr_count']:
+        inter.out(f'\nInstruction count: {inter.instruction_count}')
     exit()
 
 
@@ -331,6 +333,8 @@ def dumpFiles(inter) -> None:
 def _exit2(inter) -> None:
     if settings['gui']:
         inter.end.emit(False)
+    if settings['disp_instr_count']:
+        inter.out(f'\nInstruction count: {inter.instruction_count}')
     exit(inter.get_register('$a0'))
 
 

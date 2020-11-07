@@ -98,7 +98,7 @@ if __name__ == '__main__':
         inter.interpret()
 
         if settings['disp_instr_count']:
-            print(f'\nInstruction count: {inter.instruction_count}')
+            inter.out(f'\nInstruction count: {inter.instruction_count}')
 
     except Exception as e:
         if hasattr(e, 'message'):
