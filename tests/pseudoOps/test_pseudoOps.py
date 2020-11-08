@@ -24,7 +24,7 @@ class MyTestCase(unittest.TestCase):
         self.cwd = os.getcwd() + '/../..'
 
     def execute_file(self, op):
-        # Method to execute test file by running the command line script
+        # Method to execute tests file by running the command line script
         output = subprocess.check_output(['python', 'sbumips.py', f'tests/pseudoOps/{op}_test.asm'], cwd=self.cwd).decode('ascii')
         return output
 
