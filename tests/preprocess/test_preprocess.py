@@ -1,8 +1,6 @@
 import unittest
 
-from interpreter.exceptions import *
 from preprocess import *
-from sbumips import MipsLexer
 
 '''
 Copyright 2020 Kevin McDonnell, Jihu Mun, and Ian Peitzsch
@@ -17,6 +15,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 '''
+
 
 class TestPreprocess(unittest.TestCase):
 
@@ -38,7 +37,7 @@ class TestPreprocess(unittest.TestCase):
         files = []
         eqv_dict = {}
         abs_to_rel = {}
-        self.assertRaises(FileAlreadyIncluded,  walk, path, files, eqv_dict, abs_to_rel, path.parent)
+        self.assertRaises(FileAlreadyIncluded, walk, path, files, eqv_dict, abs_to_rel, path.parent)
 
     def test_walk_include_file_dne(self):
         path = Path('invalidFile.asm')
@@ -47,7 +46,7 @@ class TestPreprocess(unittest.TestCase):
         files = []
         eqv_dict = {}
         abs_to_rel = {}
-        self.assertRaises(FileNotFoundError,  walk, path, files, eqv_dict, abs_to_rel, path.parent)
+        self.assertRaises(FileNotFoundError, walk, path, files, eqv_dict, abs_to_rel, path.parent)
 
     def test_walk_eqv_success(self):
         path = Path('eqvTest.asm')
@@ -150,8 +149,3 @@ syscall  "includeSuccess.asm" 7
 .data  "includeSuccess.asm" 9
 UvU: .asciiz "owo what's this?"  "includeSuccess.asm" 10
 ''', msg="Failed test_preprocess_include_success on linking.")
-
-
-
-
-

@@ -57,6 +57,7 @@ class MipsLexer(Lexer):
     LOADS_F = r'\b(l|s)\.[sd]\b'
     R_TYPE3_F = r'\b(add|sub|mul|div)\.[sd]\b'
     R_TYPE2_F = r'\b(abs|ceil\.w|floor\.w|mov|neg|round\.w|trunc\.w|sqrt)\.[sd]\b'
+
     COMPARE_F = r'\b(c\.(eq|le|lt)\.[ds])\b'
     BRANCH_F = r'\b(bc1[ft])\b'
     CONVERT_F = r'\b(cvt\.(w\.[ds]|s\.[dw]|d\.[sw]))\b'
