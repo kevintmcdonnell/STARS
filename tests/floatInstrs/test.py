@@ -31,12 +31,16 @@ class FloatTest(unittest.TestCase):
 
     def execute_file(self, op):
         # Method to execute tests file by running the command line script
-        output = subprocess.check_output(['python', 'sbumips.py', f'tests/floatInstrs/{op}_test.asm'], cwd=self.cwd).decode('ascii')
+        output = subprocess.check_output(['python', 'sbumips.py', f'tests/floatInstrs/{op}_test.asm'], cwd=self.cwd, stderr=subprocess.STDOUT).decode('ascii')
         return output
 
     def execute_test(self, op, expected_output):
         output = self.execute_file(op)
         self.assertEqual(expected_output, output)
+
+    def execute_error_test(self, op, ex):
+        output = self.execute_file(op)
+        self.assertIn(ex, output)
 
     # Arithmetic operations
     # Add
@@ -135,3 +139,19 @@ class FloatTest(unittest.TestCase):
     # Ceil (round, floor, trunc have pretty much the same functionality)
     def test_ceil(self):
         self.execute_test('ceil', '2 2147483647 2147483647')
+
+    # Load single
+    def test_load_single(self):
+        self.execute_test('load_single', '420.42 inf nan')
+
+    # Address not aligned
+    def test_load_err_single(self):
+        self.execute_error_test('load_single_error', 'MemoryAlignmentError')
+
+    # Load double
+    def test_load_double(self):
+        self.execute_test('load_double', '420.42 nan')
+
+    # Address not aligned
+    def test_load_err_double(self):
+        self.execute_error_test('load_double_error', 'MemoryAlignmentError')
