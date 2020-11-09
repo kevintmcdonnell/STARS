@@ -1,29 +1,33 @@
-from tests.syscalls import test_syscalls
-from tests.pseudoOps import test_pseudoOps
-from tests.preprocess import test_preprocess
-from tests.instructions import test
-from tests.fileOps import test_fileOps
-
+from tests.syscalls.test_syscalls import TestSyscalls
+from tests.pseudoOps.test_pseudoOps import MyTestCase
+from tests.preprocess.test_preprocess import TestPreprocess
+from tests.instructions.test import TestSBUMips
+from tests.fileOps.test_fileOps import TestFileOps
+from tests.floatInstrs.test import FloatTest
 import unittest
 from os import chdir
 
 if __name__ == '__main__':
     chdir('tests/syscalls')
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(testCaseClass=test_syscalls.TestSyscalls)
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(testCaseClass=TestSyscalls)
     unittest.TextTestRunner().run(suite)
 
     chdir('../pseudoOps')
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(testCaseClass=test_pseudoOps.MyTestCase)
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(testCaseClass=MyTestCase)
     unittest.TextTestRunner().run(suite)
 
     chdir('../preprocess')
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(testCaseClass=test_preprocess.TestPreprocess)
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(testCaseClass=TestPreprocess)
     unittest.TextTestRunner().run(suite)
 
     chdir('../instructions')
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(testCaseClass=test.TestSBUMips)
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(testCaseClass=TestSBUMips)
     unittest.TextTestRunner().run(suite)
 
     chdir('../fileOps')
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(testCaseClass=test_fileOps.TestFileOps)
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(testCaseClass=TestFileOps)
+    unittest.TextTestRunner().run(suite)
+
+    chdir('../floatInstrs')
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(testCaseClass=FloatTest)
     unittest.TextTestRunner().run(suite)
