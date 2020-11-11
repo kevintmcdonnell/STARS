@@ -1,6 +1,9 @@
+import struct
 import unittest
 import unittest.mock as mock
 from io import StringIO
+
+from numpy import float32
 
 import settings
 from interpreter import exceptions as ex
@@ -60,6 +63,61 @@ class TestSyscalls(unittest.TestCase):
         inter.reg = {'$a0': -2147483648}
         syscalls.printInt(inter)
         self.assertEqual(mock_stdout.getvalue(), str(-2147483648))
+
+    # syscall 2
+    @mock.patch('sys.stdout', new_callable=StringIO)
+    def test_printFloat(self, mock_stdout):
+        inter = Interpreter([Label('main')], [])
+        inter.mem = memory.Memory()
+        inter.f_reg = {'$f12': float32(420.42)}
+        syscalls.printFloat(inter)
+        self.assertEqual(mock_stdout.getvalue(), '420.42')
+
+    @mock.patch('sys.stdout', new_callable=StringIO)
+    def test_printFloatBig(self, mock_stdout):
+        inter = Interpreter([Label('main')], [])
+        inter.mem = memory.Memory()
+        inter.f_reg = {'$f12': float32(42.0E17)}
+        syscalls.printFloat(inter)
+        self.assertEqual(mock_stdout.getvalue(), '4.2e+18')
+
+    @mock.patch('sys.stdout', new_callable=StringIO)
+    def test_printFloatInf(self, mock_stdout):
+        inter = Interpreter([Label('main')], [])
+        inter.mem = memory.Memory()
+        inter.f_reg = {'$f12': float32('inf')}
+        syscalls.printFloat(inter)
+        self.assertEqual(mock_stdout.getvalue(), 'inf')
+
+    # syscall 3
+    @mock.patch('sys.stdout', new_callable=StringIO)
+    def test_printDouble(self, mock_stdout):
+        inter = Interpreter([Label('main')], [])
+        inter.mem = memory.Memory()
+        inter.f_reg = {'$f12': float32(1.26443839488E11), '$f13': float32(3.9105663299560546875E0)}
+        syscalls.printDouble(inter)
+        self.assertEqual(mock_stdout.getvalue(), '420.42')
+
+    @mock.patch('sys.stdout', new_callable=StringIO)
+    def test_printDoubleBig(self, mock_stdout):
+        inter = Interpreter([Label('main')], [])
+        inter.mem = memory.Memory()
+        inter.f_reg = {'$f12': float32(-2.4833974245227757568E19), '$f13': float32(4.1028668212890625E2)}
+        syscalls.printDouble(inter)
+        self.assertEqual(mock_stdout.getvalue(), '4.2e+18')
+
+    @mock.patch('sys.stdout', new_callable=StringIO)
+    def test_printDoubleInf(self, mock_stdout):
+        inter = Interpreter([Label('main')], [])
+        inter.mem = memory.Memory()
+
+        inf_int = 0x7FF00000
+        inf_bytes = struct.pack('>i', inf_int)
+        inf_float = struct.unpack('>f', inf_bytes)[0]
+
+        inter.f_reg = {'$f12': float32(0), '$f13': inf_float}
+        syscalls.printDouble(inter)
+        self.assertEqual(mock_stdout.getvalue(), 'inf')
 
     # syscall 4
     @mock.patch('sys.stdout', new_callable=StringIO)
