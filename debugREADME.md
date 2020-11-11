@@ -21,11 +21,15 @@ This debugger is loosely based on the GDB debugger.
 * `[r]everse`           Takes one step back in the program
 
 ### Possible formats:
-*  These are only relevant for data types `w`, `h`, and `b`.
-*  `d`  decimal (signed)
+These are only relevant for data types `w`, `h`, and `b` (or registers).
+*  `i`  decimal (signed)
 *  `u`  decimal (unsigned)
 *  `h`  hexadecimal
 *  `b`  binary
+
+These are only relevant for floating point registers.
+*  `f`  float
+*  `d`  double (only for even numbered registers)
 
 ### Possible data types:
 *  `b`  byte

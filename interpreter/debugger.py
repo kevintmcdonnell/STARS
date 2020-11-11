@@ -2,6 +2,7 @@ import re
 
 import constants as const
 from interpreter.classes import *
+from interpreter.exceptions import InvalidRegister
 from settings import settings
 
 '''
@@ -36,7 +37,7 @@ def _print(cmd, interp):  # cmd = ['p', value, opts...]
     def str_value(val, base, bytes):
         # Return a string representation of a number as decimal, unsigned decimal, hex or binary
         # bytes: number of bytes to print (for hex, bin)
-        if base == 'd':
+        if base == 'i':
             return str(val)
 
         elif base == 'u':
@@ -54,17 +55,32 @@ def _print(cmd, interp):  # cmd = ['p', value, opts...]
         print_usage_text()
         return True
 
-    if cmd[1] in interp.reg:
+    if (cmd[1] in interp.reg or cmd[1] in interp.f_reg) and cmd[2] in ['i', 'u', 'h', 'b']:
         # Print contents of a register
         reg = cmd[1]
         base = cmd[2]
 
-        if base not in ['d', 'u', 'h', 'b']:
-            print_usage_text()
-            return True
+        if reg in interp.reg:
+            value = interp.reg[reg]
+        else:
+            value = interp.get_reg_word(reg)
 
-        # Base is either d, u, h, b
-        print(f'{reg} {str_value(interp.reg[reg], base, 4)}')
+        print(f'{reg} {str_value(value, base, 4)}')
+        return True
+
+    elif cmd[1] in interp.f_reg and cmd[2] in ['f', 'd']:
+        # Print contents of a floating point register
+        reg = cmd[1]
+        base = cmd[2]
+
+        if base == 'f':
+            print(f'{reg} {interp.get_reg_float(reg)}')
+        else:
+            try:
+                print(f'{reg} {interp.get_reg_double(reg)}')
+            except InvalidRegister:
+                print('Not an even numbered register')
+
         return True
 
     elif len(cmd) >= 3 and cmd[1] in interp.mem.labels:
@@ -199,15 +215,27 @@ class Debug:
                        'reverse': self.reverse}
 
     def listen(self, interp):
+        def strip_marker(instr):
+            marker_idx = instr.find('\x81')
+
+            if marker_idx >= 0:
+                instr = instr[:marker_idx]
+
+            return instr
+
         loop = True
 
         while loop and not settings['gui']:
             if type(interp.instr) is not str:
                 if interp.instr.is_from_pseudoinstr:
-                    print(f'{interp.instr.original_text.strip()} ( {interp.instr.basic_instr()} )')
+                    instr_text = interp.instr.original_text.strip()
+                    instr_text = strip_marker(instr_text)
+                    print(f'{instr_text} ( {interp.instr.basic_instr()} )')
 
                 else:
-                    print(interp.instr.original_text.strip())
+                    instr_text = interp.instr.original_text.strip()
+                    instr_text = strip_marker(instr_text)
+                    print(instr_text)
 
                 print(' ' + interp.line_info)
 
@@ -225,7 +253,8 @@ class Debug:
             if not self.continueFlag:
                 interp.pause_lock.clear()
 
-        self.push(interp)
+        # TODO: Fix this to work with floating point instructions
+        # self.push(interp)
 
     def debug(self, instr) -> bool:
         # Returns whether to break execution and ask for input to debugger.
