@@ -155,3 +155,11 @@ class FloatTest(unittest.TestCase):
     # Address not aligned
     def test_load_err_double(self):
         self.execute_error_test('load_double_error', 'MemoryAlignmentError')
+
+    # Store single
+    def test_store_single(self):
+        self.execute_test('store_single', '420.42 nan')
+
+    # Store double
+    def test_store_double(self):
+        self.execute_test('store_double', '420.42 nan')
