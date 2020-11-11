@@ -16,7 +16,7 @@ This debugger is loosely based on the GDB debugger.
 * `[c]ontinue`          Continues execution until the next breakpoint or the end of execution
 * `[i]nfo b`            Prints out all the breakpoints
 * `[p]rint <reg> <format>`      Prints out the value of register `<reg>`
-* `[p]rint <label> <data_type> <length> <format>`     Prints the memory at the address that `<label>` points to in memory
+* `[p]rint <label> <data_type> <length> <format>`     Prints the memory at the address that `<label>` points to in memory. If `data_type` is `f` or `d`, `format` is not needed.
 * `kill`                Terminates the program and debugger
 * `[r]everse`           Takes one step back in the program
 
@@ -35,6 +35,8 @@ These are only relevant for floating point registers.
 *  `b`  byte
 *  `h`  half word (2 bytes)
 *  `w`  word (4 bytes)
+*  `f`  float (4 bytes)
+*  `d`  double (8 bytes)
 *  `c`  character
 *  `s`  string
 

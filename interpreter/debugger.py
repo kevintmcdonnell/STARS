@@ -50,11 +50,13 @@ def _print(cmd, interp):  # cmd = ['p', value, opts...]
         elif base == 'b':
             return f'0b{val & 0xFFFFFFFF:0{8 * bytes}b}'
 
+    # Invalid
     if len(cmd) < 3:
         # Invalid form of input
         print_usage_text()
         return True
 
+    # Integer register
     if (cmd[1] in interp.reg or cmd[1] in interp.f_reg) and cmd[2] in ['i', 'u', 'h', 'b']:
         # Print contents of a register
         reg = cmd[1]
@@ -68,6 +70,7 @@ def _print(cmd, interp):  # cmd = ['p', value, opts...]
         print(f'{reg} {str_value(value, base, 4)}')
         return True
 
+    # Floating point register
     elif cmd[1] in interp.f_reg and cmd[2] in ['f', 'd']:
         # Print contents of a floating point register
         reg = cmd[1]
@@ -83,6 +86,7 @@ def _print(cmd, interp):  # cmd = ['p', value, opts...]
 
         return True
 
+    # Data section
     elif len(cmd) >= 3 and cmd[1] in interp.mem.labels:
         # Print memory contents at a label
         label = cmd[1]
@@ -137,6 +141,39 @@ def _print(cmd, interp):  # cmd = ['p', value, opts...]
 
             return True
 
+        elif len(cmd) >= 4 and data_type in ['f', 'd']:
+            # Get the number of floats/doubles to print
+            try:
+                length = int(cmd[3])
+
+                if length < 1:
+                    print_usage_text()
+                    return True
+
+            except ValueError:
+                print_usage_text()
+                return True
+
+            addr = interp.mem.getLabel(label)
+
+            if data_type == 'f':
+                bytes = 4
+
+            else:
+                bytes = 8
+
+            for i in range(length):
+                if data_type == 'f':
+                    val = interp.mem.getFloat(addr)
+
+                else:
+                    val = interp.mem.getDouble(addr)
+
+                print(val)
+                addr += bytes
+
+            return True
+
         elif len(cmd) >= 4 and data_type == 'c':  # Print as character
             try:
                 length = int(cmd[3])
@@ -164,6 +201,9 @@ def _print(cmd, interp):  # cmd = ['p', value, opts...]
 
                     elif c == 10:  # Newline
                         ret = "\\n"
+
+                    elif c == 13:  # Carriage return
+                        ret = "\\r"
 
                     elif c >= 32:  # Regular character
                         ret = chr(c)
