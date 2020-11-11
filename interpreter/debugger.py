@@ -18,6 +18,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 '''
 
+
 def print_usage_text() -> None:
     print("USAGE:  [b]reak <filename> <line_no>\n\
 [d]elete\n\
@@ -239,42 +240,49 @@ class Debug:
         if not self.continueFlag:
             return settings['debug']
 
-        # If we encounter a breakpoint while executing, then break
-
-
     def push(self, interp) -> None:
         instr = interp.instr
         prev = None
+
+        prev_pc = interp.reg['pc'] - 4
+
         if type(instr) is RType or type(instr) is IType:
             op = instr.operation
-            if op in ['mult', 'multu', 'madd', 'maddu', 'msub', 'msubu', 'div', 'divu']:
-                prev = MChange(interp.reg['hi'], interp.reg['lo'], interp.reg['pc'] - 4)
+
+            if op in {'mult', 'multu', 'madd', 'maddu', 'msub', 'msubu', 'div', 'divu'}:
+                prev = MChange(interp.reg['hi'], interp.reg['lo'], prev_pc)
             else:
-                prev = RegChange(instr.regs[0], interp.reg[instr.regs[0]], interp.reg['pc'] - 4)
+                prev = RegChange(instr.regs[0], interp.reg[instr.regs[0]], prev_pc)
+
         elif type(instr) is LoadImm or type(instr) is Move:
-            prev = RegChange(instr.reg, interp.reg[instr.reg], interp.reg['pc'] - 4)
+            prev = RegChange(instr.reg, interp.reg[instr.reg], prev_pc)
+
         elif type(instr) is JType:
             op = instr.operation
+
             if 'l' in op:
                 if type(instr.target) is Label:
-                    prev = RegChange('$ra', interp.reg['$ra'], interp.reg['pc'] - 4)
+                    prev = RegChange('$ra', interp.reg['$ra'], prev_pc)
                 else:
-                    prev = RegChange(instr.target, interp.reg[instr.target], interp.reg['pc'] - 4)
+                    prev = RegChange(instr.target, interp.reg[instr.target], prev_pc)
+
         elif type(instr) is LoadMem:
             op = instr.operation
+
             if op[0] == 'l':
-                prev = RegChange(instr.reg, interp.reg[instr.reg], interp.reg['pc'] - 4)
+                prev = RegChange(instr.reg, interp.reg[instr.reg], prev_pc)
             else:
                 addr = interp.reg[instr.addr] + instr.imm
 
                 if op[1] == 'w':
-                    prev = MemChange(addr, interp.mem.getWord(addr), interp.reg['pc'] - 4, 'w')
+                    prev = MemChange(addr, interp.mem.getWord(addr), prev_pc, 'w')
                 elif op[1] == 'h':
-                    prev = MemChange(addr, interp.mem.getHWord(addr), interp.reg['pc'] - 4, 'h')
+                    prev = MemChange(addr, interp.mem.getHWord(addr), prev_pc, 'h')
                 else:
-                    prev = MemChange(addr, interp.mem.getByte(addr), interp.reg['pc'] - 4, 'b')
+                    prev = MemChange(addr, interp.mem.getByte(addr), prev_pc, 'b')
+
         else:  # branches, nops, jr, j
-            prev = Change(interp.reg['pc'] - 4)
+            prev = Change(prev_pc)
 
         self.stack.append(prev)
 
@@ -332,5 +340,5 @@ class Debug:
             print_usage_text()
         return True
 
-    def removeBreakpoint(self, cmd: List[str], interp) -> bool:
+    def removeBreakpoint(self, cmd: List[str], interp) -> None:
         self.breakpoints.remove((cmd[0], cmd[1]))
