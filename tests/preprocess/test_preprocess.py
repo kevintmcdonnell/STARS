@@ -126,14 +126,15 @@ syscall  "toInclude.asm" 3
 jello: .word 4  "toInclude.asm" 6
 '''}
         contents = {}
+        processed = {}
         for file in files:
             with file.open() as f:
                 contents[file.as_posix()] = ''.join(f.readlines())
-                contents[file.as_posix()] = preprocess(contents[file.as_posix()], file, eqv_dict)
-            self.assertEqual(contents[file.as_posix()], expected[file.as_posix()], msg=f"Failed test_preprocess_include_success on file {file.name}.")
+                processed[file.as_posix()] = preprocess(contents[file.as_posix()], file, eqv_dict)
+            self.assertEqual(processed[file.as_posix()], expected[file.as_posix()], msg=f"Failed test_preprocess_include_success on file {file.name}.")
 
-        final = link(files, contents, abs_to_rel)
-        self.assertEqual(final, '''.text  "toInclude.asm" 1
+        (og_text, text) = link(files, contents, processed, abs_to_rel)
+        self.assertEqual(text, '''.text  "toInclude.asm" 1
 li $v0, 10  "toInclude.asm" 2
 syscall  "toInclude.asm" 3
 
@@ -148,4 +149,18 @@ syscall  "includeSuccess.asm" 7
 
 .data  "includeSuccess.asm" 9
 UvU: .asciiz "owo what's this?"  "includeSuccess.asm" 10
-''', msg="Failed test_preprocess_include_success on linking.")
+''', msg="Failed test_preprocess_include_success on linking preprocessed text.")
+        self.assertEqual(og_text, '''.text
+li $v0, 10
+syscall
+
+.data
+jello: .word 4.text
+li $a0, 24
+li $v0, 4
+syscall
+li $v0, 10
+syscall
+
+.data
+UvU: .asciiz "owo what's this?"''', msg="Failed test_preprocess_include_success on linking original text.")
