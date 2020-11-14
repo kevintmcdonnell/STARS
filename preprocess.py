@@ -130,12 +130,14 @@ def preprocess(contents: str, file: str, eqv: Dict[str, str]) -> str:
     return newText
 
 
-def link(files: List[Path], contents: Dict[str, str], abs_to_rel: Dict[str, str]):
-    text = contents[files[0].as_posix()]
-
+def link(files: List[Path], contents: Dict[str, str], processed: Dict[str,str], abs_to_rel: Dict[str, str]):
+    og_text = contents[files[0].as_posix()]
+    text = processed[files[0].as_posix()]
     for name, content in contents.items():
         if name in abs_to_rel:
             pattern = rf'\.include "{abs_to_rel[name]}".*?\n'
-            text = re.sub(pattern, content, text)
+            og_text = re.sub(pattern, content, og_text)
+            text = re.sub(pattern, processed, text)
 
-    return text
+
+    return (og_text, text)

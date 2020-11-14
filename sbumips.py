@@ -59,30 +59,30 @@ def assemble(filename: str) -> List:
     walk(path, files, eqv_dict, abs_to_rel, path.parent)
     contents = {}
     results = {}
-
+    processed = {}
     for file in files:
         with file.open() as f:
             s = f.readlines()
             file = file.as_posix()
 
             contents[file] = ''.join(s)
-            contents[file] = preprocess(contents[file], file, eqv_dict)
+            processed[file] = preprocess(contents[file], file, eqv_dict)
 
             lexer = MipsLexer(file)
             parser = MipsParser(contents[file], file)
 
-            tokenized = lexer.tokenize(contents[file])
+            tokenized = lexer.tokenize(processed[file])
             results[file] = parser.parse(tokenized)
 
     if settings['assemble']:
         print('Program assembled successfully.')
         exit()
 
-    result = link(files, contents, abs_to_rel)
-    parser = MipsParser(result, files[0])
+    og_text, text = link(files, contents, processed, abs_to_rel)
+    parser = MipsParser(og_text, files[0])
     lexer = MipsLexer(files[0].as_posix())
 
-    t = lexer.tokenize(result)
+    t = lexer.tokenize(text)
     return parser.parse(t)
 
 

@@ -58,7 +58,7 @@ class MipsParser(Parser):
     @_('LINE_MARKER')
     def filetag(self, p):
         x = p[0].split()
-        file_name = self.filename
+        file_name = x[1]
         line_number = int(x[2])
         self.filename = x[1]
         return FileTag(file_name, line_number)

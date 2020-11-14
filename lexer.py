@@ -124,6 +124,9 @@ class MipsLexer(Lexer):
     # \x81\x83
     @_(r'(\x81\x82|\x81\x83) ".*?" \d+')
     def LINE_MARKER(self, t):
+        x = t.value.split()
+        self.lineno = int(x[2])
+        self.filename = x[1]
         return t
 
     @_(r'[$](a[0123t]|s[01234567]|t[0123456789]|v[01]|ra|sp|fp|gp|zero|3[01]|[12]?\d) *,?')

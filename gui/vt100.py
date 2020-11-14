@@ -55,6 +55,7 @@ class VT100(QWidget):
 
     def reset_reveal(self):
         self.reveal = not self.reveal
+        self.update_screen()
 
     def update_screen(self) -> None:
         if not self.controller.good():

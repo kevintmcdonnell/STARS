@@ -4,7 +4,7 @@ from PySide2.QtCore import Qt, QSemaphore, QEvent, Signal
 from PySide2.QtGui import QTextCursor, QGuiApplication, QPalette, QColor, QFont, QKeySequence
 from PySide2.QtWidgets import *
 
-from constants import REGS
+from constants import REGS, F_REGS
 from interpreter.interpreter import Interpreter
 from sbumips import assemble
 from settings import settings
@@ -119,7 +119,7 @@ class MainWindow(QMainWindow):
             self.regs[r].setFont(QFont("Courier New", 8))
             self.regs[r].setFrameShape(QFrame.Box)
             self.regs[r].setFrameShadow(QFrame.Raised)
-            #self.regs[r].setLineWidth(2)
+            # self.regs[r].setLineWidth(2)
             reg_label = QLabel(r)
             reg_label.setFont(QFont("Courier New", 8))
             self.reg_box.addWidget(reg_label, i, 0)
@@ -276,8 +276,6 @@ class MainWindow(QMainWindow):
             self.mem_right.clicked.connect(self.mem_rightclick)
             self.mem_left.clicked.connect(self.mem_leftclick)
             self.intr.end.connect(self.set_running)
-
-            self.changed_interp.emit()
             self.breakpoints = []
             self.setWindowTitle(f'STARS: {filename}')
             self.filename = filename
@@ -310,6 +308,7 @@ class MainWindow(QMainWindow):
         if not self.running:
             self.set_running(True)
             self.controller.set_interp(self.intr)
+            self.changed_interp.emit()
             self.controller.pause(False)
             self.out.setPlainText('')
             self.out_pos = self.out.textCursor().position()
