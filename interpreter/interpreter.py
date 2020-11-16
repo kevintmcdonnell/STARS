@@ -679,6 +679,8 @@ class Interpreter(QWidget):
                         first = False
 
                 elif settings['gui'] and type(self.instr) is Syscall and (self.reg['$v0'] == 10 or self.reg['$v0'] == 17):
+                    if settings['disp_instr_count']:
+                        self.out(f'\nInstruction count: {self.instruction_count}')
                     self.end.emit(False)
                     break
 

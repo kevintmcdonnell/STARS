@@ -1,15 +1,18 @@
 from threading import Thread
-
-from PySide2.QtCore import Qt, QSemaphore, QEvent, Signal
-from PySide2.QtGui import QTextCursor, QGuiApplication, QPalette, QColor, QFont, QKeySequence
-from PySide2.QtWidgets import *
-
+import sys, os
+sys.path.append(os.getcwd()) # must be ran in sbumips directory (this is bc PYTHONPATH is weird in terminal)
 from constants import REGS, F_REGS
 from interpreter.interpreter import Interpreter
 from sbumips import assemble
 from settings import settings
 from controller import Controller
 from gui.vt100 import VT100
+
+from PySide2.QtCore import Qt, QSemaphore, QEvent, Signal
+from PySide2.QtGui import QTextCursor, QGuiApplication, QPalette, QColor, QFont, QKeySequence
+from PySide2.QtWidgets import *
+
+
 '''
 Copyright 2020 Kevin McDonnell, Jihu Mun, and Ian Peitzsch
 
@@ -103,6 +106,8 @@ class MainWindow(QMainWindow):
         self.init_mem()
         self.init_out()
         self.init_regs()
+        self.init_pa()
+        self.init_cop_flags()
 
         center = QWidget()
         center.setLayout(self.lay)
@@ -125,7 +130,39 @@ class MainWindow(QMainWindow):
             self.reg_box.addWidget(reg_label, i, 0)
             self.reg_box.addWidget(self.regs[r], i, 1)
             i += 1
-        self.lay.addLayout(self.reg_box, 0, 3, 2, 1)
+
+        self.freg_box = QGridLayout()
+        self.fregs = {}
+        self.freg_box.setSpacing(0)
+        i = 0
+        for r in F_REGS:
+            self.fregs[r] = QLabel('0')
+            self.fregs[r].setFont(QFont("Courier New", 8))
+            self.fregs[r].setFrameShape(QFrame.Box)
+            self.fregs[r].setFrameShadow(QFrame.Raised)
+            # self.regs[r].setLineWidth(2)
+            reg_label = QLabel(r)
+            reg_label.setFont(QFont("Courier New", 8))
+            self.freg_box.addWidget(reg_label, i, 0)
+            self.freg_box.addWidget(self.fregs[r], i, 1)
+            i += 1
+        self.lay.addLayout(self.reg_box, 1, 3, 2, 1)
+        self.lay.addLayout(self.freg_box, 1, 4, 2, 1)
+
+    def init_cop_flags(self):
+        flag_box = QGridLayout()
+        self.flags = []
+        count = 1
+        for i in range(4):
+            c1 = QCheckBox(f'{count}')
+            self.flags.append(c1)
+            count += 1
+            c2 = QCheckBox(f'{count}')
+            count += 1
+            self.flags.append(c2)
+            flag_box.addWidget(c1, i, 0)
+            flag_box.addWidget(c2, i, 1)
+        self.lay.addLayout(flag_box, 3, 3, 1, 2)
 
     def init_instrs(self):
         i = QWidget()
@@ -140,7 +177,7 @@ class MainWindow(QMainWindow):
 
         i.setLayout(self.instr_grid)
         scroll.setMaximumHeight(300)
-        self.lay.addWidget(scroll, 0, 0)
+        self.lay.addWidget(scroll, 1, 0)
         # self.instrs = QTextEdit()
         # self.instrs.setLineWrapMode(QTextEdit.NoWrap)
         # self.instrs.setReadOnly(True)
@@ -161,6 +198,41 @@ class MainWindow(QMainWindow):
         vt = QAction("MMIO Display", self)
         vt.triggered.connect(self.launch_vt100)
         tools.addAction(vt)
+
+        sett = bar.addMenu("Settings")
+        for s in ['garbage_memory', 'garbage_registers', 'disp_instr_count', 'warnings']:
+            pass
+        mem_wid = QWidgetAction(sett)
+        mem_box = QCheckBox("Garbage Memory")
+        if settings['garbage_memory']:
+            mem_box.setChecked()
+        mem_box.stateChanged.connect(lambda: self.controller.setSetting('garbage_memory', mem_box.isChecked()))
+        mem_wid.setDefaultWidget(mem_box)
+        sett.addAction(mem_wid)
+
+        reg_wid = QWidgetAction(sett)
+        reg_box = QCheckBox("Garbage Registers")
+        if settings['garbage_registers']:
+            reg_box.setChecked()
+        reg_box.stateChanged.connect(lambda: self.controller.setSetting('garbage_registers', reg_box.isChecked()))
+        reg_wid.setDefaultWidget(reg_box)
+        sett.addAction(reg_wid)
+
+        inst_wid = QWidgetAction(sett)
+        inst_box = QCheckBox("Instruction Count")
+        if settings['disp_instr_count']:
+            inst_box.setChecked()
+        inst_box.stateChanged.connect(lambda: self.controller.setSetting('disp_instr_count', inst_box.isChecked()))
+        inst_wid.setDefaultWidget(inst_box)
+        sett.addAction(inst_wid)
+
+        warn_wid = QWidgetAction(sett)
+        warn_box = QCheckBox("Warnings")
+        if settings['warnings']:
+            warn_box.setChecked()
+        warn_box.stateChanged.connect(lambda: self.controller.setSetting('warnings', warn_box.isChecked()))
+        warn_wid.setDefaultWidget(warn_box)
+        sett.addAction(warn_wid)
 
         help_ = bar.addMenu("Help")
 
@@ -210,12 +282,12 @@ class MainWindow(QMainWindow):
     def init_out(self):
         self.out = QTextEdit()
         self.out.installEventFilter(self)
-        self.lay.addWidget(self.out, 2, 0)
+        self.lay.addWidget(self.out, 3, 0)
 
     def init_mem(self):
         grid = QGridLayout()
         self.section_dropdown = QComboBox()
-        self.section_dropdown.addItems(['Kernel', '.data', 'stack'])
+        self.section_dropdown.addItems(['Kernel', '.data', 'stack', 'MMIO'])
         self.section_dropdown.currentTextChanged.connect(self.change_section)
         grid.addWidget(self.section_dropdown, 0, 0)
         grid.setSpacing(0)
@@ -238,7 +310,7 @@ class MainWindow(QMainWindow):
         count = 0
         for i in range(1, 17):
             for j in range(5):
-                q = QLabel("h")
+                q = QLabel(" ")
                 q.setFrameShape(QFrame.Box)
                 q.setFrameShadow(QFrame.Raised)
                 q.setLineWidth(2)
@@ -250,7 +322,11 @@ class MainWindow(QMainWindow):
                     self.mem_vals.append(q)
                 grid.addWidget(q, i, j)
             count += 16
-        self.lay.addLayout(grid, 1, 0)
+        self.lay.addLayout(grid, 2, 0)
+
+    def init_pa(self):
+        self.pa = QLineEdit()
+        self.lay.addWidget(self.pa, 0, 0)
 
     def open_file(self):
         try:
@@ -267,7 +343,8 @@ class MainWindow(QMainWindow):
     def assemble(self, filename):
         try:
             self.result = assemble(filename)
-            self.intr = Interpreter(self.result, [])
+            print(self.pa.text())
+            self.intr = Interpreter(self.result, self.pa.text().split())
             self.controller.set_interp(self.intr)
             self.instrs = []
             self.update_screen()
@@ -348,16 +425,22 @@ class MainWindow(QMainWindow):
 
     def change_rep(self, t):
         self.rep = t
-        self.update_screen()
+        if self.controller.good():
+            self.update_screen()
 
     def change_section(self, t):
         if t == 'Kernel':
             self.base_address = 0
         elif t == '.data':
             self.base_address = settings['data_min']
+        elif t == 'MMIO':
+            self.base_address = 0xffff0000
         else:
-            self.base_address = settings['initial_$sp']
-        self.fill_mem()
+            self.base_address = settings['initial_$sp'] - 0xc
+            if self.base_address % 256 != 0:
+                self.base_address -= self.base_address % 256
+        if self.controller.good():
+            self.fill_mem()
 
     def set_running(self, run):
         self.run_sem.acquire()
@@ -371,6 +454,13 @@ class MainWindow(QMainWindow):
         self.fill_instrs()
         self.fill_mem()
 
+    def fill_flags(self):
+        for i in range(len(self.intr.condition_flags)):
+            if self.intr.condition_flags[i]:
+                self.flags[i].setChecked()
+            else:
+                self.flags[i].setCheckState(Qt.Unchecked)
+
     def fill_reg(self):
         for r in REGS:
             if self.rep == "Decimal":
@@ -380,6 +470,8 @@ class MainWindow(QMainWindow):
                 if a < 0:
                     a += 2**32
                 self.regs[r].setText(f'0x{a:08x}')
+        for r in F_REGS:
+            self.fregs[r].setText(str(self.intr.f_reg[r]))
 
     def fill_instrs(self):
         pc = self.intr.reg['pc']
@@ -392,7 +484,9 @@ class MainWindow(QMainWindow):
             # fmt.setBackground(Qt.cyan)
             # self.instrs[pc - settings['initial_pc']].setTextFormat(fmt)
             self.prev_instr.setStyleSheet("QLineEdit { background: rgb(255, 255, 255) };")
-            self.prev_instr = self.instrs[(pc - 4 - settings['initial_pc']) // 4]
+            prev_ind = (pc - 4 - settings['initial_pc']) // 4
+            if prev_ind < len(self.instrs):
+                self.prev_instr = self.instrs[prev_ind]
             self.prev_instr.setStyleSheet("QLineEdit { background: rgb(0, 255, 255) };")
 
         else:
@@ -433,7 +527,7 @@ class MainWindow(QMainWindow):
                     f'{to_ascii(self.controller.get_byte(count + 3, signed=True)):2} {to_ascii(self.controller.get_byte(count + 2, signed=True)):2} {to_ascii(self.controller.get_byte(count + 1, signed=True)):2} {to_ascii(self.controller.get_byte(count, signed=True)):2}')
             else:
                 q.setText(
-                    f'0x{self.controller.get_byte(count + 4):02x} 0x{self.controller.get_byte(count + 3):02x} 0x{self.controller.get_byte(count + 2):02x} 0x{self.controller.get_byte(count):02x}')
+                    f'0x{self.controller.get_byte(count + 3):02x} 0x{self.controller.get_byte(count + 2):02x} 0x{self.controller.get_byte(count + 1):02x} 0x{self.controller.get_byte(count):02x}')
             count += 4
         count = self.base_address
         for a in self.addresses:
@@ -442,13 +536,18 @@ class MainWindow(QMainWindow):
         self.mem_sem.release()
 
     def mem_rightclick(self):
+        if not self.controller.good():
+            return
         self.mem_sem.acquire()
         if self.base_address <= settings['data_max'] - 256:
             self.base_address += 256
+            print(f'{self.base_address:08x}')
         self.mem_sem.release()
         self.fill_mem()
 
     def mem_leftclick(self):
+        if not self.controller.good():
+            return
         self.mem_sem.acquire()
         if self.base_address >= 256:
             self.base_address -= 256

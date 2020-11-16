@@ -1,7 +1,7 @@
 from threading import Lock, Event
 from interpreter.debugger import Debug
 from interpreter.interpreter import Interpreter
-
+import settings
 '''
 Copyright 2020 Kevin McDonnell, Jihu Mun, and Ian Peitzsch
 
@@ -55,3 +55,6 @@ class Controller():
 
     def cont(self) -> bool:
         return self.debug.continueFlag
+
+    def setSetting(self, key: str, val: bool) -> None:
+        settings.settings[key] = val
