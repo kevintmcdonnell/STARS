@@ -2,6 +2,7 @@ import re
 
 import constants as const
 from interpreter.classes import *
+from interpreter.exceptions import InvalidRegister
 from settings import settings
 
 '''
@@ -17,6 +18,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 '''
+
 
 def print_usage_text() -> None:
     print("USAGE:  [b]reak <filename> <line_no>\n\
@@ -35,7 +37,7 @@ def _print(cmd, interp):  # cmd = ['p', value, opts...]
     def str_value(val, base, bytes):
         # Return a string representation of a number as decimal, unsigned decimal, hex or binary
         # bytes: number of bytes to print (for hex, bin)
-        if base == 'd':
+        if base == 'i':
             return str(val)
 
         elif base == 'u':
@@ -48,24 +50,43 @@ def _print(cmd, interp):  # cmd = ['p', value, opts...]
         elif base == 'b':
             return f'0b{val & 0xFFFFFFFF:0{8 * bytes}b}'
 
+    # Invalid
     if len(cmd) < 3:
         # Invalid form of input
         print_usage_text()
         return True
 
-    if cmd[1] in interp.reg:
+    # Integer register
+    if (cmd[1] in interp.reg or cmd[1] in interp.f_reg) and cmd[2] in ['i', 'u', 'h', 'b']:
         # Print contents of a register
         reg = cmd[1]
         base = cmd[2]
 
-        if base not in ['d', 'u', 'h', 'b']:
-            print_usage_text()
-            return True
+        if reg in interp.reg:
+            value = interp.reg[reg]
+        else:
+            value = interp.get_reg_word(reg)
 
-        # Base is either d, u, h, b
-        print(f'{reg} {str_value(interp.reg[reg], base, 4)}')
+        print(f'{reg} {str_value(value, base, 4)}')
         return True
 
+    # Floating point register
+    elif cmd[1] in interp.f_reg and cmd[2] in ['f', 'd']:
+        # Print contents of a floating point register
+        reg = cmd[1]
+        base = cmd[2]
+
+        if base == 'f':
+            print(f'{reg} {interp.get_reg_float(reg)}')
+        else:
+            try:
+                print(f'{reg} {interp.get_reg_double(reg)}')
+            except InvalidRegister:
+                print('Not an even numbered register')
+
+        return True
+
+    # Data section
     elif len(cmd) >= 3 and cmd[1] in interp.mem.labels:
         # Print memory contents at a label
         label = cmd[1]
@@ -120,6 +141,39 @@ def _print(cmd, interp):  # cmd = ['p', value, opts...]
 
             return True
 
+        elif len(cmd) >= 4 and data_type in ['f', 'd']:
+            # Get the number of floats/doubles to print
+            try:
+                length = int(cmd[3])
+
+                if length < 1:
+                    print_usage_text()
+                    return True
+
+            except ValueError:
+                print_usage_text()
+                return True
+
+            addr = interp.mem.getLabel(label)
+
+            if data_type == 'f':
+                bytes = 4
+
+            else:
+                bytes = 8
+
+            for i in range(length):
+                if data_type == 'f':
+                    val = interp.mem.getFloat(addr)
+
+                else:
+                    val = interp.mem.getDouble(addr)
+
+                print(val)
+                addr += bytes
+
+            return True
+
         elif len(cmd) >= 4 and data_type == 'c':  # Print as character
             try:
                 length = int(cmd[3])
@@ -147,6 +201,9 @@ def _print(cmd, interp):  # cmd = ['p', value, opts...]
 
                     elif c == 10:  # Newline
                         ret = "\\n"
+
+                    elif c == 13:  # Carriage return
+                        ret = "\\r"
 
                     elif c >= 32:  # Regular character
                         ret = chr(c)
@@ -198,15 +255,27 @@ class Debug:
                        'reverse': self.reverse}
 
     def listen(self, interp):
+        def strip_marker(instr):
+            marker_idx = instr.find('\x81')
+
+            if marker_idx >= 0:
+                instr = instr[:marker_idx]
+
+            return instr
+
         loop = True
 
         while loop and not settings['gui']:
             if type(interp.instr) is not str:
                 if interp.instr.is_from_pseudoinstr:
-                    print(f'{interp.instr.original_text.strip()} ( {interp.instr.basic_instr()} )')
+                    instr_text = interp.instr.original_text.strip()
+                    instr_text = strip_marker(instr_text)
+                    print(f'{instr_text} ( {interp.instr.basic_instr()} )')
 
                 else:
-                    print(interp.instr.original_text.strip())
+                    instr_text = interp.instr.original_text.strip()
+                    instr_text = strip_marker(instr_text)
+                    print(instr_text)
 
                 print(' ' + interp.line_info)
 
@@ -224,7 +293,8 @@ class Debug:
             if not self.continueFlag:
                 interp.pause_lock.clear()
 
-        self.push(interp)
+        # TODO: Fix this to work with floating point instructions
+        # self.push(interp)
 
     def debug(self, instr) -> bool:
         # Returns whether to break execution and ask for input to debugger.
@@ -239,42 +309,49 @@ class Debug:
         if not self.continueFlag:
             return settings['debug']
 
-        # If we encounter a breakpoint while executing, then break
-
-
     def push(self, interp) -> None:
         instr = interp.instr
         prev = None
+
+        prev_pc = interp.reg['pc'] - 4
+
         if type(instr) is RType or type(instr) is IType:
             op = instr.operation
-            if op in ['mult', 'multu', 'madd', 'maddu', 'msub', 'msubu', 'div', 'divu']:
-                prev = MChange(interp.reg['hi'], interp.reg['lo'], interp.reg['pc'] - 4)
+
+            if op in {'mult', 'multu', 'madd', 'maddu', 'msub', 'msubu', 'div', 'divu'}:
+                prev = MChange(interp.reg['hi'], interp.reg['lo'], prev_pc)
             else:
-                prev = RegChange(instr.regs[0], interp.reg[instr.regs[0]], interp.reg['pc'] - 4)
+                prev = RegChange(instr.regs[0], interp.reg[instr.regs[0]], prev_pc)
+
         elif type(instr) is LoadImm or type(instr) is Move:
-            prev = RegChange(instr.reg, interp.reg[instr.reg], interp.reg['pc'] - 4)
+            prev = RegChange(instr.reg, interp.reg[instr.reg], prev_pc)
+
         elif type(instr) is JType:
             op = instr.operation
+
             if 'l' in op:
                 if type(instr.target) is Label:
-                    prev = RegChange('$ra', interp.reg['$ra'], interp.reg['pc'] - 4)
+                    prev = RegChange('$ra', interp.reg['$ra'], prev_pc)
                 else:
-                    prev = RegChange(instr.target, interp.reg[instr.target], interp.reg['pc'] - 4)
+                    prev = RegChange(instr.target, interp.reg[instr.target], prev_pc)
+
         elif type(instr) is LoadMem:
             op = instr.operation
+
             if op[0] == 'l':
-                prev = RegChange(instr.reg, interp.reg[instr.reg], interp.reg['pc'] - 4)
+                prev = RegChange(instr.reg, interp.reg[instr.reg], prev_pc)
             else:
                 addr = interp.reg[instr.addr] + instr.imm
 
                 if op[1] == 'w':
-                    prev = MemChange(addr, interp.mem.getWord(addr), interp.reg['pc'] - 4, 'w')
+                    prev = MemChange(addr, interp.mem.getWord(addr), prev_pc, 'w')
                 elif op[1] == 'h':
-                    prev = MemChange(addr, interp.mem.getHWord(addr), interp.reg['pc'] - 4, 'h')
+                    prev = MemChange(addr, interp.mem.getHWord(addr), prev_pc, 'h')
                 else:
-                    prev = MemChange(addr, interp.mem.getByte(addr), interp.reg['pc'] - 4, 'b')
+                    prev = MemChange(addr, interp.mem.getByte(addr), prev_pc, 'b')
+
         else:  # branches, nops, jr, j
-            prev = Change(interp.reg['pc'] - 4)
+            prev = Change(prev_pc)
 
         self.stack.append(prev)
 
@@ -332,5 +409,5 @@ class Debug:
             print_usage_text()
         return True
 
-    def removeBreakpoint(self, cmd: List[str], interp) -> bool:
+    def removeBreakpoint(self, cmd: List[str], interp) -> None:
         self.breakpoints.remove((cmd[0], cmd[1]))
