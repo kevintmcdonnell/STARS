@@ -163,3 +163,29 @@ class FloatTest(unittest.TestCase):
     # Store double
     def test_store_double(self):
         self.execute_test('store_double', '420.42 nan')
+
+    # Compare + Branch
+    # General case
+    def test_comp(self):
+        self.execute_test('comp', '1')
+
+    # Nan case
+    def test_comp_nan(self):
+        self.execute_test('comp_nan', '01')
+
+    # Convert
+    # To word
+    def test_cvt_to_word(self):
+        self.execute_test('cvt_to_word', '4 42')
+
+    # From word
+    def test_cvt_from_word(self):
+        self.execute_test('cvt_from_word', '1337.0 1234567.0')
+
+    # Move if (not) zero
+    def test_move_zero(self):
+        self.execute_test('move', '0.0 3.4')
+
+    # Move conditional
+    def test_move_conditional(self):
+        self.execute_test('move_cond', '42 0')
