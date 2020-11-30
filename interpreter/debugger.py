@@ -24,15 +24,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 def print_usage_text() -> None:
     print("USAGE:  [b]reak <filename> <line_no>\n\
-[d]elete\n\
-[n]ext\n\
-[c]ontinue\n\
-[i]nfo b\n\
+[d]elete: Clear all breakpoints\n\
+[n]ext: Step to the next instruction\n\
+[c]ontinue: Run until the next breakpoint\n\
+[i]nfo b: Print information about the breakpoints\n\
 [p]rint <reg> <format>\n\
 [p]rint <label> <data_type> <length> <format>\n\
-[q]uit\n\
-[h]elp\n\
-[r]everse\n")
+[q]uit: Terminate the program\n\
+[h]elp: Print this usage text\n\
+[r]everse: Step back to the previous instruction\n")
 
 
 def _print(cmd, interp):  # cmd = ['p', value, opts...]
