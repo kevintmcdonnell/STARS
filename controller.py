@@ -58,3 +58,6 @@ class Controller():
 
     def setSetting(self, key: str, val: bool) -> None:
         settings.settings[key] = val
+
+    def get_labels(self):
+        return self.interp.mem.labels

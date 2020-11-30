@@ -101,6 +101,7 @@ class MainWindow(QMainWindow):
     def init_ui(self):
         self.setWindowTitle("STARS")
         self.lay = QGridLayout()
+        self.lay.setSpacing(0)
         self.init_menubar()
         self.init_instrs()
         self.init_mem()
@@ -151,9 +152,10 @@ class MainWindow(QMainWindow):
 
     def init_cop_flags(self):
         flag_box = QGridLayout()
+        flag_box.setSpacing(0)
         self.flags = []
-        count = 1
-        for i in range(4):
+        count = 0
+        for i in range(1, 5):
             c1 = QCheckBox(f'{count}')
             self.flags.append(c1)
             count += 1
@@ -162,7 +164,8 @@ class MainWindow(QMainWindow):
             self.flags.append(c2)
             flag_box.addWidget(c1, i, 0)
             flag_box.addWidget(c2, i, 1)
-        self.lay.addLayout(flag_box, 3, 3, 1, 2)
+        flag_box.addWidget(QLabel('Coproc 1 Flags:'), 0, 0)
+        self.lay.addLayout(flag_box, 3, 3)
 
     def init_instrs(self):
         i = QWidget()
@@ -264,6 +267,9 @@ class MainWindow(QMainWindow):
         run.addAction(pause)
 
         asm_but = QAction("✇", self)
+        # asm_but.setToolTip('F3')
+        # asm_but.setToolTipsVisible(True)
+        # asm_but.setWhatsThis('F3')
         asm_but.triggered.connect(lambda : asm.trigger())
         bar.addAction(asm_but)
         start_but = QAction("▶️", self)
@@ -322,11 +328,24 @@ class MainWindow(QMainWindow):
                     self.mem_vals.append(q)
                 grid.addWidget(q, i, j)
             count += 16
+
+        labels = QScrollArea()
+        l = QWidget()
+        labels.setMaximumHeight(400)
+        labels.setWidget(l)
+        self.lab_grid = QVBoxLayout()
+        labels.setLayout(self.lab_grid)
+        grid.addWidget(labels, 2, 5, 15, 2)
+
         self.lay.addLayout(grid, 2, 0)
 
     def init_pa(self):
         self.pa = QLineEdit()
-        self.lay.addWidget(self.pa, 0, 0)
+        pa = QHBoxLayout()
+        label = QLabel('Program Arguments:')
+        pa.addWidget(label)
+        pa.addWidget(self.pa)
+        self.lay.addLayout(pa, 0, 0)
 
     def open_file(self):
         try:
@@ -348,6 +367,7 @@ class MainWindow(QMainWindow):
             self.controller.set_interp(self.intr)
             self.instrs = []
             self.update_screen()
+            self.fill_labels()
             self.intr.step.connect(self.update_screen)
             self.intr.console_out.connect(self.update_console)
             self.mem_right.clicked.connect(self.mem_rightclick)
@@ -452,6 +472,34 @@ class MainWindow(QMainWindow):
     def update_screen(self):
         self.fill_reg()
         self.fill_instrs()
+        self.fill_mem()
+        self.fill_flags()
+
+    def fill_labels(self):
+        labels = self.controller.get_labels()
+        for l in labels:
+            q = QPushButton(f'{l}: 0x{labels[l]:08x}')
+            q.clicked.connect(lambda : self.mem_move_to(labels[l]))
+            self.lab_grid.addWidget(q)
+
+    def mem_move_to(self, addr):
+        self.mem_sem.acquire()
+
+        if addr % 256 == 0:
+            self.base_address = addr
+
+        else:
+            addr -= (addr % 256)
+            self.base_address = addr
+
+        self.mem_sem.release()
+
+        self.section_dropdown.setCurrentIndex(0)
+        if addr >= settings['data_min']:
+            self.section_dropdown.setCurrentIndex(1)
+        if addr >= 0xffff0000:
+            self.section_dropdown.setCurrentIndex(2)
+
         self.fill_mem()
 
     def fill_flags(self):
