@@ -17,7 +17,7 @@ This debugger is loosely based on the GDB debugger.
 * `[i]nfo b`            Prints out all the breakpoints
 * `[p]rint <reg> <format>`      Prints out the value of register `<reg>`
 * `[p]rint <label> <data_type> <length> <format>`     Prints the memory at the address that `<label>` points to in memory. If `data_type` is `f` or `d`, `format` is not needed.
-* `kill`                Terminates the program and debugger
+* `[q]uit`                Terminates the program and debugger
 * `[r]everse`           Takes one step back in the program
 
 ### Possible formats:

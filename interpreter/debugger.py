@@ -30,7 +30,7 @@ def print_usage_text() -> None:
 [i]nfo b\n\
 [p]rint <reg> <format>\n\
 [p]rint <label> <data_type> <length> <format>\n\
-kill\n\
+[q]uit\n\
 [h]elp\n\
 [r]everse\n")
 
@@ -225,7 +225,7 @@ def _print(cmd, interp):  # cmd = ['p', value, opts...]
     return True
 
 
-def kill(cmd, interp) -> None:
+def quit(cmd, interp) -> None:
     for i in range(3, len(interp.mem.fileTable)):
         interp.mem.fileTable[i].close()
     exit()
@@ -252,7 +252,8 @@ class Debug:
                        'delete': self.clearBreakpoints,
                        'p': _print,
                        'print': _print,
-                       'kill': kill,
+                       'q': quit,
+                       'quit': quit,
                        'r': self.reverse,
                        'reverse': self.reverse}
 
