@@ -46,7 +46,7 @@ def _print(cmd, interp):  # cmd = ['p', value, opts...]
             unsigned_val = val if val >= 0 else val + const.WORD_SIZE
             return str(unsigned_val)
 
-        elif base == 'h':
+        elif base == 'x':
             return f'0x{val & 0xFFFFFFFF:0{2 * bytes}x}'
 
         elif base == 'b':
@@ -59,7 +59,7 @@ def _print(cmd, interp):  # cmd = ['p', value, opts...]
         return True
 
     # Integer register
-    if (cmd[1] in interp.reg or cmd[1] in interp.f_reg) and cmd[2] in ['i', 'u', 'h', 'b']:
+    if (cmd[1] in interp.reg or cmd[1] in interp.f_reg) and cmd[2] in ['i', 'u', 'x', 'b']:
         # Print contents of a register
         reg = cmd[1]
         base = cmd[2]
@@ -101,7 +101,7 @@ def _print(cmd, interp):  # cmd = ['p', value, opts...]
         elif len(cmd) == 5 and data_type in ['w', 'h', 'b']:
             base = cmd[4]
 
-            if base not in ['d', 'u', 'h', 'b']:
+            if base not in ['i', 'u', 'x', 'b']:
                 print_usage_text()
                 return True
 

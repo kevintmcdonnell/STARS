@@ -24,7 +24,7 @@ This debugger is loosely based on the GDB debugger.
 These are only relevant for data types `w`, `h`, and `b` (or registers).
 *  `i`  decimal (signed)
 *  `u`  decimal (unsigned)
-*  `h`  hexadecimal
+*  `x`  hexadecimal
 *  `b`  binary
 
 These are only relevant for floating point registers.
@@ -41,7 +41,13 @@ These are only relevant for floating point registers.
 *  `s`  string
 
 ### `print` examples:
+#### Printing registers:
+* Suppose the `$t0` register contains 42.
+* `print $t0 i` would print `42`.
+* `print $t0 x` would print `0x2A`.
+
+#### Printing data in memory:
 *  Suppose the data section contains `.byte nums: 48, 49, 50, 0`.
 *  `print nums c 3` would print `0, 1, 2`.
-*  `print nums b 3 h` would print `0x30 0x31 0x32`.
+*  `print nums b 3 x` would print `0x30 0x31 0x32`.
 *  `print nums s` would print `012`.
