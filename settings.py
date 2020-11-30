@@ -1,5 +1,6 @@
+"""
+https://github.com/sbustars/STARS
 
-'''
 Copyright 2020 Kevin McDonnell, Jihu Mun, and Ian Peitzsch
 
 Developed by Kevin McDonnell (ktm@cs.stonybrook.edu),
@@ -11,12 +12,12 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-'''
+"""
 
 settings = {
     'data_min': 0x10010000,  # Lower bound of memory segment
     'data_max': 0x80000000,  # Upper bound of memory segment,
-    'mmio_base': 0xffff0000, # Start of the mmio region of memory
+    'mmio_base': 0xffff0000,  # Start of the mmio region of memory
     # Initial register contents
     'initial_$0': 0,
     'initial_$gp': 0x10008000,

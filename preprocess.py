@@ -9,6 +9,8 @@ from sly.lex import Lexer
 from pathlib import Path
 
 '''
+https://github.com/sbustars/STARS
+
 Copyright 2020 Kevin McDonnell, Jihu Mun, and Ian Peitzsch
 
 Developed by Kevin McDonnell (ktm@cs.stonybrook.edu),
@@ -21,6 +23,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 '''
+
 
 # Determine if the replacement string for eqv is valid
 def isValid(s: str) -> bool:
@@ -130,7 +133,7 @@ def preprocess(contents: str, file: str, eqv: Dict[str, str]) -> str:
     return newText
 
 
-def link(files: List[Path], contents: Dict[str, str], processed: Dict[str,str], abs_to_rel: Dict[str, str]):
+def link(files: List[Path], contents: Dict[str, str], processed: Dict[str, str], abs_to_rel: Dict[str, str]):
     og_text = contents[files[0].as_posix()]
     text = processed[files[0].as_posix()]
     for name, content in contents.items():
@@ -138,6 +141,5 @@ def link(files: List[Path], contents: Dict[str, str], processed: Dict[str,str], 
             pattern = rf'\.include "{abs_to_rel[name]}".*?\n'
             og_text = re.sub(pattern, content, og_text)
             text = re.sub(pattern, processed[name], text)
-
 
     return (og_text, text)

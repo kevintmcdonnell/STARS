@@ -1,10 +1,12 @@
-from PySide2.QtWidgets import *
+from PySide2.QtCore import Signal
 from PySide2.QtGui import QFont
-from PySide2.QtCore import QTimer, Signal
+from PySide2.QtWidgets import *
 
 from controller import Controller
-from settings import settings
+
 '''
+https://github.com/sbustars/STARS
+
 Copyright 2020 Kevin McDonnell, Jihu Mun, and Ian Peitzsch
 
 Developed by Kevin McDonnell (ktm@cs.stonybrook.edu),
@@ -17,6 +19,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 '''
+
 
 class VT100(QWidget):
     def __init__(self, cont: Controller, start: Signal) -> None:
@@ -49,7 +52,7 @@ class VT100(QWidget):
             self.screen_arr.append(row)
 
         self.button = QPushButton("View")
-        self.button.clicked.connect(lambda : self.reset_reveal())
+        self.button.clicked.connect(lambda: self.reset_reveal())
         grid.addWidget(self.button, 25, 79)
         self.setLayout(grid)
 
@@ -159,4 +162,3 @@ class VT100(QWidget):
             fore = "white"
 
         return f'QLabel {{background-color: {back}; color: {fore} }}'
-

@@ -8,6 +8,8 @@ from constants import WORD_SIZE, HALF_SIZE, WORD_MASK, WORD_MAX, WORD_MIN
 from interpreter import exceptions as ex
 
 '''
+https://github.com/sbustars/STARS
+
 Copyright 2020 Kevin McDonnell, Jihu Mun, and Ian Peitzsch
 
 Developed by Kevin McDonnell (ktm@cs.stonybrook.edu),

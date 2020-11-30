@@ -13,6 +13,8 @@ from interpreter.instructions import overflow_detect
 from settings import settings
 
 '''
+https://github.com/sbustars/STARS
+
 Copyright 2020 Kevin McDonnell, Jihu Mun, and Ian Peitzsch
 
 Developed by Kevin McDonnell (ktm@cs.stonybrook.edu),
@@ -26,12 +28,14 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 '''
 
+
 # Check for out of bounds
 def check_bounds(addr: int) -> None:
     if addr < 0:
         return
     if addr < settings['data_min']:
         raise ex.MemoryOutOfBounds(f"{utility.format_hex(addr)} is not within the data section or heap/stack.")
+
 
 class Memory:
     def __init__(self, toggle_garbage: bool = False):
@@ -58,7 +62,7 @@ class Memory:
         # Addr : Address in memory (int)
         # Data = Contents of the byte (0 to 0xFF)
         if addr < 0:
-            addr += 2**32
+            addr += 2 ** 32
         if not admin:
             check_bounds(addr)
         self.data[str(addr)] = data

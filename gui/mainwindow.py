@@ -1,6 +1,8 @@
+import os
+import sys
 from threading import Thread
-import sys, os
-sys.path.append(os.getcwd()) # must be ran in sbumips directory (this is bc PYTHONPATH is weird in terminal)
+
+sys.path.append(os.getcwd())  # must be ran in sbumips directory (this is bc PYTHONPATH is weird in terminal)
 from constants import REGS, F_REGS
 from interpreter.interpreter import Interpreter
 from sbumips import assemble
@@ -12,8 +14,9 @@ from PySide2.QtCore import Qt, QSemaphore, QEvent, Signal
 from PySide2.QtGui import QTextCursor, QGuiApplication, QPalette, QColor, QFont, QKeySequence
 from PySide2.QtWidgets import *
 
-
 '''
+https://github.com/sbustars/STARS
+
 Copyright 2020 Kevin McDonnell, Jihu Mun, and Ian Peitzsch
 
 Developed by Kevin McDonnell (ktm@cs.stonybrook.edu),
@@ -26,6 +29,8 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 '''
+
+
 def to_ascii(c):
     if c in range(127):
         if c == 0:  # Null terminator
@@ -48,7 +53,6 @@ def to_ascii(c):
 
 
 class MainWindow(QMainWindow):
-
     changed_interp = Signal()
 
     def __init__(self, app):
@@ -241,7 +245,7 @@ class MainWindow(QMainWindow):
 
         run = bar.addMenu("Run")
         asm = QAction("Assemble", self)
-        asm.triggered.connect(lambda : self.assemble(self.filename) if self.filename else None)
+        asm.triggered.connect(lambda: self.assemble(self.filename) if self.filename else None)
         asm_short = QShortcut(QKeySequence(self.tr("F3")), self)
         asm_short.activated.connect(lambda: asm.trigger())
         run.addAction(asm)
@@ -273,16 +277,16 @@ class MainWindow(QMainWindow):
         asm_but.triggered.connect(lambda : asm.trigger())
         bar.addAction(asm_but)
         start_but = QAction("▶️", self)
-        start_but.triggered.connect(lambda : start.trigger())
+        start_but.triggered.connect(lambda: start.trigger())
         bar.addAction(start_but)
         step_but = QAction("⏭", self)
-        step_but.triggered.connect(lambda : step.trigger())
+        step_but.triggered.connect(lambda: step.trigger())
         bar.addAction(step_but)
         back_but = QAction("⏮", self)
-        back_but.triggered.connect(lambda : back.trigger())
+        back_but.triggered.connect(lambda: back.trigger())
         bar.addAction(back_but)
         pause_but = QAction("⏸", self)
-        pause_but.triggered.connect(lambda : pause.trigger())
+        pause_but.triggered.connect(lambda: pause.trigger())
         bar.addAction(pause_but)
 
     def init_out(self):
@@ -516,7 +520,7 @@ class MainWindow(QMainWindow):
             else:
                 a = self.intr.reg[r]
                 if a < 0:
-                    a += 2**32
+                    a += 2 ** 32
                 self.regs[r].setText(f'0x{a:08x}')
         for r in F_REGS:
             self.fregs[r].setText(str(self.intr.f_reg[r]))
@@ -635,6 +639,7 @@ class MainWindow(QMainWindow):
         if self.vt100:
             self.vt100.close()
         self.vt100 = VT100(self.controller, self.changed_interp)
+
 
 if __name__ == "__main__":
     app = QApplication()
