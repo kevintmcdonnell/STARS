@@ -5,10 +5,12 @@
 err:  .asciiz "Error: root(s) are imaginary"
 
 .align 2
-A:  .float 1.0
-B:  .float 4.0
-C:  .float 3.0
+A:  .float 2.0
+B:  .float -6.0
+C:  .float -3.0
+
 four: .float 4.0
+zero: .float 0.0
 
 .text
 
@@ -18,6 +20,7 @@ main:
 	l.s $f2, 4($t0)
 	l.s $f3, 8($t0)
 	l.s $f14, 12($t0)
+	l.s $f0, 16($t0)
 
 	########## Calculations ##########
     neg.s $f4, $f2  # f4 = -b
@@ -27,6 +30,11 @@ main:
     mul.s $f6, $f6, $f14  # f6 = 4ac
 
     sub.s $f5, $f5, $f6  # f5 = b^2 - 4ac
+
+    # Check if determinant is negative
+    c.lt.s $f5, $f0   # b^2 - 4ac < 0?
+    bc1t error
+
     sqrt.s $f5, $f5  # f5 = sqrt(b^2 - 4ac)
 
     add.s $f10, $f4, $f5  # numerator (plus)
