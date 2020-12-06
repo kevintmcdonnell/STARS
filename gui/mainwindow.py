@@ -141,7 +141,7 @@ class MainWindow(QMainWindow):
         self.freg_box.setSpacing(0)
         i = 0
         for r in F_REGS:
-            self.fregs[r] = QLabel('0')
+            self.fregs[r] = QLabel('0x00000000')
             self.fregs[r].setFont(QFont("Courier New", 8))
             self.fregs[r].setFrameShape(QFrame.Box)
             self.fregs[r].setFrameShadow(QFrame.Raised)
@@ -288,6 +288,9 @@ class MainWindow(QMainWindow):
         pause_but = QAction("⏸", self)
         pause_but.triggered.connect(lambda: pause.trigger())
         bar.addAction(pause_but)
+
+        self.instr_count = QLabel("Instruction Count: 0\t\t")
+        bar.setCornerWidget(self.instr_count)
 
     def init_out(self):
         self.out = QTextEdit()
@@ -478,6 +481,7 @@ class MainWindow(QMainWindow):
         self.fill_instrs()
         self.fill_mem()
         self.fill_flags()
+        self.instr_count.setText(f'Instruction Count: {self.controller.get_instr_count()}\t\t')
 
     def fill_labels(self):
         labels = self.controller.get_labels()
@@ -509,7 +513,7 @@ class MainWindow(QMainWindow):
     def fill_flags(self):
         for i in range(len(self.intr.condition_flags)):
             if self.intr.condition_flags[i]:
-                self.flags[i].setChecked()
+                self.flags[i].setCheckState(Qt.Checked)
             else:
                 self.flags[i].setCheckState(Qt.Unchecked)
 
@@ -523,7 +527,10 @@ class MainWindow(QMainWindow):
                     a += 2 ** 32
                 self.regs[r].setText(f'0x{a:08x}')
         for r in F_REGS:
-            self.fregs[r].setText(str(self.intr.f_reg[r]))
+            if self.rep == "Decimal":
+                self.fregs[r].setText(f'{self.intr.f_reg[r]:8f}')
+            else:
+                self.fregs[r].setText(f'0x{self.controller.get_reg_word(r):08x}')
 
     def fill_instrs(self):
         pc = self.intr.reg['pc']

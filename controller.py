@@ -65,3 +65,9 @@ class Controller():
 
     def get_labels(self):
         return self.interp.mem.labels
+
+    def get_reg_word(self, reg):
+        return self.interp.get_reg_word(reg)
+
+    def get_instr_count(self):
+        return self.interp.instruction_count
