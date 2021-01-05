@@ -1,2 +1,2 @@
-pyside2
+pyside2==5.14
 numpy==1.19.3
