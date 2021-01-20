@@ -26,3 +26,6 @@ To download the dependecies run `./startup.sh` or `pip install -r requirements.t
 * `python sbumips.py tests/test2.asm -g`     Runs test2.asm with garbage data on
 * `python sbumips.py tests/test2.asm -d -g`     Runs test2.asm with debugger and garbage data on
 * `python sbumips.py tests/test2.asm -pa A 30`     Runs test2.asm with program arguments "A" and "30"
+
+# Troubleshooting
+* If you are on Mac (especially Big Sur) and the gui mainwindow doesn't lauch, run `export QT_MAC_WANTS_LAYER=1` in the terminal.
