@@ -4,9 +4,9 @@ This program is a MIPS Assembly simulator made for the purpose of education.
 * numpy (v1.19.3 or older for Windows)
 * opengl
 
-To download the dependecies run `./startup.sh` or `pip install requirements.txt`.
+To download the dependecies run `./startup.sh` or `pip install -r requirements.txt`.
 # How to run:
-* `sbumips.py [-a] [-h] [-d] [-g] [-n #] [-i] [-w] [-pa arg1, arg2, ...] filename`
+* `python sbumips.py [-a] [-h] [-d] [-g] [-n #] [-i] [-w] [-pa arg1, arg2, ...] filename`
 
 # Positional arguments:
 * `filename`       Input MIPS Assembly file.
@@ -22,7 +22,7 @@ To download the dependecies run `./startup.sh` or `pip install requirements.txt`
 * `-pa`  Program arguments for the MIPS program
     
 # Example:
-* `sbumips.py tests/test2.asm -d`     Runs test2.asm with debugger on
-* `sbumips.py tests/test2.asm -g`     Runs test2.asm with garbage data on
-* `sbumips.py tests/test2.asm -d -g`     Runs test2.asm with debugger and garbage data on
-* `sbumips.py tests/test2.asm -pa A 30`     Runs test2.asm with program arguments "A" and "30"
+* `python sbumips.py tests/test2.asm -d`     Runs test2.asm with debugger on
+* `python sbumips.py tests/test2.asm -g`     Runs test2.asm with garbage data on
+* `python sbumips.py tests/test2.asm -d -g`     Runs test2.asm with debugger and garbage data on
+* `python sbumips.py tests/test2.asm -pa A 30`     Runs test2.asm with program arguments "A" and "30"
