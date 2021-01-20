@@ -303,9 +303,9 @@ class Debug:
         # Returns whether to break execution and ask for input to debugger.
         # If continueFlag is true, then don't break execution.
         filename = instr.filetag.file_name
-        lineno = instr.filetag.line_no
+        lineno = str(instr.filetag.line_no)
 
-        if settings['debug'] and (filename, str(lineno)) in self.breakpoints:
+        if settings['debug'] and (filename, lineno) in self.breakpoints:
             self.continueFlag = False
             return True
 
@@ -399,7 +399,7 @@ class Debug:
 
     def addBreakpoint(self, cmd: List[str], interp) -> bool:  # cmd = ['b', filename, lineno]
         if len(cmd) == 3 and str(cmd[2]).isdecimal():
-            self.breakpoints.append((cmd[1], cmd[2]))  # filename, lineno
+            self.breakpoints.append((f'"{cmd[1]}"', cmd[2]))  # filename, lineno
             return True
 
         print_usage_text()
