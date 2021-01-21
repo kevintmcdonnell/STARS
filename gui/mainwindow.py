@@ -364,7 +364,6 @@ class MainWindow(QMainWindow):
     def assemble(self, filename):
         try:
             self.result = assemble(filename)
-            print(self.pa.text())
             self.intr = Interpreter(self.result, self.pa.text().split())
             self.controller.set_interp(self.intr)
             self.instrs = []

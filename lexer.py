@@ -68,7 +68,7 @@ class MipsLexer(Lexer):
     MOVE_COND_F = r'\b(mov[ft])\.[sd]\b'
 
     # Basic instructions
-    R_TYPE3 = r'\b(and|addu?|mul|[xn]?or|sllv|srav|slt[u]?|sub[u]?|mov[nz])\b'
+    R_TYPE3 = r'\b(and|addu?|mul|[xn]?or|sllv|srlv|srav|slt[u]?|sub[u]?|mov[nz])\b'
     R_TYPE2 = r'\b(div[u]?|mult[u]?|madd[u]?|msub[u]?|cl[oz])\b'
 
     MOVE = r'\b(m[tf]hi|m[tf]lo)\b'

@@ -215,18 +215,20 @@ class Interpreter(QWidget):
 
     def handleArgs(self, args: List[str]) -> None:
         saveAddr = settings['data_max'] - 3
-        stack = settings['initial_$sp']
-
+        temp = settings['initial_$sp'] - 4 - (4 * len(args))
+        # args.reverse()
+        stack = temp
+        self.mem.addWord(len(args), stack)
+        stack += 4
         for arg in args:
             saveAddr -= (len(arg) + 1)
             self.mem.addAsciiz(arg, saveAddr)
             self.mem.addWord(saveAddr, stack)
-            stack -= 4
+            stack += 4
 
-        self.mem.addWord(len(args), stack)
-        self.reg['$sp'] = stack
+        self.reg['$sp'] = temp
         self.reg['$a0'] = len(args)
-        self.reg['$a1'] = stack + 4
+        self.reg['$a1'] = temp + 4
 
     def init_registers(self, randomize: bool) -> None:
         for r in const.REGS:
