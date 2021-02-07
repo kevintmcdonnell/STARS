@@ -14,8 +14,9 @@ This debugger is loosely based on the GDB debugger.
 * `[b]reak <filename> <line_no>`        Adds a breakpoint at line `<line_no>` in file `<filename>`
 * `[n]ext`              Continues execution until the next line of code
 * `[c]ontinue`          Continues execution until the next breakpoint or the end of execution
-* `[i]nfo b`            Prints out all the breakpoints
-* `[p]rint <reg> <format>`      Prints out the value of register `<reg>`
+* `[i]nfo b`            Prints all the breakpoints
+* `[p]rint <reg> <format>`      Prints the value of register `<reg>`
+* `[p]rint <flag>`      Prints the condition flag of number `<flag>`
 * `[p]rint <label> <data_type> <length> <format>`     Prints the memory at the address that `<label>` points to in memory. If `data_type` is `f` or `d`, `format` is not needed.
 * `[q]uit`                Terminates the program and debugger
 * `[r]everse`           Takes one step back in the program

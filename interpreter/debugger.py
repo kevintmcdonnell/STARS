@@ -52,14 +52,29 @@ def _print(cmd, interp):  # cmd = ['p', value, opts...]
         elif base == 'b':
             return f'0b{val & 0xFFFFFFFF:0{8 * bytes}b}'
 
+    # Print condition flag
+    if len(cmd) == 2:
+        try:
+            flag = int(cmd[1])
+
+            if 0 <= flag <= 7:
+                print(interp.condition_flags[flag])
+            else:
+                print_usage_text()
+
+        except ValueError:
+            print_usage_text()
+
+        return True
+
     # Invalid
-    if len(cmd) < 3:
+    elif len(cmd) < 3:
         # Invalid form of input
         print_usage_text()
         return True
 
     # Integer register
-    if (cmd[1] in interp.reg or cmd[1] in interp.f_reg) and cmd[2] in ['i', 'u', 'x', 'b']:
+    elif (cmd[1] in interp.reg or cmd[1] in interp.f_reg) and cmd[2] in ['i', 'u', 'x', 'b']:
         # Print contents of a register
         reg = cmd[1]
         base = cmd[2]
@@ -380,6 +395,10 @@ class Debug:
                 else:
                     prev = MemChange(addr, interp.mem.getByte(addr), prev_pc, 'b')
 
+        elif type(instr) is Compare:
+            flag = instr.flag
+            prev = FlagChange(flag, interp.condition_flags[flag], prev_pc)
+
         else:  # branches, nops, jr, j
             prev = Change(prev_pc)
 
@@ -417,6 +436,9 @@ class Debug:
             elif type(prev) is MChange:
                 interp.reg['hi'] = prev.hi
                 interp.reg['lo'] = prev.lo
+
+            elif type(prev) is FlagChange:
+                interp.condition_flags[prev.flag] = prev.value
 
             interp.reg['pc'] = prev.pc + 4
             interp.instr = interp.mem.text[str(prev.pc)]

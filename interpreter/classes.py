@@ -193,6 +193,13 @@ class MemChange:
         self.type = type
 
 
+class FlagChange:
+    def __init__(self, flag: int, value: bool, pc: int):
+        self.flag = flag
+        self.value = value
+        self.pc = pc
+
+
 class Change:
     def __init__(self, pc: int):
         self.pc = pc
