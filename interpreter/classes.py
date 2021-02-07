@@ -174,11 +174,14 @@ class Syscall:
         pass
 
 
+# Change classes for putting instructions on the stack
+
 class RegChange:
-    def __init__(self, reg: str, val: int, pc: int):
+    def __init__(self, reg: str, val: int, pc: int, is_double: bool = False):
         self.reg = reg
         self.val = val
         self.pc = pc
+        self.is_double = is_double
 
 
 # type can be 'w', 'h', or 'b' to indicate word, halfword, and byte respectively

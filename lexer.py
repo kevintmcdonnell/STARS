@@ -60,9 +60,10 @@ class MipsLexer(Lexer):
     R_TYPE3_F = r'\b(add|sub|mul|div)\.[sd]\b'
     R_TYPE2_F = r'\b(abs|ceil\.w|floor\.w|mov|neg|round\.w|trunc\.w|sqrt)\.[sd]\b'
 
-    COMPARE_F = r'\b(c\.(eq|le|lt)\.[ds])\b'
+    COMPARE_F = r'\b(c\.(eq|le|lt)\.[sd])\b'
     BRANCH_F = r'\b(bc1[ft])\b'
-    CONVERT_F = r'\b(cvt\.(w\.[ds]|s\.[dw]|d\.[sw]))\b'
+
+    CONVERT_F = r'\b(cvt\.(w\.[sd]|s\.[dw]|d\.[sw]))\b'
     MOVE_BTWN_F = r'\b(m[ft]c1)\b'
     MOVE_F = r'\b(mov[nz])\.[sd]\b'
     MOVE_COND_F = r'\b(mov[ft])\.[sd]\b'

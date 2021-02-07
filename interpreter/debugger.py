@@ -297,7 +297,7 @@ class Debug:
                 interp.pause_lock.clear()
 
         # TODO: Fix this to work with floating point instructions
-        # self.push(interp)
+        self.push(interp)
 
     def debug(self, instr) -> bool:
         # Returns whether to break execution and ask for input to debugger.
@@ -313,25 +313,40 @@ class Debug:
             return settings['debug']
 
     def push(self, interp) -> None:
+        def is_float_single(x):
+            return '.s' in x
+
+        def is_float_double(x):
+            return '.d' in x
+
         instr = interp.instr
         prev = None
 
         prev_pc = interp.reg['pc'] - 4
 
-        if type(instr) is RType or type(instr) is IType:
+        if type(instr) in {RType, IType}:
             op = instr.operation
 
             if op in {'mult', 'multu', 'madd', 'maddu', 'msub', 'msubu', 'div', 'divu'}:
                 prev = MChange(interp.reg['hi'], interp.reg['lo'], prev_pc)
-            else:
-                prev = RegChange(instr.regs[0], interp.reg[instr.regs[0]], prev_pc)
 
-        elif type(instr) is LoadImm or type(instr) is Move:
+            else:
+                dest_reg = instr.regs[0]
+
+                if is_float_single(op):
+                    prev = RegChange(dest_reg, interp.f_reg[dest_reg], prev_pc)
+                elif is_float_double(op):
+                    prev = RegChange(dest_reg, interp.f_reg[dest_reg], prev_pc, is_double=True)
+                else:
+                    prev = RegChange(dest_reg, interp.reg[dest_reg], prev_pc)
+
+        elif type(instr) in {LoadImm, Move}:
             prev = RegChange(instr.reg, interp.reg[instr.reg], prev_pc)
 
         elif type(instr) is JType:
             op = instr.operation
 
+            # jal, jalr
             if 'l' in op:
                 if type(instr.target) is Label:
                     prev = RegChange('$ra', interp.reg['$ra'], prev_pc)
@@ -341,12 +356,24 @@ class Debug:
         elif type(instr) is LoadMem:
             op = instr.operation
 
+            # Loads
             if op[0] == 'l':
-                prev = RegChange(instr.reg, interp.reg[instr.reg], prev_pc)
+                if is_float_single(op):
+                    prev = RegChange(instr.reg, interp.f_reg[instr.reg], prev_pc)
+                elif is_float_double(op):
+                    prev = RegChange(instr.reg, interp.f_reg[instr.reg], prev_pc, is_double=True)
+                else:
+                    prev = RegChange(instr.reg, interp.reg[instr.reg], prev_pc)
+
+            # Stores
             else:
                 addr = interp.reg[instr.addr] + instr.imm
 
-                if op[1] == 'w':
+                if is_float_single(op):
+                    prev = MemChange(addr, interp.mem.getFloat(addr), prev_pc, 'f')
+                elif is_float_double(op):
+                    prev = MemChange(addr, interp.mem.getDouble(addr), prev_pc, 'd')
+                elif op[1] == 'w':
                     prev = MemChange(addr, interp.mem.getWord(addr), prev_pc, 'w')
                 elif op[1] == 'h':
                     prev = MemChange(addr, interp.mem.getHWord(addr), prev_pc, 'h')
@@ -359,18 +386,31 @@ class Debug:
         self.stack.append(prev)
 
     def reverse(self, cmd, interp) -> bool:
+        def is_float_reg(reg):
+            return reg in const.F_REGS
+
         if len(self.stack) > 0:
             prev = self.stack.pop()
+
             if type(prev) is RegChange:
-                interp.reg[prev.reg] = prev.val
+                if is_float_reg(prev.reg):
+                    if prev.is_double:
+                        interp.set_reg_double(prev.reg, prev.val)
+                    else:
+                        interp.set_reg_float(prev.reg, prev.val)
+
+                else:
+                    interp.reg[prev.reg] = prev.val
 
             elif type(prev) is MemChange:
-                if prev.type == 'w':
+                if prev.type == 'f':
+                    interp.mem.addFloat(prev.val, prev.addr)
+                elif prev.type == 'd':
+                    interp.mem.addDouble(prev.val, prev.addr)
+                elif prev.type == 'w':
                     interp.mem.addWord(prev.val, prev.addr)
-
                 elif prev.type == 'h':
                     interp.mem.addHWord(prev.val, prev.addr)
-
                 else:
                     interp.mem.addByte(prev.val, prev.addr)
 
