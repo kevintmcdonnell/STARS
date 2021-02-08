@@ -28,6 +28,7 @@ def print_usage_text() -> None:
 [n]ext: Step to the next instruction\n\
 [c]ontinue: Run until the next breakpoint\n\
 [i]nfo b: Print information about the breakpoints\n\
+[p]rint <flag>\
 [p]rint <reg> <format>\n\
 [p]rint <label> <data_type> <length> <format>\n\
 [q]uit: Terminate the program\n\
@@ -311,7 +312,6 @@ class Debug:
             if not self.continueFlag:
                 interp.pause_lock.clear()
 
-        # TODO: Fix this to work with floating point instructions
         self.push(interp)
 
     def debug(self, instr) -> bool:
@@ -398,6 +398,26 @@ class Debug:
         elif type(instr) is Compare:
             flag = instr.flag
             prev = FlagChange(flag, interp.condition_flags[flag], prev_pc)
+
+        elif type(instr) is Convert:
+            dest_reg = instr.rs
+
+            if instr.format_to == 'd':
+                prev = RegChange(dest_reg, interp.f_reg[dest_reg], prev_pc, is_double=True)
+            else:
+                prev = RegChange(dest_reg, interp.f_reg[dest_reg], prev_pc)
+
+        elif type(instr) is MoveFloat or type(instr) is MoveCond:
+            op = instr.operation
+
+            if op == 'mtc1':
+                prev = RegChange(instr.rt, interp.f_reg[instr.rt], prev_pc)
+            elif op == 'mfc1':
+                prev = RegChange(instr.rs, interp.reg[instr.rs], prev_pc)
+            elif is_float_single(op):
+                prev = RegChange(instr.rs, interp.f_reg[instr.rs], prev_pc)
+            else:
+                prev = RegChange(instr.rs, interp.f_reg[instr.rs], prev_pc, is_double=True)
 
         else:  # branches, nops, jr, j
             prev = Change(prev_pc)
