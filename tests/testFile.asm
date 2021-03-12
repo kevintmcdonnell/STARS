@@ -2,7 +2,7 @@
 .text
 main:
 #comment
-
+#comment2
 	li $a0, 0xF0
 	li $a1, 1
 	srlv $a0, $a0, $a1

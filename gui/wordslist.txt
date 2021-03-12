@@ -1,0 +1,7 @@
+abs.d $f2, $f4  Set $f2 to the absolute value of $f4
+abs.s $f0, $f1  Set $f0 to the absolute value of $f1
+add $t1, $t2, $t3  Set $t1 to $t2 + $t3
+add.d $f2, $f4, $f6  Set $f2 to $f4 + $f6
+add.s $f1, $f2, $f3  Set $f1 to $f2 + $f3
+addi $t1, $t2, imm  Set $t1 to $t2 + imm
+addiu $t1, $t2, imm  Set $t1 to $t2 + imm (unsigned)

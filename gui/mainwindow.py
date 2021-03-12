@@ -9,9 +9,11 @@ from sbumips import assemble
 from settings import settings
 from controller import Controller
 from gui.vt100 import VT100
+from gui.textedit import TextEdit
+from gui.syntaxhighlighter import Highlighter
 
-from PySide2.QtCore import Qt, QSemaphore, QEvent, Signal
-from PySide2.QtGui import QTextCursor, QGuiApplication, QPalette, QColor, QFont, QKeySequence
+from PySide2.QtCore import Qt, QSemaphore, QEvent, Signal, QFile, QStringListModel
+from PySide2.QtGui import QTextCursor, QGuiApplication, QPalette, QColor, QFont, QKeySequence, QCursor
 from PySide2.QtWidgets import *
 
 '''
@@ -108,15 +110,19 @@ class MainWindow(QMainWindow):
         self.init_regs()
         self.init_pa()
         self.init_cop_flags()
-
+        self.add_edit()
         center = QWidget()
         center.setLayout(self.lay)
         self.setCentralWidget(center)
         self.showMaximized()
 
     def init_regs(self):
+        self.float = False
+        self.reg_button = QPushButton("Change")
+        self.reg_button.clicked.connect(self.update_reg)
         self.reg_box = QGridLayout()
         self.regs = {}
+        self.rlabels = []
         self.reg_box.setSpacing(0)
         i = 0
         for r in REGS:
@@ -127,27 +133,29 @@ class MainWindow(QMainWindow):
             # self.regs[r].setLineWidth(2)
             reg_label = QLabel(r)
             reg_label.setFont(QFont("Courier New", 8))
+            self.rlabels.append(reg_label)
             self.reg_box.addWidget(reg_label, i, 0)
             self.reg_box.addWidget(self.regs[r], i, 1)
             i += 1
 
-        self.freg_box = QGridLayout()
-        self.fregs = {}
-        self.freg_box.setSpacing(0)
-        i = 0
+        # self.freg_box = QGridLayout()
+        # self.fregs = {}
+        # self.freg_box.setSpacing(0)
+        # i = 0
         for r in F_REGS:
-            self.fregs[r] = QLabel('0x00000000')
-            self.fregs[r].setFont(QFont("Courier New", 8))
-            self.fregs[r].setFrameShape(QFrame.Box)
-            self.fregs[r].setFrameShadow(QFrame.Raised)
+            self.regs[r] = QLabel('0x00000000')
+            self.regs[r].setFont(QFont("Courier New", 8))
+            self.regs[r].setFrameShape(QFrame.Box)
+            self.regs[r].setFrameShadow(QFrame.Raised)
             # self.regs[r].setLineWidth(2)
-            reg_label = QLabel(r)
-            reg_label.setFont(QFont("Courier New", 8))
-            self.freg_box.addWidget(reg_label, i, 0)
-            self.freg_box.addWidget(self.fregs[r], i, 1)
-            i += 1
+            # reg_label = QLabel(r)
+            # reg_label.setFont(QFont("Courier New", 8))
+            # self.freg_box.addWidget(reg_label, i, 0)
+            # self.freg_box.addWidget(self.fregs[r], i, 1)
+            # i += 1
         self.lay.addLayout(self.reg_box, 1, 3, 2, 1)
-        self.lay.addLayout(self.freg_box, 1, 4, 2, 1)
+        self.lay.addWidget(self.reg_button, 0, 3)
+        # self.lay.addLayout(self.freg_box, 1, 4, 2, 1)
 
     def init_cop_flags(self):
         flag_box = QGridLayout()
@@ -179,11 +187,40 @@ class MainWindow(QMainWindow):
 
         i.setLayout(self.instr_grid)
         scroll.setMaximumHeight(300)
-        self.lay.addWidget(scroll, 1, 0)
+        self.lay.addWidget(scroll, 1, 1)
         # self.instrs = QTextEdit()
         # self.instrs.setLineWrapMode(QTextEdit.NoWrap)
         # self.instrs.setReadOnly(True)
         # self.left.addWidget(self.instrs)
+
+    def add_edit(self):
+        self.text_edit = TextEdit()
+        comp = QCompleter()
+        comp.setModel(self.modelFromFile(r"C:\Users\18605\PycharmProjects\sbumips\gui\wordslist.txt", comp))
+        comp.setModelSorting(QCompleter.CaseInsensitivelySortedModel)
+        comp.setCaseSensitivity(Qt.CaseInsensitive)
+        comp.setWrapAround(False)
+        self.text_edit.setCompleter(comp)
+        self.h = Highlighter(self.text_edit.document())
+        self.lay.addWidget(self.text_edit, 1, 0)
+
+    def modelFromFile(self, filename, comp):
+        f = QFile(filename)
+        if not f.open(QFile.ReadOnly):
+            return QStringListModel(comp)
+
+        QGuiApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+
+        words = []
+        while not f.atEnd():
+            line = f.readLine()
+            if len(line) > 0:
+                s = str(line.trimmed(), encoding='ascii')
+                words.append(s)
+
+        QGuiApplication.restoreOverrideCursor()
+
+        return QStringListModel(words, comp)
 
     def init_menubar(self):
         bar = self.menuBar()
@@ -239,27 +276,27 @@ class MainWindow(QMainWindow):
         help_ = bar.addMenu("Help")
 
         run = bar.addMenu("Run")
-        asm = QAction("Assemble", self)
+        asm = QAction("Assemble (F3)", self)
         asm.triggered.connect(lambda: self.assemble(self.filename) if self.filename else None)
         asm_short = QShortcut(QKeySequence(self.tr("F3")), self)
         asm_short.activated.connect(lambda: asm.trigger())
         run.addAction(asm)
-        start = QAction("Start", self)
+        start = QAction("Start (F5)", self)
         start.triggered.connect(self.start)
         start_short = QShortcut(QKeySequence(self.tr("F5")), self)
         start_short.activated.connect(lambda: start.trigger())
         run.addAction(start)
-        step = QAction("Step", self)
+        step = QAction("Step (F7)", self)
         step.triggered.connect(self.step)
         step_short = QShortcut(QKeySequence(self.tr("F7")), self)
         step_short.activated.connect(lambda: step.trigger())
         run.addAction(step)
-        back = QAction("Back", self)
+        back = QAction("Back (F8)", self)
         back.triggered.connect(self.reverse)
         back_short = QShortcut(QKeySequence(self.tr("F8")), self)
         back_short.activated.connect(lambda: back.trigger())
         run.addAction(back)
-        pause = QAction('Pause', self)
+        pause = QAction('Pause (F9)', self)
         pause.triggered.connect(self.pause)
         pause_short = QShortcut(QKeySequence(self.tr("F9")), self)
         pause_short.activated.connect(lambda: pause.trigger())
@@ -290,7 +327,7 @@ class MainWindow(QMainWindow):
     def init_out(self):
         self.out = QTextEdit()
         self.out.installEventFilter(self)
-        self.lay.addWidget(self.out, 3, 0)
+        self.lay.addWidget(self.out, 3, 0, 1, 2)
 
     def init_mem(self):
         grid = QGridLayout()
@@ -303,14 +340,18 @@ class MainWindow(QMainWindow):
         grid.addWidget(QLabel("+4"), 0, 2)
         grid.addWidget(QLabel("+8"), 0, 3)
         grid.addWidget(QLabel("+c"), 0, 4)
-        self.mem_right = QPushButton("->")
-        self.mem_left = QPushButton("<-")
+        self.mem_right = QPushButton("🡣")
+        self.mem_right.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        self.mem_right.setMaximumWidth(25)
+        self.mem_left = QPushButton("🡡")
+        self.mem_left.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        self.mem_left.setMaximumWidth(25)
         self.hdc_dropdown = QComboBox()
         self.hdc_dropdown.addItems(["Hexadecimal", "Decimal", "ASCII"])
         self.hdc_dropdown.currentTextChanged.connect(self.change_rep)
-        grid.addWidget(self.mem_left, 0, 5)
-        grid.addWidget(self.mem_right, 0, 6)
-        grid.addWidget(self.hdc_dropdown, 1, 5, 1, 2)
+        grid.addWidget(self.mem_left, 1, 5, 8, 1)
+        grid.addWidget(self.mem_right, 9, 5, 8, 1)
+        grid.addWidget(self.hdc_dropdown, 1, 6, 1, 2)
         self.addresses = [0] * 16
         self.addresses = self.addresses[:]
         self.mem_vals = []
@@ -337,9 +378,9 @@ class MainWindow(QMainWindow):
         labels.setWidget(l)
         self.lab_grid = QVBoxLayout()
         labels.setLayout(self.lab_grid)
-        grid.addWidget(labels, 2, 5, 15, 2)
+        grid.addWidget(labels, 2, 6, 15, 2)
 
-        self.lay.addLayout(grid, 2, 0)
+        self.lay.addLayout(grid, 2, 0, 1, 2)
 
     def init_pa(self):
         self.pa = QLineEdit()
@@ -347,11 +388,11 @@ class MainWindow(QMainWindow):
         label = QLabel('Program Arguments:')
         pa.addWidget(label)
         pa.addWidget(self.pa)
-        self.lay.addLayout(pa, 0, 0)
+        self.lay.addLayout(pa, 0, 0, 1, 2)
 
     def open_file(self):
         try:
-            filename = QFileDialog.getOpenFileName(self, 'Open', '.', options=QFileDialog.DontUseNativeDialog)
+            filename = QFileDialog.getOpenFileName(self, 'Open', '', options=QFileDialog.DontUseNativeDialog)
         except:
             self.out.setPlainText("Could not open file.")
             return
@@ -478,6 +519,8 @@ class MainWindow(QMainWindow):
         self.instr_count.setText(f'Instruction Count: {self.controller.get_instr_count()}\t\t')
 
     def fill_labels(self):
+        for i in reversed(range(self.lab_grid.count())):
+            self.lab_grid.itemAt(i).widget().setParent(None)
         labels = self.controller.get_labels()
         for l in labels:
             q = QPushButton(f'{l}: 0x{labels[l]:08x}')
@@ -512,19 +555,26 @@ class MainWindow(QMainWindow):
                 self.flags[i].setCheckState(Qt.Unchecked)
 
     def fill_reg(self):
-        for r in REGS:
-            if self.rep == "Decimal":
-                self.regs[r].setText(str(self.intr.reg[r]))
-            else:
-                a = self.intr.reg[r]
-                if a < 0:
-                    a += 2 ** 32
-                self.regs[r].setText(f'0x{a:08x}')
-        for r in F_REGS:
-            if self.rep == "Decimal":
-                self.fregs[r].setText(f'{self.intr.f_reg[r]:8f}')
-            else:
-                self.fregs[r].setText(f'0x{self.controller.get_reg_word(r):08x}')
+        i = 0
+        if not self.float:
+            for r in REGS:
+                self.rlabels[i].setText(f'{r:5}')
+                i+=1
+                if self.rep == "Decimal":
+                    self.regs[r].setText(str(self.intr.reg[r]))
+                else:
+                    a = self.intr.reg[r]
+                    if a < 0:
+                        a += 2 ** 32
+                    self.regs[r].setText(f'0x{a:08x}')
+        else:
+            for r in F_REGS:
+                self.rlabels[i].setText(f'{r:5}')
+                i += 1
+                if self.rep == "Decimal":
+                    self.regs[r].setText(f'{self.intr.f_reg[r]:8f}')
+                else:
+                    self.regs[r].setText(f'0x{self.controller.get_reg_word(r):08x}')
 
     def fill_instrs(self):
         pc = self.intr.reg['pc']
@@ -640,6 +690,10 @@ class MainWindow(QMainWindow):
         if self.vt100:
             self.vt100.close()
         self.vt100 = VT100(self.controller, self.changed_interp)
+
+    def update_reg(self):
+        self.float = not self.float
+        self.fill_reg()
 
 
 if __name__ == "__main__":
