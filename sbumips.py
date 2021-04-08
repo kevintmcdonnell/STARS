@@ -82,10 +82,14 @@ def assemble(filename: str) -> List:
         exit()
 
     og_text, text = link(files, contents, processed, abs_to_rel)
+    # print(f'*****\n{og_text}')
+    # print(f'*****\n{text}')
     parser = MipsParser(og_text, files[0])
     lexer = MipsLexer(files[0].as_posix())
 
     t = lexer.tokenize(text)
+    # for toks in t:
+    #     print(toks)
     return parser.parse(t)
 
 

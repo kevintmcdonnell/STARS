@@ -1,4 +1,4 @@
-from PySide2.QtWidgets import QTextEdit, QCompleter, QMainWindow, QAction, QApplication, QTabWidget, QFileDialog, QPushButton
+from PySide2.QtWidgets import QTextEdit, QCompleter, QMainWindow, QAction, QApplication, QTabWidget, QFileDialog, QPushButton, QWidget
 from PySide2.QtGui import QKeySequence, QTextCursor, QFocusEvent, QKeyEvent, QGuiApplication, QCursor
 from PySide2.QtCore import Qt, QFile, QStringListModel
 from lexer import MipsLexer
@@ -70,7 +70,7 @@ class TextEdit(QTextEdit):
         hasModifier = (e.modifiers() != Qt.NoModifier) and not ctrlOrShift
         completionPrefix = self.textUnderCorsor()
 
-        if not isShortcut and (hasModifier or len(e.text()) == 0 or len(completionPrefix) < 3 or e.text()[-1] in eow):
+        if not isShortcut and (hasModifier or len(e.text()) == 0 or len(completionPrefix) < 2 or e.text()[-1] in eow):
             self.completer.popup().hide()
             return
 
@@ -81,7 +81,6 @@ class TextEdit(QTextEdit):
         cr = self.cursorRect()
         cr.setWidth(self.completer.popup().sizeHintForColumn(0) + self.completer.popup().verticalScrollBar().sizeHint().width())
         self.completer.complete(cr)
-
 
 
 class MainWindow(QMainWindow):
@@ -98,7 +97,9 @@ class MainWindow(QMainWindow):
         self.tabs.setTabsClosable(True)
         self.tabs.tabCloseRequested.connect(self.close_tab)
 
-
+        nt = QPushButton('+')
+        nt.clicked.connect(self.new_tab)
+        self.tabs.setCornerWidget(nt)
 
         self.completer = QCompleter(self)
         self.completer.setModel(self.modelFromFile(r"C:\Users\18605\PycharmProjects\sbumips\gui\wordslist.txt"))
@@ -191,7 +192,8 @@ class MainWindow(QMainWindow):
             self.new_tab(wid=wid, name=n)
 
     def close_tab(self, i):
-        self.files.pop(self.tabs.widget(i).name)
+        if self.tabs.widget(i).name in self.files:
+            self.files.pop(self.tabs.widget(i).name)
         self.tabs.removeTab(i)
         self.len -= 1
 

@@ -66,7 +66,6 @@ class MainWindow(QMainWindow):
         self.console_sem = QSemaphore(1)
         self.out_pos = 0
         self.mem_sem = QSemaphore(1)
-        # settings['debug'] = True
         self.result = None
         self.intr = None
         self.cur_file = None
@@ -75,8 +74,6 @@ class MainWindow(QMainWindow):
 
         self.running = False
         self.run_sem = QSemaphore(1)
-
-        self.filename = None
 
         self.breakpoints = []
 
@@ -194,15 +191,33 @@ class MainWindow(QMainWindow):
         # self.left.addWidget(self.instrs)
 
     def add_edit(self):
-        self.text_edit = TextEdit()
-        comp = QCompleter()
-        comp.setModel(self.modelFromFile(r"C:\Users\18605\PycharmProjects\sbumips\gui\wordslist.txt", comp))
-        comp.setModelSorting(QCompleter.CaseInsensitivelySortedModel)
-        comp.setCaseSensitivity(Qt.CaseInsensitive)
-        comp.setWrapAround(False)
-        self.text_edit.setCompleter(comp)
-        self.h = Highlighter(self.text_edit.document())
-        self.lay.addWidget(self.text_edit, 1, 0)
+        self.files = {} # filename -> (dirty: bool, path: str)
+        self.new_files = set()
+        self.highlighter = {}
+
+        self.count = 0
+        self.len = 0
+        self.tabs = QTabWidget()
+        self.tabs.setTabsClosable(True)
+        self.tabs.tabCloseRequested.connect(self.close_tab)
+
+        nt = QPushButton('+')
+        nt.clicked.connect(self.new_tab)
+        self.tabs.setCornerWidget(nt)
+
+
+        text_edit = TextEdit()
+
+        self.comp = QCompleter()
+        self.comp.setModel(self.modelFromFile(r"wordslist.txt", self.comp))
+        self.comp.setModelSorting(QCompleter.CaseInsensitivelySortedModel)
+        self.comp.setCaseSensitivity(Qt.CaseInsensitive)
+        self.comp.setWrapAround(False)
+        text_edit.setCompleter(self.comp)
+
+        self.new_tab()
+
+        self.lay.addWidget(self.tabs, 1, 0)
 
     def modelFromFile(self, filename, comp):
         f = QFile(filename)
@@ -229,6 +244,9 @@ class MainWindow(QMainWindow):
         open_ = QAction("Open", self)
         open_.triggered.connect(self.open_file)
         file_.addAction(open_)
+        save_ = QAction("Save", self)
+        save_.triggered.connect(self.save_file)
+        file_.addAction(save_)
 
         tools = bar.addMenu("Tools")
         dark_mode = QAction("Dark Mode", self)
@@ -277,7 +295,7 @@ class MainWindow(QMainWindow):
 
         run = bar.addMenu("Run")
         asm = QAction("Assemble (F3)", self)
-        asm.triggered.connect(lambda: self.assemble(self.filename) if self.filename else None)
+        asm.triggered.connect(lambda: self.assemble(self.tabs.currentWidget().name) if self.tabs.currentWidget().name else None)
         asm_short = QShortcut(QKeySequence(self.tr("F3")), self)
         asm_short.activated.connect(lambda: asm.trigger())
         run.addAction(asm)
@@ -390,20 +408,75 @@ class MainWindow(QMainWindow):
         pa.addWidget(self.pa)
         self.lay.addLayout(pa, 0, 0, 1, 2)
 
+    def save_file(self, wid=None, ind=None):
+        if not wid:
+            wid = self.tabs.currentWidget()
+        if not ind:
+            ind = self.tabs.currentIndex()
+        key = wid.name
+        to_write = wid.toPlainText()
+        f = None
+        try:
+            if key in self.files:
+                if not self.files[key]:
+                    return
+                f = open(key, 'w+')
+
+                f.write(to_write)
+                f.close()
+                self.files[key] = False
+                n = key.split('/')[-1]
+                self.tabs.setTabText(ind, n)
+
+            else:
+                filename = QFileDialog.getSaveFileName(self, 'Save', f'{key}', options=QFileDialog.DontUseNativeDialog)
+                if len(filename) < 2 or filename[0] is None:
+                    return
+                key = filename[0]
+                f = open(key, 'w+')
+
+                f.write(to_write)
+                f.close()
+                wid.name = filename[0]
+                n = filename[0].split('/')[-1]
+                self.tabs.setTabText(ind, n)
+                self.files[key] = False
+
+
+        except:
+            if f:
+                f.close()
+            return
+
     def open_file(self):
         try:
             filename = QFileDialog.getOpenFileName(self, 'Open', '', options=QFileDialog.DontUseNativeDialog)
         except:
-            self.out.setPlainText("Could not open file.")
+            self.out.setPlainText(f'Could not open file\n')
             return
 
         if not filename or len(filename[0]) == 0:
             return
 
-        self.assemble(filename[0])
+        s = []
+        with open(filename[0]) as f:
+            s = f.readlines()
+        wid = TextEdit(name=filename[0])
+        wid.textChanged.connect(self.update_dirty)
+        wid.setCompleter(self.comp)
+        wid.setPlainText(''.join(s))
+        n = filename[0].split('/')[-1]
+        if not filename[0] in self.files:
+            self.files[filename[0]] = False
+            self.new_tab(wid=wid, name=n)
+
 
     def assemble(self, filename):
         try:
+
+            for i in range(self.len):
+                self.save_file(wid=self.tabs.widget(i), ind=i)
+            self.out.setPlainText('')
             self.result = assemble(filename)
             self.intr = Interpreter(self.result, self.pa.text().split())
             self.controller.set_interp(self.intr)
@@ -416,8 +489,8 @@ class MainWindow(QMainWindow):
             self.mem_left.clicked.connect(self.mem_leftclick)
             self.intr.end.connect(self.set_running)
             self.breakpoints = []
-            self.setWindowTitle(f'STARS: {filename}')
-            self.filename = filename
+            self.setWindowTitle(f'STARS')
+
         except Exception as e:
             print(e)
             if hasattr(e, 'message'):
@@ -556,10 +629,20 @@ class MainWindow(QMainWindow):
 
     def fill_reg(self):
         i = 0
-        if not self.float:
-            for r in REGS:
+
+        for j in range(len(REGS)):
+            if self.float and j < len(F_REGS):
+                r = F_REGS[j]
                 self.rlabels[i].setText(f'{r:5}')
-                i+=1
+                i += 1
+                if self.rep == "Decimal":
+                    self.regs[r].setText(f'{self.intr.f_reg[r]:8f}')
+                else:
+                    self.regs[r].setText(f'0x{self.controller.get_reg_word(r):08x}')
+            else:
+                r = REGS[j]
+                self.rlabels[i].setText(f'{r:5}')
+                i += 1
                 if self.rep == "Decimal":
                     self.regs[r].setText(str(self.intr.reg[r]))
                 else:
@@ -567,14 +650,7 @@ class MainWindow(QMainWindow):
                     if a < 0:
                         a += 2 ** 32
                     self.regs[r].setText(f'0x{a:08x}')
-        else:
-            for r in F_REGS:
-                self.rlabels[i].setText(f'{r:5}')
-                i += 1
-                if self.rep == "Decimal":
-                    self.regs[r].setText(f'{self.intr.f_reg[r]:8f}')
-                else:
-                    self.regs[r].setText(f'0x{self.controller.get_reg_word(r):08x}')
+
 
     def fill_instrs(self):
         pc = self.intr.reg['pc']
@@ -644,7 +720,6 @@ class MainWindow(QMainWindow):
         self.mem_sem.acquire()
         if self.base_address <= settings['data_max'] - 256:
             self.base_address += 256
-            print(f'{self.base_address:08x}')
         self.mem_sem.release()
         self.fill_mem()
 
@@ -695,6 +770,30 @@ class MainWindow(QMainWindow):
         self.float = not self.float
         self.fill_reg()
 
+    def close_tab(self, i):
+        if self.tabs.widget(i).name in self.files:
+            self.files.pop(self.tabs.widget(i).name)
+        self.tabs.removeTab(i)
+        self.len -= 1
+
+    def new_tab(self, wid=None, name=''):
+        self.count += 1
+        self.len += 1
+        if len(name) == 0:
+            name = f'main{"" if self.count == 1 else self.count-1}.asm'
+        if not wid:
+            wid = TextEdit(name=name)
+            wid.setCompleter(self.comp)
+            wid.textChanged.connect(self.update_dirty)
+        self.tabs.addTab(wid, name)
+        self.highlighter[name] = Highlighter(wid.document())
+
+    def update_dirty(self):
+        w = self.tabs.currentWidget()
+        i = self.tabs.currentIndex()
+        if not self.files[w.name]:
+            self.tabs.setTabText(i, f'{self.tabs.tabText(i)} *')
+        self.files[w.name] = True
 
 if __name__ == "__main__":
     app = QApplication()

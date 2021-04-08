@@ -171,16 +171,16 @@ class MipsLexer(Lexer):
         t.value = ord(char)
         return t
 
-    @_(r'\#[^\x81\n]*')
+    @_('\#[^\x81\n]*')
     def ignore_comments(self, t):
         self.lineno += t.value.count('\n')
 
     # Line number tracking
-    @_(r'\n+')
+    @_('\n+')
     def ignore_newline(self, t):
         self.lineno += t.value.count('\n')
 
-    @_(r'\.(include|globl)[^\n]*')
+    @_('\.(include|globl)[^\n]*')
     def ignore_globl(self, t):
         # These were already taken care of during the preprocessing stage, so we don't need them
         self.lineno += t.value.count('\n')
