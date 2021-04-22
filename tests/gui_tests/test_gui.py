@@ -144,15 +144,64 @@ class GuiTest(unittest.TestCase):
         o = self.form.out
         self.assertEqual(len(o.toPlainText()), 0)
 
-    #TODO: change to testing communication
     def test_print(self):
         self.assemble('test_print.asm')
-        p = Thread(target=self.form.start)
-        p.start()
-        # self.form.start()
+        self.form.controller.interp.out('1')
 
         o = self.form.out
         self.assertEqual(o.toPlainText(), '1')
 
+    def test_coprocflags(self):
+        self.assemble('test1.asm')
 
+        self.form.controller.interp.condition_flags[0] = True
+        self.form.controller.interp.step.emit()
 
+        self.assertEqual(self.form.flags[0].checkState(), Qt.Checked)
+
+    def test_regupdate(self):
+        self.assemble('test1.asm')
+
+        self.form.controller.interp.reg['$a0'] = 1
+        self.form.controller.interp.step.emit()
+
+        self.assertEqual(self.form.regs['$a0'].text(), '0x00000001')
+
+    def test_regupdate_dec(self):
+        self.assemble('test1.asm')
+
+        self.form.hdc_dropdown.setCurrentIndex(1)
+
+        self.form.controller.interp.reg['$a0'] = 1
+        self.form.controller.interp.step.emit()
+
+        self.assertEqual(self.form.regs['$a0'].text(), '1')
+
+    def test_mem_update(self):
+        self.assemble('test1.asm')
+
+        self.form.controller.interp.mem.setByte(0, 1, admin=True)
+
+        self.form.controller.interp.step.emit()
+
+        self.assertEqual(self.form.mem_vals[0].text(), '0x00 0x00 0x00 0x01')
+
+    def test_mem_update_dec(self):
+        self.assemble('test1.asm')
+
+        self.form.hdc_dropdown.setCurrentIndex(1)
+        self.form.controller.interp.mem.setByte(0, 1, admin=True)
+
+        self.form.controller.interp.step.emit()
+
+        self.assertEqual(self.form.mem_vals[0].text(), '  0   0   0   1')
+
+    def test_mem_update_dec(self):
+        self.assemble('test1.asm')
+
+        self.form.hdc_dropdown.setCurrentIndex(2)
+        self.form.controller.interp.mem.setByte(0, ord('a'), admin=True)
+
+        self.form.controller.interp.step.emit()
+
+        self.assertEqual(self.form.mem_vals[0].text(), r'\0 \0 \0 a ')

@@ -78,7 +78,7 @@ class MipsParser(Parser):
         if type(p.instr) is PseudoInstr:
             for i in range(len(p.instr.instrs)):
                 p.instr.instrs[i].filetag = p.filetag
-                p.instr.instrs[i].original_text = self.original_text[p.filetag.line_no - 1]
+                p.instr.instrs[i].original_text = p.instr.original()
                 p.instr.instrs[i].is_from_pseudoinstr = True
 
         else:
@@ -216,12 +216,12 @@ class MipsParser(Parser):
             instrs.append(IType('srl', ['$at', p.REG1], 32 - val))
             instrs.append(IType('sll', [p.REG0, p.REG1], val))
             instrs.append(RType('or', [p.REG0, p.REG0, '$at']))
-            return PseudoInstr('rol', instrs)
+            return PseudoInstr(f'{p[0]} {p[1]} {p[2]} {p[3]}', instrs)
         elif p[0] == 'ror':
             instrs.append(IType('sll', ['$at', p.REG1], 32 - val))
             instrs.append(IType('srl', [p.REG0, p.REG1], val))
             instrs.append(RType('or', [p.REG0, p.REG0, '$at']))
-            return PseudoInstr('ror', instrs)
+            return PseudoInstr(f'{p[0]} {p[1]} {p[2]} {p[3]}', instrs)
 
         return None
 
@@ -233,58 +233,58 @@ class MipsParser(Parser):
             instrs.append(RType('subu', [p.REG0, p.REG1, p.REG2]))
             instrs.append(IType('ori', ['$at', '$0'], 1))
             instrs.append(RType('sltu', [p.REG0, p.REG0, '$at']))
-            return PseudoInstr('seq', instrs)
+            return PseudoInstr(f'{p[0]} {p[1]} {p[2]} {p[3]}', instrs)
 
         elif p[0] == 'sne':
             instrs.append(RType('subu', [p.REG0, p.REG1, p.REG2]))
             instrs.append(RType('sltu', [p.REG0, '$0', p.REG0]))
-            return PseudoInstr('sne', instrs)
+            return PseudoInstr(f'{p[0]} {p[1]} {p[2]} {p[3]}', instrs)
 
         elif p[0] == 'sge':
             instrs.append(RType('slt', [p.REG0, p.REG1, p.REG2]))
             instrs.append(IType('ori', ['$at', '$0'], 1))
             instrs.append(RType('subu', [p.REG0, '$at', p.REG0]))
-            return PseudoInstr('sge', instrs)
+            return PseudoInstr(f'{p[0]} {p[1]} {p[2]} {p[3]}', instrs)
 
         elif p[0] == 'sgeu':
             instrs.append(RType('sltu', [p.REG0, p.REG1, p.REG2]))
             instrs.append(IType('ori', ['$at', '$0'], 1))
             instrs.append(RType('subu', [p.REG0, '$at', p.REG0]))
-            return PseudoInstr('sgeu', instrs)
+            return PseudoInstr(f'{p[0]} {p[1]} {p[2]} {p[3]}', instrs)
 
         elif p[0] == 'sgt':
             instrs.append(RType('slt', [p.REG0, p.REG2, p.REG1]))
-            return PseudoInstr('sgt', instrs)
+            return PseudoInstr(f'{p[0]} {p[1]} {p[2]} {p[3]}', instrs)
 
         elif p[0] == 'sgtu':
             instrs.append(RType('sltu', [p.REG0, p.REG2, p.REG1]))
-            return PseudoInstr('sgtu', instrs)
+            return PseudoInstr(f'{p[0]} {p[1]} {p[2]} {p[3]}', instrs)
 
         elif p[0] == 'sle':
             instrs.append(RType('slt', [p.REG0, p.REG2, p.REG1]))
             instrs.append(IType('ori', ['$at', '$0'], 1))
             instrs.append(RType('subu', [p.REG0, '$at', p.REG0]))
-            return PseudoInstr('sle', instrs)
+            return PseudoInstr(f'{p[0]} {p[1]} {p[2]} {p[3]}', instrs)
 
         elif p[0] == 'sleu':
             instrs.append(RType('sltu', [p.REG0, p.REG2, p.REG1]))
             instrs.append(IType('ori', ['$at', '$0'], 1))
             instrs.append(RType('subu', [p.REG0, '$at', p.REG0]))
-            return PseudoInstr('sleu', instrs)
+            return PseudoInstr(f'{p[0]} {p[1]} {p[2]} {p[3]}', instrs)
 
         elif p[0] == 'rolv':
             instrs.append(RType('subu', ['$at', '$0', p.REG2]))
             instrs.append(RType('srlv', ['$at', p.REG1, '$at']))
             instrs.append(RType('sllv', [p.REG0, p.REG1, p.REG2]))
             instrs.append(RType('or', [p.REG0, p.REG0, '$at']))
-            return PseudoInstr('rolv', instrs)
+            return PseudoInstr(f'{p[0]} {p[1]} {p[2]} {p[3]}', instrs)
 
         elif p[0] == 'rorv':
             instrs.append(RType('subu', ['$at', '$0', p.REG2]))
             instrs.append(RType('sllv', ['$at', p.REG1, '$at']))
             instrs.append(RType('srlv', [p.REG0, p.REG1, p.REG2]))
             instrs.append(RType('or', [p.REG0, p.REG0, '$at']))
-            return PseudoInstr('rorv', instrs)
+            return PseudoInstr(f'{p[0]} {p[1]} {p[2]} {p[3]}', instrs)
 
         return None
 
@@ -292,22 +292,22 @@ class MipsParser(Parser):
     def rType(self, p):
         if p[0] == 'move':
             instr = RType('addu', [p.REG0, '$0', p.REG1])
-            return PseudoInstr('move', [instr])
+            return PseudoInstr(f'{p[0]} {p[1]} {p[2]}', [instr])
 
         elif p[0] == 'neg':
             instr = RType('sub', [p.REG0, '$0', p.REG1])
-            return PseudoInstr('neg', [instr])
+            return PseudoInstr(f'{p[0]} {p[1]} {p[2]}', [instr])
 
         elif p[0] == 'not':
             instr = RType('nor', [p.REG0, p.REG1, '$0'])
-            return PseudoInstr('not', [instr])
+            return PseudoInstr(f'{p[0]} {p[1]} {p[2]}', [instr])
 
         elif p[0] == 'abs':
             instr = []
             instr.append(IType('sra', ['$at', p.REG1], 31))
             instr.append(RType('xor', [p.REG0, '$at', p.REG1]))
             instr.append(RType('subu', [p.REG0, p.REG0, '$at']))
-            return PseudoInstr('abs', instr)
+            return PseudoInstr(f'{p[0]} {p[1]} {p[2]}', instr)
 
         return None
 
@@ -323,7 +323,7 @@ class MipsParser(Parser):
                 instrs.append(LoadImm('lui', '$at', get_upper_half(val)))
                 instrs.append(IType('ori', [p.REG, '$at'], val & 0xFFFF))
 
-            return PseudoInstr('li', instrs)
+            return PseudoInstr(f'{p[0]} {p[1]} {p[2]}', instrs)
 
         return None
 
@@ -333,7 +333,7 @@ class MipsParser(Parser):
         instrs.append(LoadImm('lui', '$at', 0))
         instrs.append(IType('ori', [p.REG, '$at'], 0))
 
-        pseudoInstr = PseudoInstr('la', instrs)
+        pseudoInstr = PseudoInstr(f'{p[0]} {p[1]} {p[2]}', instrs)
         pseudoInstr.label = Label(p.LABEL)
         return pseudoInstr
 
@@ -342,7 +342,7 @@ class MipsParser(Parser):
         # If it has a label, it's a pseudoinstruction
         instrs = [LoadImm('lui', '$at', 0), LoadMem(p[0], p.REG, '$at', 0)]
 
-        pseudoInstr = PseudoInstr(p[0], instrs)
+        pseudoInstr = PseudoInstr(f'{p[0]} {p[1]} {p[2]}', instrs)
         pseudoInstr.label = Label(p.LABEL)
         return pseudoInstr
 
@@ -353,45 +353,45 @@ class MipsParser(Parser):
             if p[0] == 'bge':
                 instr.append(RType('slt', ['$at', p[1], p[2]]))
                 instr.append(Branch('beq', '$at', '$0', Label(p[3])))
-                return PseudoInstr('bge', instr)
+                return PseudoInstr(f'{p[0]} {p[1]} {p[2]} {p[3]}', instr)
             elif p[0] == 'bgeu':
                 instr.append(RType('sltu', ['$at', p[1], p[2]]))
                 instr.append(Branch('beq', '$at', '$0', Label(p[3])))
-                return PseudoInstr('bgeu', instr)
+                return PseudoInstr(f'{p[0]} {p[1]} {p[2]} {p[3]}', instr)
             elif p[0] == 'bgt':
                 instr.append(RType('slt', ['$at', p[2], p[1]]))
                 instr.append(Branch('bne', '$at', '$0', Label(p[3])))
-                return PseudoInstr('bgt', instr)
+                return PseudoInstr(f'{p[0]} {p[1]} {p[2]} {p[3]}', instr)
             elif p[0] == 'bgtu':
                 instr.append(RType('sltu', ['$at', p[2], p[1]]))
                 instr.append(Branch('bne', '$at', '$0', Label(p[3])))
-                return PseudoInstr('bgtu', instr)
+                return PseudoInstr(f'{p[0]} {p[1]} {p[2]} {p[3]}', instr)
             elif p[0] == 'ble':
                 instr.append(RType('slt', ['$at', p[2], p[1]]))
                 instr.append(Branch('beq', '$at', '$0', Label(p[3])))
-                return PseudoInstr('ble', instr)
+                return PseudoInstr(f'{p[0]} {p[1]} {p[2]} {p[3]}', instr)
             elif p[0] == 'bleu':
                 instr.append(RType('sltu', ['$at', p[2], p[1]]))
                 instr.append(Branch('beq', '$at', '$0', Label(p[3])))
-                return PseudoInstr('bleu', instr)
+                return PseudoInstr(f'{p[0]} {p[1]} {p[2]} {p[3]}', instr)
             elif p[0] == 'blt':
                 instr.append(RType('slt', ['$at', p[1], p[2]]))
                 instr.append(Branch('bne', '$at', '$0', Label(p[3])))
-                return PseudoInstr('blt', instr)
+                return PseudoInstr(f'{p[0]} {p[1]} {p[2]} {p[3]}', instr)
             elif p[0] == 'bltu':
                 instr.append(RType('sltu', ['$at', p[1], p[2]]))
                 instr.append(Branch('bne', '$at', '$0', Label(p[3])))
-                return PseudoInstr('bltu', instr)
+                return PseudoInstr(f'{p[0]} {p[1]} {p[2]} {p[3]}', instr)
             else:
                 return None
         else:
             instr = []
             if p[0] == 'beqz':
                 instr.append(Branch('beq', p.REG, '$0', Label(p[2])))
-                return PseudoInstr('beqz', instr)
+                return PseudoInstr(f'{p[0]} {p[1]} {p[2]}', instr)
             elif p[0] == 'bnez':
                 instr.append(Branch('bne', p.REG, '$0', Label(p[2])))
-                return PseudoInstr('bnez', instr)
+                return PseudoInstr(f'{p[0]} {p[1]} {p[2]}', instr)
             else:
                 return None
 

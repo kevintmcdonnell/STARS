@@ -36,7 +36,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 
 class Interpreter(QWidget):
-    step = Signal()
+    step = Signal(int)
     console_out = Signal(str)
     end = Signal(bool)
     start = Signal()
@@ -658,6 +658,10 @@ class Interpreter(QWidget):
                 self.reg['pc'] += 4
                 self.instruction_count += 1
 
+                if settings['gui']:
+                    self.step.emit(pc)
+
+
                 try:
                     self.line_info = f' ({self.instr.filetag.file_name}, {self.instr.filetag.line_no})'
                 except AttributeError:
@@ -676,7 +680,7 @@ class Interpreter(QWidget):
                 elif self.debug.debug(self.instr):
                     if not self.debug.continueFlag:
                         self.pause_lock.clear()
-                    if not first and settings['gui']:
+                    if settings['gui']:
                         self.debug.listen(self)
                     elif not settings['gui'] and settings['debug']:
                         self.debug.listen(self)
@@ -689,10 +693,10 @@ class Interpreter(QWidget):
                     self.end.emit(False)
                     break
 
-                self.execute_instr(self.instr)
-
                 if settings['gui']:
-                    self.step.emit()
+                    self.debug.push(self)
+
+                self.execute_instr(self.instr)
 
         except Exception as e:
             if hasattr(e, 'message'):

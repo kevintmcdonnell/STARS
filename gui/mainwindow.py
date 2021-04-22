@@ -473,7 +473,8 @@ class MainWindow(QMainWindow):
 
     def assemble(self, filename):
         try:
-
+            if self.running:
+                self.intr.end.emit(False)
             for i in range(self.len):
                 self.save_file(wid=self.tabs.widget(i), ind=i)
             self.out.setPlainText('')
@@ -481,7 +482,7 @@ class MainWindow(QMainWindow):
             self.intr = Interpreter(self.result, self.pa.text().split())
             self.controller.set_interp(self.intr)
             self.instrs = []
-            self.update_screen()
+            self.update_screen(self.intr.reg['pc'])
             self.fill_labels()
             self.intr.step.connect(self.update_screen)
             self.intr.console_out.connect(self.update_console)
@@ -492,7 +493,6 @@ class MainWindow(QMainWindow):
             self.setWindowTitle(f'STARS')
 
         except Exception as e:
-            print(e)
             if hasattr(e, 'message'):
                 self.console_sem.acquire()
                 self.out.setPlainText(type(e).__name__ + ": " + e.message)
@@ -584,9 +584,9 @@ class MainWindow(QMainWindow):
             self.instrs = []
         self.run_sem.release()
 
-    def update_screen(self):
+    def update_screen(self, pc):
         self.fill_reg()
-        self.fill_instrs()
+        self.fill_instrs(pc)
         self.fill_mem()
         self.fill_flags()
         self.instr_count.setText(f'Instruction Count: {self.controller.get_instr_count()}\t\t')
@@ -652,8 +652,8 @@ class MainWindow(QMainWindow):
                     self.regs[r].setText(f'0x{a:08x}')
 
 
-    def fill_instrs(self):
-        pc = self.intr.reg['pc']
+    def fill_instrs(self, pc):
+        # pc = self.intr.reg['pc']
         if len(self.instrs) > 0:
             # fmt = QTextCharFormat()
             # self.prev_instr.setTextFormat(fmt)
@@ -663,7 +663,7 @@ class MainWindow(QMainWindow):
             # fmt.setBackground(Qt.cyan)
             # self.instrs[pc - settings['initial_pc']].setTextFormat(fmt)
             self.prev_instr.setStyleSheet("QLineEdit { background: rgb(255, 255, 255) };")
-            prev_ind = (pc - 4 - settings['initial_pc']) // 4
+            prev_ind = (pc - settings['initial_pc']) // 4
             if prev_ind < len(self.instrs):
                 self.prev_instr = self.instrs[prev_ind]
             self.prev_instr.setStyleSheet("QLineEdit { background: rgb(0, 255, 255) };")
@@ -675,18 +675,18 @@ class MainWindow(QMainWindow):
                 if type(mem.text[k]) is not str:
                     i = mem.text[k]
                     check = QCheckBox()
-                    check.stateChanged.connect(lambda state, i=i: self.add_breakpoint(('b', str(i.filetag.file_name), str(i.filetag.line_no))) if state == Qt.Checked else self.remove_breakpoint(
-                        ('b', str(i.filetag.file_name), str(i.filetag.line_no))))
+                    check.stateChanged.connect(lambda state, i=i: self.add_breakpoint(('b', str(i.filetag.file_name)[1:-1], str(i.filetag.line_no))) if state == Qt.Checked else self.remove_breakpoint(
+                        ('b', str(i.filetag.file_name)[1:-1], str(i.filetag.line_no))))
                     self.checkboxes.append(check)
                     self.instr_grid.addWidget(check, count, 0)
                     if i.is_from_pseudoinstr:
-                        q = QLineEdit(f'0x{int(k):08x}\t{i.original_text.strip()} ( {i.basic_instr()} )')
+                        q = QLineEdit(f'0x{int(k):08x}\t{i.original_text} ( {i.basic_instr()} )')
                         q.setReadOnly(True)
                         q.setFont(QFont("Courier New", 10))
                         self.instrs.append(q)
                         self.instr_grid.addWidget(q, count, 1)
                     else:
-                        q = QLineEdit(f'0x{int(k):08x}\t{i.original_text.strip()}')
+                        q = QLineEdit(f'0x{int(k):08x}\t{i.basic_instr()}')
                         q.setFont(QFont("Courier New", 10))
                         q.setReadOnly(True)
                         self.instrs.append(q)
@@ -758,7 +758,7 @@ class MainWindow(QMainWindow):
         self.breakpoints.append(cmd)
 
     def remove_breakpoint(self, cmd):
-        self.controller.remove_breakpoint((cmd[1], cmd[2]))
+        self.controller.remove_breakpoint((f'"{cmd[1]}"', cmd[2]))
         self.breakpoints.remove(cmd)
 
     def launch_vt100(self):
@@ -791,7 +791,7 @@ class MainWindow(QMainWindow):
     def update_dirty(self):
         w = self.tabs.currentWidget()
         i = self.tabs.currentIndex()
-        if not self.files[w.name]:
+        if w is not None and (w.name not in self.files or not self.files[w.name]):
             self.tabs.setTabText(i, f'{self.tabs.tabText(i)} *')
         self.files[w.name] = True
 

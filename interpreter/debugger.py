@@ -428,6 +428,7 @@ class Debug:
         def is_float_reg(reg):
             return reg in const.F_REGS
 
+        prev = None
         if len(self.stack) > 0:
             prev = self.stack.pop()
 
@@ -464,7 +465,11 @@ class Debug:
             interp.instr = interp.mem.text[str(prev.pc)]
 
         if settings['gui']:
-            interp.step.emit()
+            print(interp.reg['pc'])
+            if prev != None:
+                interp.step.emit(prev.pc)
+            else:
+                interp.step.emit(settings['initial_pc'])
 
         return True
 

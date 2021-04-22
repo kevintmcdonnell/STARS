@@ -32,10 +32,10 @@ class RType:
 
     def basic_instr(self) -> str:
         if len(self.regs) == 2:
-            return f'{self.operation} {self.regs[0]}, {self.regs[1]}'
+            return f'{self.operation} {self.regs[0]} {self.regs[1]}'
 
         else:
-            return f'{self.operation} {self.regs[0]}, {self.regs[1]}, {self.regs[2]}'
+            return f'{self.operation} {self.regs[0]} {self.regs[1]} {self.regs[2]}'
 
 
 class IType:
@@ -51,7 +51,7 @@ class IType:
         else:
             imm = self.imm
 
-        return f'{self.operation} {self.regs[0]}, {self.regs[1]}, {imm}'
+        return f'{self.operation} {self.regs[0]} {self.regs[1]} {imm}'
 
 
 class JType:
@@ -59,6 +59,11 @@ class JType:
     def __init__(self, op: str, target: Union[str, Label]):
         self.operation = op
         self.target = target
+
+    def basic_instr(self) -> str:
+        if type(self.target) is Label:
+            return f'{self.operation} {self.target.name}'
+        return f'{self.operation} {self.target}'
 
 
 class Convert:
@@ -68,6 +73,8 @@ class Convert:
         self.rs = rs
         self.rt = rt
 
+    def basic_instr(self) -> str:
+        return f'cvt.{self.format_from}.{self.format_to} {self.rs} {self.rt}'
 
 class Compare:
     def __init__(self, op: str, rs: str, rt: str, flag: int):
@@ -75,6 +82,9 @@ class Compare:
         self.rs = rs
         self.rt = rt
         self.flag = flag
+
+    def basic_instr(self) -> str:
+        return f'{self.operation} {self.rs} {self.rt} {self.flag}'
 
 
 class Branch:
@@ -85,7 +95,7 @@ class Branch:
         self.label = label
 
     def basic_instr(self) -> str:
-        return f'{self.operation} {self.rs}, {self.rt}, {self.label.name}'
+        return f'{self.operation} {self.rs} {self.rt} {self.label.name}'
 
 
 class BranchFloat:
@@ -94,6 +104,8 @@ class BranchFloat:
         self.label = label
         self.flag = flag
 
+    def basic_instr(self) -> str:
+        return f'{self.operation} {self.flag} {self.label.name}'
 
 class LoadImm:
     def __init__(self, op: str, reg: str, imm: int):
@@ -123,6 +135,8 @@ class Move:
         self.operation = op
         self.reg = reg
 
+    def basic_instr(self) -> str:
+        return f'{self.operation} {self.reg}'
 
 class MoveFloat:
     def __init__(self, op: str, rs: str, rt: str, rd: str = ''):
@@ -131,6 +145,11 @@ class MoveFloat:
         self.rt = rt
         self.rd = rd
 
+    def basic_instr(self) -> str:
+        if len(self.rd) > 0:
+            return f'{self.operation} {self.rs} {self.rt}'
+        else:
+            return f'{self.operation} {self.rs} {self.rt} {self.rd}'
 
 class MoveCond:
     def __init__(self, op: str, rs: str, rt: str, flag: int):
@@ -139,10 +158,15 @@ class MoveCond:
         self.rt = rt
         self.flag = flag
 
+    def basic_instr(self) -> str:
+        return f'{self.operation} {self.rs} {self.rt} {self.flag}'
 
 class Nop:
     def __init__(self):
         pass
+
+    def basic_instr(self) -> str:
+        return 'nop'
 
 
 class Breakpoint:
@@ -162,6 +186,11 @@ class PseudoInstr:
         self.operation = op
         self.instrs = instrs
 
+    def original(self) -> str:
+        return self.operation
+
+
+
 
 class FileTag:
     def __init__(self, file_name: str, line_no: int):
@@ -172,6 +201,9 @@ class FileTag:
 class Syscall:
     def __init__(self):
         pass
+
+    def basic_instr(self) -> str:
+        return 'syscall'
 
 
 # Change classes for putting instructions on the stack
