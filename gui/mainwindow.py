@@ -207,7 +207,7 @@ class MainWindow(QMainWindow):
 
 
         text_edit = TextEdit()
-
+        text_edit.setAcceptRichText(False)
         self.comp = QCompleter()
         self.comp.setModel(self.modelFromFile(r"wordslist.txt", self.comp))
         self.comp.setModelSorting(QCompleter.CaseInsensitivelySortedModel)
@@ -344,6 +344,7 @@ class MainWindow(QMainWindow):
 
     def init_out(self):
         self.out = QTextEdit()
+        self.out.setMaximumHeight(100)
         self.out.installEventFilter(self)
         self.lay.addWidget(self.out, 3, 0, 1, 2)
 
@@ -783,6 +784,7 @@ class MainWindow(QMainWindow):
             name = f'main{"" if self.count == 1 else self.count-1}.asm'
         if not wid:
             wid = TextEdit(name=name)
+            wid.setAcceptRichText(False)
             wid.setCompleter(self.comp)
             wid.textChanged.connect(self.update_dirty)
         self.tabs.addTab(wid, name)

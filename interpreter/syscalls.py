@@ -263,8 +263,8 @@ def openFile(inter) -> None:
 
     # set flags
     flags = {
-        0: 'w',
-        1: 'r',
+        0: 'r',
+        1: 'w',
         9: 'a'
     }
 
@@ -277,10 +277,13 @@ def openFile(inter) -> None:
     flag = flags[mode]
 
     # open the file
-    f = open(name, flag)
-    inter.mem.fileTable[fd] = f
+    try:
+        f = open(name, flag)
+        inter.mem.fileTable[fd] = f
 
-    inter.set_register('$v0', fd)
+        inter.set_register('$v0', fd)
+    except:
+        inter.set_register('$v0', -1)
 
 
 def readFile(inter) -> None:
@@ -292,11 +295,13 @@ def readFile(inter) -> None:
         inter.set_register('$v0', -1)
         return
 
-    s = inter.mem.fileTable[fd].read(num_chars)
-    inter.mem.addAscii(s, addr)
+    try:
+        s = inter.mem.fileTable[fd].read(num_chars)
+        inter.mem.addAscii(s, addr)
 
-    inter.set_register('$v0', len(s))
-
+        inter.set_register('$v0', len(s))
+    except:
+        inter.set_register('$v0', -1)
 
 def writeFile(inter) -> None:
     fd = inter.get_register('$a0')
@@ -305,10 +310,13 @@ def writeFile(inter) -> None:
         inter.set_register('$v0', -1)
         return
 
-    s = getString(inter.get_register('$a1'), inter.mem, num_chars=inter.get_register('$a2'))
+    try:
+        s = getString(inter.get_register('$a1'), inter.mem, num_chars=inter.get_register('$a2'))
 
-    inter.mem.fileTable[fd].write(s)
-    inter.set_register('$v0', len(s))
+        inter.mem.fileTable[fd].write(s)
+        inter.set_register('$v0', len(s))
+    except:
+        inter.set_register('$v0', -1)
 
 
 def closeFile(inter) -> None:

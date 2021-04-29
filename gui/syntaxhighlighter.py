@@ -28,16 +28,24 @@ class Highlighter(QSyntaxHighlighter):
         labelFormat = QTextCharFormat()
         labelFormat.setForeground(Qt.darkYellow)
         labelFormat.setFontWeight(QFont.Bold)
-        self.rules.append(HighlightingRule(QRegularExpression(f'{MipsLexer.LABEL}:'), labelFormat))
+        self.rules.append(HighlightingRule(QRegularExpression(rf'{MipsLexer.LABEL}\s*:'), labelFormat))
 
         numberFormat = QTextCharFormat()
         numberFormat.setForeground(Qt.darkGreen)
         self.rules.append(HighlightingRule(QRegularExpression(r'\b(\d+|(0x[0-9A-Fa-f]+))\b'), numberFormat))
 
+        stringFormat = QTextCharFormat()
+        stringFormat.setForeground(Qt.darkBlue)
+        self.rules.append(HighlightingRule(QRegularExpression(f'{MipsLexer.STRING}'), stringFormat))
+
         directiveFormat = QTextCharFormat()
         directiveFormat.setForeground(Qt.darkMagenta)
         directiveFormat.setFontWeight(QFont.Bold)
         d_patterns = [MipsLexer.TEXT, MipsLexer.DATA, MipsLexer.WORD, MipsLexer.BYTE, MipsLexer.HALF, MipsLexer.FLOAT, MipsLexer.DOUBLE, MipsLexer.ASCII, MipsLexer.ASCIIZ, MipsLexer.SPACE, MipsLexer.EQV, MipsLexer.ALIGN]
+
+        commentFormat = QTextCharFormat()
+        commentFormat.setForeground(Qt.darkGray)
+        self.rules.append(HighlightingRule(QRegularExpression(r'#.*'), commentFormat))
         for p in d_patterns:
             rule = HighlightingRule(QRegularExpression(p), directiveFormat)
             self.rules.append(rule)

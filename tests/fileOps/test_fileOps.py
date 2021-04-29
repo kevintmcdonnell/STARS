@@ -44,8 +44,8 @@ class TestFileOps(unittest.TestCase):
         i = interpreter.Interpreter([classes.Label('main')], [])
         i.reg = reg
         i.mem = mem
-        self.assertRaises(FileNotFoundError, syscalls.openFile, i)
-        self.assertEqual(reg['$v0'], 0, "Opened invalid file")
+        # self.assertRaises(FileNotFoundError, syscalls.openFile, i)
+        self.assertEqual(reg['$v0'], -1, "Opened invalid file")
         self.assertEqual(len(mem.fileTable), 3, "Opened invalid file")
 
     def test_file_open_invalid_char(self):
