@@ -1,7 +1,35 @@
-abs.d $f2, $f4  Set $f2 to the absolute value of $f4
-abs.s $f0, $f1  Set $f0 to the absolute value of $f1
-add $t1, $t2, $t3  Set $t1 to $t2 + $t3
-add.d $f2, $f4, $f6  Set $f2 to $f4 + $f6
-add.s $f1, $f2, $f3  Set $f1 to $f2 + $f3
-addi $t1, $t2, imm  Set $t1 to $t2 + imm
-addiu $t1, $t2, imm  Set $t1 to $t2 + imm (unsigned)
+and $t1,$t2,$t3         Bitwise AND : Set $t1 to bitwise AND of $t2 and $t3
+abs.s $f0,$f1           Floating point absolute value single precision : Set $f0 to absolute value of $f1, single precision
+add $t1,$t2,$t3         Addition with overflow : set $t1 to ($t2 plus $t3)
+add.d $f2,$f4,$f6       Floating point addition double precision : Set $f2 to double-precision floating point value of $f4 plus $f6
+add.s $f0,$f1,$f3       Floating point addition single precision : Set $f0 to single-precision floating point value of $f1 plus $f3
+addi $t1,$t2,-100       Addition immediate with overflow : set $t1 to ($t2 plus signed 16-bit immediate)
+addiu $t1,$t2,-100      Addition immediate unsigned without overflow : set $t1 to ($t2 plus signed 16-bit immediate), no overflow
+addu $t1,$t2,$t3        Addition unsigned without overflow : set $t1 to ($t2 plus $t3), no overflow
+and $t1,$t2,$t3         Bitwise AND : Set $t1 to bitwise AND of $t2 and $t3
+andi $t1,$t2,100        Bitwise AND immediate : Set $t1 to bitwise AND of $t2 and zero-extended 16-bit immediate
+bc1f 1,label            Branch if specified FP condition flag false (BC1F, not BCLF) : If Coprocessor 1 condition flag specified by immediate is false (zero) then branch to statement at label's address
+bc1f label              Branch if FP condition flag 0 false (BC1F, not BCLF) : If Coprocessor 1 condition flag 0 is false (zero) then branch to statement at label's address
+bc1t 1,label            Branch if specified FP condition flag true (BC1T, not BCLT) : If Coprocessor 1 condition flag specified by immediate is true (one) then branch to statement at label's address
+bc1t label              Branch if FP condition flag 0 true (BC1T, not BCLT) : If Coprocessor 1 condition flag 0 is true (one) then branch to statement at label's address
+beq $t1,$t2,label       Branch if equal : Branch to statement at label's address if $t1 and $t2 are equal
+bgez $t1,label          Branch if greater than or equal to zero : Branch to statement at label's address if $t1 is greater than or equal to zero
+bgezal $t1,label        Branch if greater then or equal to zero and link : If $t1 is greater than or equal to zero, then set $ra to the Program Counter and branch to statement at label's address
+bgtz $t1,label          Branch if greater than zero : Branch to statement at label's address if $t1 is greater than zero
+blez $t1,label          Branch if less than or equal to zero : Branch to statement at label's address if $t1 is less than or equal to zero
+bltz $t1,label          Branch if less than zero : Branch to statement at label's address if $t1 is less than zero
+bltzal $t1,label        Branch if less than zero and link : If $t1 is less than or equal to zero, then set $ra to the Program Counter and branch to statement at label's address
+bne $t1,$t2,label       Branch if not equal : Branch to statement at label's address if $t1 and $t2 are not equal
+break                   Break execution : Terminate program execution with exception
+break 100               Break execution with code : Terminate program execution with specified exception code
+c.eq.d $f2,$f4          Compare equal double precision : If $f2 is equal to $f4 (double-precision), set Coprocessor 1 condition flag 0 true else set it false
+c.eq.d 1,$f2,$f4        Compare equal double precision : If $f2 is equal to $f4 (double-precision), set Coprocessor 1 condition flag specified by immediate to true else set it to false
+c.eq.s $f0,$f1          Compare equal single precision : If $f0 is equal to $f1, set Coprocessor 1 condition flag 0 true else set it false
+c.eq.s 1,$f0,$f1        Compare equal single precision : If $f0 is equal to $f1, set Coprocessor 1 condition flag specied by immediate to true else set it to false
+c.le.d $f2,$f4          Compare less or equal double precision : If $f2 is less than or equal to $f4 (double-precision), set Coprocessor 1 condition flag 0 true else set it false
+c.le.d 1,$f2,$f4        Compare less or equal double precision : If $f2 is less than or equal to $f4 (double-precision), set Coprocessor 1 condition flag specfied by immediate true else set it false
+c.le.s $f0,$f1          Compare less or equal single precision : If $f0 is less than or equal to $f1, set Coprocessor 1 condition flag 0 true else set it false
+c.le.s 1,$f0,$f1        Compare less or equal single precision : If $f0 is less than or equal to $f1, set Coprocessor 1 condition flag specified by immediate to true else set it to false
+c.lt.d $f2,$f4          Compare less than double precision : If $f2 is less than $f4 (double-precision), set Coprocessor 1 condition flag 0 true else set it false
+c.lt.d 1,$f2,$f4        Compare less than double precision : If $f2 is less than $f4 (double-precision), set Coprocessor 1 condition flag specified by immediate to true else set it to false
+c.lt.s $f0,$f1          Compare less than single precision : If $f0 is less than $f1, set Coprocessor 1 condition flag 0 true else set it false
