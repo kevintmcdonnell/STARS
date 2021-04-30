@@ -27,7 +27,7 @@ class TestFileOps(unittest.TestCase):
         addr = mem.dataPtr
         f = p.abspath('fileToOpen.txt')
         mem.addAsciiz(f, addr)
-        reg = {'$a0': addr, '$a1': 1, '$v0': 0}
+        reg = {'$a0': addr, '$a1': 0, '$v0': 0}
         i = interpreter.Interpreter([classes.Label('main')], [])
         i.reg = reg
         i.mem = mem
@@ -40,11 +40,11 @@ class TestFileOps(unittest.TestCase):
         mem = memory.Memory(False)
         addr = mem.dataPtr
         mem.addAsciiz('file2Open.txt', addr)
-        reg = {'$a0': addr, '$a1': 1, '$v0': 0}
+        reg = {'$a0': addr, '$a1': 0, '$v0': 0}
         i = interpreter.Interpreter([classes.Label('main')], [])
         i.reg = reg
         i.mem = mem
-        # self.assertRaises(FileNotFoundError, syscalls.openFile, i)
+        syscalls.openFile(i)
         self.assertEqual(reg['$v0'], -1, "Opened invalid file")
         self.assertEqual(len(mem.fileTable), 3, "Opened invalid file")
 
