@@ -1,25 +1,67 @@
+abs $t1,$t2             ABSolute value : Set $t1 to absolute value of $t2 (algorithm from Hacker's Delight)
 abs.d $f2,$f4           Floating point absolute value double precision : Set $f2 to absolute value of $f4, double precision
 abs.s $f0,$f1           Floating point absolute value single precision : Set $f0 to absolute value of $f1, single precision
 add $t1,$t2,$t3         Addition with overflow : set $t1 to ($t2 plus $t3)
+add $t1,$t2,-100        ADDition : set $t1 to ($t2 plus 16-bit immediate)
+add $t1,$t2,100000      ADDition : set $t1 to ($t2 plus 32-bit immediate)
 add.d $f2,$f4,$f6       Floating point addition double precision : Set $f2 to double-precision floating point value of $f4 plus $f6
 add.s $f0,$f1,$f3       Floating point addition single precision : Set $f0 to single-precision floating point value of $f1 plus $f3
 addi $t1,$t2,-100       Addition immediate with overflow : set $t1 to ($t2 plus signed 16-bit immediate)
+addi $t1,$t2,100000     ADDition Immediate : set $t1 to ($t2 plus 32-bit immediate)
 addiu $t1,$t2,-100      Addition immediate unsigned without overflow : set $t1 to ($t2 plus signed 16-bit immediate), no overflow
+addiu $t1,$t2,100000    ADDition Immediate Unsigned: set $t1 to ($t2 plus 32-bit immediate), no overflow
 addu $t1,$t2,$t3        Addition unsigned without overflow : set $t1 to ($t2 plus $t3), no overflow
+addu $t1,$t2,100000     ADDition Unsigned : set $t1 to ($t2 plus 32-bit immediate), no overflow
 and $t1,$t2,$t3         Bitwise AND : Set $t1 to bitwise AND of $t2 and $t3
+and $t1,$t2,100         AND : set $t1 to ($t2 bitwise-AND 16-bit unsigned immediate)
+and $t1,100             AND : set $t1 to ($t1 bitwise-AND 16-bit unsigned immediate)
 andi $t1,$t2,100        Bitwise AND immediate : Set $t1 to bitwise AND of $t2 and zero-extended 16-bit immediate
+andi $t1,$t2,100000     AND Immediate : set $t1 to ($t2 bitwise-AND 32-bit immediate)
+andi $t1,100            AND Immediate : set $t1 to ($t1 bitwise-AND 16-bit unsigned immediate)
+andi $t1,100000         AND Immediate : set $t1 to ($t1 bitwise-AND 32-bit immediate)
+b label                 Branch : Branch to statement at label unconditionally
 bc1f 1,label            Branch if specified FP condition flag false (BC1F, not BCLF) : If Coprocessor 1 condition flag specified by immediate is false (zero) then branch to statement at label's address
 bc1f label              Branch if FP condition flag 0 false (BC1F, not BCLF) : If Coprocessor 1 condition flag 0 is false (zero) then branch to statement at label's address
 bc1t 1,label            Branch if specified FP condition flag true (BC1T, not BCLT) : If Coprocessor 1 condition flag specified by immediate is true (one) then branch to statement at label's address
 bc1t label              Branch if FP condition flag 0 true (BC1T, not BCLT) : If Coprocessor 1 condition flag 0 is true (one) then branch to statement at label's address
 beq $t1,$t2,label       Branch if equal : Branch to statement at label's address if $t1 and $t2 are equal
+beq $t1,-100,label      Branch if EQual : Branch to statement at label if $t1 is equal to 16-bit immediate
+beq $t1,100000,label    Branch if EQual : Branch to statement at label if $t1 is equal to 32-bit immediate
+beqz $t1,label          Branch if EQual Zero : Branch to statement at label if $t1 is equal to zero
+bge $t1,$t2,label       Branch if Greater or Equal : Branch to statement at label if $t1 is greater or equal to $t2
+bge $t1,-100,label      Branch if Greater or Equal : Branch to statement at label if $t1 is greater or equal to 16-bit immediate
+bge $t1,100000,label    Branch if Greater or Equal : Branch to statement at label if $t1 is greater or equal to 32-bit immediate
+bgeu $t1,$t2,label      Branch if Greater or Equal Unsigned : Branch to statement at label if $t1 is greater or equal to $t2 (unsigned compare)
+bgeu $t1,-100,label     Branch if Greater or Equal Unsigned : Branch to statement at label if $t1 is greater or equal to 16-bit immediate (unsigned compare)
+bgeu $t1,100000,label   Branch if Greater or Equal Unsigned : Branch to statement at label if $t1 is greater or equal to 32-bit immediate (unsigned compare)
 bgez $t1,label          Branch if greater than or equal to zero : Branch to statement at label's address if $t1 is greater than or equal to zero
 bgezal $t1,label        Branch if greater then or equal to zero and link : If $t1 is greater than or equal to zero, then set $ra to the Program Counter and branch to statement at label's address
+bgt $t1,$t2,label       Branch if Greater Than : Branch to statement at label if $t1 is greater than $t2
+bgt $t1,-100,label      Branch if Greater Than : Branch to statement at label if $t1 is greater than 16-bit immediate
+bgt $t1,100000,label    Branch if Greater Than : Branch to statement at label if $t1 is greater than 32-bit immediate
+bgtu $t1,$t2,label      Branch if Greater Than Unsigned: Branch to statement at label if $t1 is greater than $t2 (unsigned compare)
+bgtu $t1,-100,label     Branch if Greater Than Unsigned: Branch to statement at label if $t1 is greater than 16-bit immediate (unsigned compare)
+bgtu $t1,100000,label   Branch if Greater Than Unsigned: Branch to statement at label if $t1 is greater than 16-bit immediate (unsigned compare)
 bgtz $t1,label          Branch if greater than zero : Branch to statement at label's address if $t1 is greater than zero
+ble $t1,$t2,label       Branch if Less or Equal : Branch to statement at label if $t1 is less than or equal to $t2
+ble $t1,-100,label      Branch if Less or Equal : Branch to statement at label if $t1 is less than or equal to 16-bit immediate
+ble $t1,100000,label    Branch if Less or Equal : Branch to statement at label if $t1 is less than or equal to 32-bit immediate
+bleu $t1,$t2,label      Branch if Less or Equal Unsigned : Branch to statement at label if $t1 is less than or equal to $t2 (unsigned compare)
+bleu $t1,-100,label     Branch if Less or Equal Unsigned : Branch to statement at label if $t1 is less than or equal to 16-bit immediate (unsigned compare)
+bleu $t1,100000,label   Branch if Less or Equal Unsigned : Branch to statement at label if $t1 is less than or equal to 32-bit immediate (unsigned compare)
 blez $t1,label          Branch if less than or equal to zero : Branch to statement at label's address if $t1 is less than or equal to zero
+blt $t1,$t2,label       Branch if Less Than : Branch to statement at label if $t1 is less than $t2
+blt $t1,-100,label      Branch if Less Than : Branch to statement at label if $t1 is less than 16-bit immediate
+blt $t1,100000,label    Branch if Less Than : Branch to statement at label if $t1 is less than 32-bit immediate
+bltu $t1,$t2,label      Branch if Less Than Unsigned : Branch to statement at label if $t1 is less than $t2
+bltu $t1,-100,label     Branch if Less Than Unsigned : Branch to statement at label if $t1 is less than 16-bit immediate
+bltu $t1,100000,label   Branch if Less Than Unsigned : Branch to statement at label if $t1 is less than 32-bit immediate
 bltz $t1,label          Branch if less than zero : Branch to statement at label's address if $t1 is less than zero
 bltzal $t1,label        Branch if less than zero and link : If $t1 is less than or equal to zero, then set $ra to the Program Counter and branch to statement at label's address
 bne $t1,$t2,label       Branch if not equal : Branch to statement at label's address if $t1 and $t2 are not equal
+bne $t1,-100,label      Branch if Not Equal : Branch to statement at label if $t1 is not equal to 16-bit immediate
+bne $t1,100000,label    Branch if Not Equal : Branch to statement at label if $t1 is not equal to 32-bit immediate
+bnez $t1,label          Branch if Not Equal Zero : Branch to statement at label if $t1 is not equal to zero
 break                   Break execution : Terminate program execution with exception
 break 100               Break execution with code : Terminate program execution with specified exception code
 c.eq.d $f2,$f4          Compare equal double precision : If $f2 is equal to $f4 (double-precision), set Coprocessor 1 condition flag 0 true else set it false
@@ -45,10 +87,15 @@ cvt.s.w $f0,$f1         Convert from word to single precision : Set $f0 to singl
 cvt.w.d $f1,$f2         Convert from double precision to word : Set $f1 to 32-bit integer equivalent of double precision value in $f2
 cvt.w.s $f0,$f1         Convert from single precision to word : Set $f0 to 32-bit integer equivalent of single precision value in $f1
 div $t1,$t2             Division with overflow : Divide $t1 by $t2 then set LO to quotient and HI to remainder (use mfhi to access HI, mflo to access LO)
+div $t1,$t2,$t3         DIVision : Set $t1 to ($t2 divided by $t3, integer division)
+div $t1,$t2,-100        DIVision : Set $t1 to ($t2 divided by 16-bit immediate, integer division)
+div $t1,$t2,100000      DIVision : Set $t1 to ($t2 divided by 32-bit immediate, integer division)
 div.d $f2,$f4,$f6       Floating point division double precision : Set $f2 to double-precision floating point value of $f4 divided by $f6
 div.s $f0,$f1,$f3       Floating point division single precision : Set $f0 to single-precision floating point value of $f1 divided by $f3
 divu $t1,$t2            Division unsigned without overflow : Divide unsigned $t1 by $t2 then set LO to quotient and HI to remainder (use mfhi to access HI, mflo to access LO)
-eret                    Exception return : Set Program Counter to Coprocessor 0 EPC register value, set Coprocessor Status register bit 1 (exception level) to zero
+divu $t1,$t2,$t3        DIVision Unsigned :  Set $t1 to ($t2 divided by $t3, unsigned integer division)
+divu $t1,$t2,-100       DIVision Unsigned :  Set $t1 to ($t2 divided by 16-bit immediate, unsigned integer division)
+divu $t1,$t2,100000     DIVision Unsigned :  Set $t1 to ($t2 divided by 32-bit immediate, unsigned integer division)
 floor.w.d $f1,$f2       Floor double precision to word : Set $f1 to 32-bit integer floor of double-precision float in $f2
 floor.w.s $f0,$f1       Floor single precision to word : Set $f0 to 32-bit integer floor of single-precision float in $f1
 j target                Jump unconditionally : Jump to statement at target address
@@ -56,25 +103,123 @@ jal target              Jump and link : Set $ra to Program Counter (return addre
 jalr $t1                Jump and link register : Set $ra to Program Counter (return address) then jump to statement whose address is in $t1
 jalr $t1,$t2            Jump and link register : Set $t1 to Program Counter (return address) then jump to statement whose address is in $t2
 jr $t1                  Jump register unconditionally : Jump to statement whose address is in $t1
+l.d $f2,($t2)           Load floating point Double precision : Set $f2 and $f3 register pair to 64-bit value at effective memory doubleword address
+l.d $f2,-100            Load floating point Double precision : Set $f2 and $f3 register pair to 64-bit value at effective memory doubleword address
+l.d $f2,100000          Load floating point Double precision : Set $f2 and $f3 register pair to 64-bit value at effective memory doubleword address
+l.d $f2,100000($t2)     Load floating point Double precision : Set $f2 and $f3 register pair to 64-bit value at effective memory doubleword address
+l.d $f2,label           Load floating point Double precision : Set $f2 and $f3 register pair to 64-bit value at effective memory doubleword address
+l.d $f2,label($t2)      Load floating point Double precision : Set $f2 and $f3 register pair to 64-bit value at effective memory doubleword address
+l.d $f2,label+100000    Load floating point Double precision : Set $f2 and $f3 register pair to 64-bit value at effective memory doubleword address
+l.d $f2,label+100000($t2)Load floating point Double precision : Set $f2 and $f3 register pair to 64-bit value at effective memory doubleword address
+l.s $f1,($t2)           Load floating point Single precision : Set $f1 to 32-bit value at effective memory word address
+l.s $f1,-100            Load floating point Single precision : Set $f1 to 32-bit value at effective memory word address
+l.s $f1,100000          Load floating point Single precision : Set $f1 to 32-bit value at effective memory word address
+l.s $f1,100000($t2)     Load floating point Single precision : Set $f1 to 32-bit value at effective memory word address
+l.s $f1,label           Load floating point Single precision : Set $f1 to 32-bit value at effective memory word address
+l.s $f1,label($t2)      Load floating point Single precision : Set $f1 to 32-bit value at effective memory word address
+l.s $f1,label+100000    Load floating point Single precision : Set $f1 to 32-bit value at effective memory word address
+l.s $f1,label+100000($t2)Load floating point Single precision : Set $f1 to 32-bit value at effective memory word address
+la $t1,($t2)            Load Address : Set $t1 to contents of $t2
+la $t1,-100             Load Address : Set $t1 to 16-bit immediate (sign-extended)
+la $t1,100              Load Address : Set $t1 to 16-bit immediate (zero-extended)
+la $t1,100($t2)         Load Address : Set $t1 to sum (of $t2 and 16-bit immediate)
+la $t1,100000           Load Address : Set $t1 to 32-bit immediate
+la $t1,100000($t2)      Load Address : Set $t1 to sum (of $t2 and 32-bit immediate)
+la $t1,label            Load Address : Set $t1 to label's address
+la $t1,label($t2)       Load Address : Set $t1 to sum (of $t2 and label's address)
+la $t1,label+100000     Load Address : Set $t1 to sum (of label's address and 32-bit immediate)
+la $t1,label+100000($t2)Load Address : Set $t1 to sum (of label's address, 32-bit immediate, and $t2)
+lb $t1,($t2)            Load Byte : Set $t1 to sign-extended 8-bit value from effective memory byte address
+lb $t1,-100             Load Byte : Set $t1 to sign-extended 8-bit value from effective memory byte address
 lb $t1,-100($t2)        Load byte : Set $t1 to sign-extended 8-bit value from effective memory byte address
+lb $t1,100              Load Byte : Set $t1 to sign-extended 8-bit value from effective memory byte address
+lb $t1,100($t2)         Load Byte : Set $t1 to sign-extended 8-bit value from effective memory byte address
+lb $t1,100000           Load Byte : Set $t1 to sign-extended 8-bit value from effective memory byte address
+lb $t1,100000($t2)      Load Byte : Set $t1 to sign-extended 8-bit value from effective memory byte address
+lb $t1,label            Load Byte : Set $t1 to sign-extended 8-bit value from effective memory byte address
+lb $t1,label($t2)       Load Byte : Set $t1 to sign-extended 8-bit value from effective memory byte address
+lb $t1,label+100000     Load Byte : Set $t1 to sign-extended 8-bit value from effective memory byte address
+lb $t1,label+100000($t2)Load Byte : Set $t1 to sign-extended 8-bit value from effective memory byte address
+lbu $t1,($t2)           Load Byte Unsigned : Set $t1 to zero-extended 8-bit value from effective memory byte address
+lbu $t1,-100            Load Byte Unsigned : Set $t1 to zero-extended 8-bit value from effective memory byte address
 lbu $t1,-100($t2)       Load byte unsigned : Set $t1 to zero-extended 8-bit value from effective memory byte address
-ldc1 $f2,-100($t2)      Load double word Coprocessor 1 (FPU)) : Set $f2 to 64-bit value from effective memory doubleword address
+lbu $t1,100             Load Byte Unsigned : Set $t1 to zero-extended 8-bit value from effective memory byte address
+lbu $t1,100($t2)        Load Byte Unsigned : Set $t1 to zero-extended 8-bit value from effective memory byte address
+lbu $t1,100000          Load Byte Unsigned : Set $t1 to zero-extended 8-bit value from effective memory byte address
+lbu $t1,100000($t2)     Load Byte Unsigned : Set $t1 to zero-extended 8-bit value from effective memory byte address
+lbu $t1,label           Load Byte Unsigned : Set $t1 to zero-extended 8-bit value from effective memory byte address
+lbu $t1,label($t2)      Load Byte Unsigned : Set $t1 to zero-extended 8-bit value from effective memory byte address
+lbu $t1,label+100000    Load Byte Unsigned : Set $t1 to zero-extended 8-bit value from effective memory byte address
+lbu $t1,label+100000($t2)Load Byte Unsigned : Set $t1 to zero-extended 8-bit value from effective memory byte address
+lh $t1,($t2)            Load Halfword : Set $t1 to sign-extended 16-bit value from effective memory halfword address
+lh $t1,-100             Load Halfword : Set $t1 to sign-extended 16-bit value from effective memory halfword address
 lh $t1,-100($t2)        Load halfword : Set $t1 to sign-extended 16-bit value from effective memory halfword address
+lh $t1,100              Load Halfword : Set $t1 to sign-extended 16-bit value from effective memory halfword address
+lh $t1,100($t2)         Load Halfword : Set $t1 to sign-extended 16-bit value from effective memory halfword address
+lh $t1,100000           Load Halfword : Set $t1 to sign-extended 16-bit value from effective memory halfword address
+lh $t1,100000($t2)      Load Halfword : Set $t1 to sign-extended 16-bit value from effective memory halfword address
+lh $t1,label            Load Halfword : Set $t1 to sign-extended 16-bit value from effective memory halfword address
+lh $t1,label($t2)       Load Halfword : Set $t1 to sign-extended 16-bit value from effective memory halfword address
+lh $t1,label+100000     Load Halfword : Set $t1 to sign-extended 16-bit value from effective memory halfword address
+lh $t1,label+100000($t2)Load Halfword : Set $t1 to sign-extended 16-bit value from effective memory halfword address
+lhu $t1,($t2)           Load Halfword Unsigned : Set $t1 to zero-extended 16-bit value from effective memory halfword address
+lhu $t1,-100            Load Halfword Unsigned : Set $t1 to zero-extended 16-bit value from effective memory halfword address
 lhu $t1,-100($t2)       Load halfword unsigned : Set $t1 to zero-extended 16-bit value from effective memory halfword address
-ll $t1,-100($t2)        Load linked : Paired with Store Conditional (sc) to perform atomic read-modify-write.  Treated as equivalent to Load Word (lw) because MARS does not simulate multiple processors.
+lhu $t1,100             Load Halfword Unsigned : Set $t1 to zero-extended 16-bit value from effective memory halfword address
+lhu $t1,100($t2)        Load Halfword Unsigned : Set $t1 to zero-extended 16-bit value from effective memory halfword address
+lhu $t1,100000          Load Halfword Unsigned : Set $t1 to zero-extended 16-bit value from effective memory halfword address
+lhu $t1,100000($t2)     Load Halfword Unsigned : Set $t1 to zero-extended 16-bit value from effective memory halfword address
+lhu $t1,label           Load Halfword Unsigned : Set $t1 to zero-extended 16-bit value from effective memory halfword address
+lhu $t1,label($t2)      Load Halfword Unsigned : Set $t1 to zero-extended 16-bit value from effective memory halfword address
+lhu $t1,label+100000    Load Halfword Unsigned : Set $t1 to zero-extended 16-bit value from effective memory halfword address
+lhu $t1,label+100000($t2)Load Halfword Unsigned : Set $t1 to zero-extended 16-bit value from effective memory halfword address
+li $t1,-100             Load Immediate : Set $t1 to 16-bit immediate (sign-extended)
+li $t1,100              Load Immediate : Set $t1 to unsigned 16-bit immediate (zero-extended)
+li $t1,100000           Load Immediate : Set $t1 to 32-bit immediate
 lui $t1,100             Load upper immediate : Set high-order 16 bits of $t1 to 16-bit immediate and low-order 16 bits to 0
+lw $t1,($t2)            Load Word : Set $t1 to contents of effective memory word address
+lw $t1,-100             Load Word : Set $t1 to contents of effective memory word address
 lw $t1,-100($t2)        Load word : Set $t1 to contents of effective memory word address
-lwc1 $f1,-100($t2)      Load word into Coprocessor 1 (FPU) : Set $f1 to 32-bit value from effective memory word address
+lw $t1,100              Load Word : Set $t1 to contents of effective memory word address
+lw $t1,100($t2)         Load Word : Set $t1 to contents of effective memory word address
+lw $t1,100000           Load Word : Set $t1 to contents of effective memory word address
+lw $t1,100000($t2)      Load Word : Set $t1 to contents of effective memory word address
+lw $t1,label            Load Word : Set $t1 to contents of memory word at label's address
+lw $t1,label($t2)       Load Word : Set $t1 to contents of effective memory word address
+lw $t1,label+100000     Load Word : Set $t1 to contents of effective memory word address
+lw $t1,label+100000($t2)Load Word : Set $t1 to contents of effective memory word address
+lwl $t1,($t2)           Load Word Left : Load from 1 to 4 bytes left-justified into $t1, starting with effective memory byte address and continuing through the low-order byte of its word
+lwl $t1,-100            Load Word Left : Load from 1 to 4 bytes left-justified into $t1, starting with effective memory byte address and continuing through the low-order byte of its word
 lwl $t1,-100($t2)       Load word left : Load from 1 to 4 bytes left-justified into $t1, starting with effective memory byte address and continuing through the low-order byte of its word
+lwl $t1,100             Load Word Left : Load from 1 to 4 bytes left-justified into $t1, starting with effective memory byte address and continuing through the low-order byte of its word
+lwl $t1,100($t2)        Load Word Left : Load from 1 to 4 bytes left-justified into $t1, starting with effective memory byte address and continuing through the low-order byte of its word
+lwl $t1,100000          Load Word Left : Load from 1 to 4 bytes left-justified into $t1, starting with effective memory byte address and continuing through the low-order byte of its word
+lwl $t1,100000($t2)     Load Word Left : Load from 1 to 4 bytes left-justified into $t1, starting with effective memory byte address and continuing through the low-order byte of its word
+lwl $t1,label           Load Word Left : Load from 1 to 4 bytes left-justified into $t1, starting with effective memory byte address and continuing through the low-order byte of its word
+lwl $t1,label($t2)      Load Word Left : Load from 1 to 4 bytes left-justified into $t1, starting with effective memory byte address and continuing through the low-order byte of its word
+lwl $t1,label+100000    Load Word Left : Load from 1 to 4 bytes left-justified into $t1, starting with effective memory byte address and continuing through the low-order byte of its word
+lwl $t1,label+100000($t2)Load Word Left : Load from 1 to 4 bytes left-justified into $t1, starting with effective memory byte address and continuing through the low-order byte of its word
+lwr $t1,($t2)           Load Word Right : Load from 1 to 4 bytes right-justified into $t1, starting with effective memory byte address and continuing through the high-order byte of its word
+lwr $t1,-100            Load Word Right : Load from 1 to 4 bytes right-justified into $t1, starting with effective memory byte address and continuing through the high-order byte of its word
 lwr $t1,-100($t2)       Load word right : Load from 1 to 4 bytes right-justified into $t1, starting with effective memory byte address and continuing through the high-order byte of its word
+lwr $t1,100             Load Word Right : Load from 1 to 4 bytes right-justified into $t1, starting with effective memory byte address and continuing through the high-order byte of its word
+lwr $t1,100($t2)        Load Word Right : Load from 1 to 4 bytes right-justified into $t1, starting with effective memory byte address and continuing through the high-order byte of its word
+lwr $t1,100000          Load Word Right : Load from 1 to 4 bytes right-justified into $t1, starting with effective memory byte address and continuing through the high-order byte of its word
+lwr $t1,100000($t2)     Load Word Right : Load from 1 to 4 bytes right-justified into $t1, starting with effective memory byte address and continuing through the high-order byte of its word
+lwr $t1,label           Load Word Right : Load from 1 to 4 bytes right-justified into $t1, starting with effective memory byte address and continuing through the high-order byte of its word
+lwr $t1,label($t2)      Load Word Right : Load from 1 to 4 bytes right-justified into $t1, starting with effective memory byte address and continuing through the high-order byte of its word
+lwr $t1,label+100000    Load Word Right : Load from 1 to 4 bytes right-justified into $t1, starting with effective memory byte address and continuing through the high-order byte of its word
+lwr $t1,label+100000($t2)Load Word Right : Load from 1 to 4 bytes right-justified into $t1, starting with effective memory byte address and continuing through the high-order byte of its word
 madd $t1,$t2            Multiply add : Multiply $t1 by $t2 then increment HI by high-order 32 bits of product, increment LO by low-order 32 bits of product (use mfhi to access HI, mflo to access LO)
 maddu $t1,$t2           Multiply add unsigned : Multiply $t1 by $t2 then increment HI by high-order 32 bits of product, increment LO by low-order 32 bits of product, unsigned (use mfhi to access HI, mflo to access LO)
 mfc0 $t1,$8             Move from Coprocessor 0 : Set $t1 to the value stored in Coprocessor 0 register $8
 mfc1 $t1,$f1            Move from Coprocessor 1 (FPU) : Set $t1 to value in Coprocessor 1 register $f1
+mfc1.d $t1,$f2          Move From Coprocessor 1 Double : Set $t1 to contents of $f2, set next higher register from $t1 to contents of next higher register from $f2
 mfhi $t1                Move from HI register : Set $t1 to contents of HI (see multiply and divide operations)
 mflo $t1                Move from LO register : Set $t1 to contents of LO (see multiply and divide operations)
 mov.d $f2,$f4           Move floating point double precision : Set double precision $f2 to double precision value in $f4
 mov.s $f0,$f1           Move floating point single precision : Set single precision $f0 to single precision value in $f1
+move $t1,$t2            MOVE : Set $t1 to contents of $t2
 movf $t1,$t2            Move if FP condition flag 0 false : Set $t1 to $t2 if FPU (Coprocessor 1) condition flag 0 is false (zero)
 movf $t1,$t2,1          Move if specified FP condition flag false : Set $t1 to $t2 if FPU (Coprocessor 1) condition flag specified by the immediate is false (zero)
 movf.d $f2,$f4          Move floating point double precision : If condition flag 0 false, set double precision $f2 to double precision value in $f4
@@ -97,31 +242,110 @@ msub $t1,$t2            Multiply subtract : Multiply $t1 by $t2 then decrement H
 msubu $t1,$t2           Multiply subtract unsigned : Multiply $t1 by $t2 then decrement HI by high-order 32 bits of product, decement LO by low-order 32 bits of product, unsigned (use mfhi to access HI, mflo to access LO)
 mtc0 $t1,$8             Move to Coprocessor 0 : Set Coprocessor 0 register $8 to value stored in $t1
 mtc1 $t1,$f1            Move to Coprocessor 1 (FPU) : Set Coprocessor 1 register $f1 to value in $t1
+mtc1.d $t1,$f2          Move To Coprocessor 1 Double : Set $f2 to contents of $t1, set next higher register from $f2 to contents of next higher register from $t1
 mthi $t1                Move to HI registerr : Set HI to contents of $t1 (see multiply and divide operations)
 mtlo $t1                Move to LO register : Set LO to contents of $t1 (see multiply and divide operations)
 mul $t1,$t2,$t3         Multiplication without overflow  : Set HI to high-order 32 bits, LO and $t1 to low-order 32 bits of the product of $t2 and $t3 (use mfhi to access HI, mflo to access LO)
+mul $t1,$t2,-100        MULtiplication : Set HI to high-order 32 bits, LO and $t1 to low-order 32 bits of the product of $t2 and 16-bit signed immediate (use mfhi to access HI, mflo to access LO)
+mul $t1,$t2,100000      MULtiplication : Set HI to high-order 32 bits, LO and $t1 to low-order 32 bits of the product of $t2 and 32-bit immediate (use mfhi to access HI, mflo to access LO)
 mul.d $f2,$f4,$f6       Floating point multiplication double precision : Set $f2 to double-precision floating point value of $f4 times $f6
 mul.s $f0,$f1,$f3       Floating point multiplication single precision : Set $f0 to single-precision floating point value of $f1 times $f3
-mult $t1,$t2            Multiplication : Set hi to high-order 32 bits, lo to low-order 32 bits of the product of $t1 and $t2 (use mfhi to access hi, mflo to access lo)
-multu $t1,$t2           Multiplication unsigned : Set HI to high-order 32 bits, LO to low-order 32 bits of the product of unsigned $t1 and $t2 (use mfhi to access HI, mflo to access LO)
+neg $t1,$t2             NEGate : Set $t1 to negation of $t2
 neg.d $f2,$f4           Floating point negate double precision : Set double precision $f2 to negation of double precision value in $f4
 neg.s $f0,$f1           Floating point negate single precision : Set single precision $f0 to negation of single precision value in $f1
+negu $t1,$t2            NEGate Unsigned : Set $t1 to negation of $t2, no overflow
 nop                     Null operation : machine code is all zeroes
 nor $t1,$t2,$t3         Bitwise NOR : Set $t1 to bitwise NOR of $t2 and $t3
+not $t1,$t2             Bitwise NOT (bit inversion)
 or $t1,$t2,$t3          Bitwise OR : Set $t1 to bitwise OR of $t2 and $t3
+or $t1,$t2,100          OR : set $t1 to ($t2 bitwise-OR 16-bit unsigned immediate)
+or $t1,100              OR : set $t1 to ($t1 bitwise-OR 16-bit unsigned immediate)
 ori $t1,$t2,100         Bitwise OR immediate : Set $t1 to bitwise OR of $t2 and zero-extended 16-bit immediate
+ori $t1,$t2,100000      OR Immediate : set $t1 to ($t2 bitwise-OR 32-bit immediate)
+ori $t1,100             OR Immediate : set $t1 to ($t1 bitwise-OR 16-bit unsigned immediate)
+ori $t1,100000          OR Immediate : set $t1 to ($t1 bitwise-OR 32-bit immediate)
+rol $t1,$t2,$t3         ROtate Left : Set $t1 to ($t2 rotated left by number of bit positions specified in $t3)
+rol $t1,$t2,10          ROtate Left : Set $t1 to ($t2 rotated left by number of bit positions specified in 5-bit immediate)
+ror $t1,$t2,$t3         ROtate Right : Set $t1 to ($t2 rotated right by number of bit positions specified in $t3)
+ror $t1,$t2,10          ROtate Right : Set $t1 to ($t2 rotated right by number of bit positions specified in 5-bit immediate)
 round.w.d $f1,$f2       Round double precision to word : Set $f1 to 32-bit integer round of double-precision float in $f2
 round.w.s $f0,$f1       Round single precision to word : Set $f0 to 32-bit integer round of single-precision float in $f1
+s.d $f2,($t2)           Store floating point Double precision : Store 64 bits from $f2 and $f3 register pair to effective memory doubleword address
+s.d $f2,-100            Store floating point Double precision : Store 64 bits from $f2 and $f3 register pair to effective memory doubleword address
+s.d $f2,100000          Store floating point Double precision : Store 64 bits from $f2 and $f3 register pair to effective memory doubleword address
+s.d $f2,100000($t2)     Store floating point Double precision : Store 64 bits from $f2 and $f3 register pair to effective memory doubleword address
+s.d $f2,label           Store floating point Double precision : Store 64 bits from $f2 and $f3 register pair to effective memory doubleword address
+s.d $f2,label($t2)      Store floating point Double precision : Store 64 bits from $f2 and $f3 register pair to effective memory doubleword address
+s.d $f2,label+100000    Store floating point Double precision : Store 64 bits from $f2 and $f3 register pair to effective memory doubleword address
+s.d $f2,label+100000($t2)Store floating point Double precision : Store 64 bits from $f2 and $f3 register pair to effective memory doubleword address
+s.s $f1,($t2)           Store floating point Single precision : Store 32-bit value from $f1 to effective memory word address
+s.s $f1,-100            Store floating point Single precision : Store 32-bit value from $f1 to effective memory word address
+s.s $f1,100000          Store floating point Single precision : Store 32-bit value from $f1 to effective memory word address
+s.s $f1,100000($t2)     Store floating point Single precision : Store 32-bit value from $f1 to effective memory word address
+s.s $f1,label           Store floating point Single precision : Store 32-bit value from $f1 to effective memory word address
+s.s $f1,label($t2)      Store floating point Single precision : Store 32-bit value from $f1 to effective memory word address
+s.s $f1,label+100000    Store floating point Single precision : Store 32-bit value from $f1 to effective memory word address
+s.s $f1,label+100000($t2)Store floating point Single precision : Store 32-bit value from $f1 to effective memory word address
+sb $t1,($t2)            Store Byte : Store the low-order 8 bits of $t1 into the effective memory byte address
+sb $t1,-100             Store Byte : Store the low-order 8 bits of $t1 into the effective memory byte address
 sb $t1,-100($t2)        Store byte : Store the low-order 8 bits of $t1 into the effective memory byte address
-sc $t1,-100($t2)        Store conditional : Paired with Load Linked (ll) to perform atomic read-modify-write.  Stores $t1 value into effective address, then sets $t1 to 1 for success.  Always succeeds because MARS does not simulate multiple processors.
-sdc1 $f2,-100($t2)      Store double word from Coprocessor 1 (FPU)) : Store 64 bit value in $f2 to effective memory doubleword address
+sb $t1,100              Store Byte : Store the low-order 8 bits of $t1 into the effective memory byte address
+sb $t1,100($t2)         Store Byte : Store the low-order 8 bits of $t1 into the effective memory byte address
+sb $t1,100000           Store Byte : Store the low-order 8 bits of $t1 into the effective memory byte address
+sb $t1,100000($t2)      Store Byte : Store the low-order 8 bits of $t1 into the effective memory byte address
+sb $t1,label            Store Byte : Store the low-order 8 bits of $t1 into the effective memory byte address
+sb $t1,label($t2)       Store Byte : Store the low-order 8 bits of $t1 into the effective memory byte address
+sb $t1,label+100000     Store Byte : Store the low-order 8 bits of $t1 into the effective memory byte address
+sb $t1,label+100000($t2)Store Byte : Store the low-order 8 bits of $t1 into the effective memory byte address
+sd $t1,($t2)            Store Doubleword : Store contents of $t1 and the next register to the 64 bits starting at effective memory word address
+sd $t1,-100($t2)        Store Doubleword : Store contents of $t1 and the next register to the 64 bits starting at effective memory byte address
+sd $t1,100000           Store Doubleword : Store contents of $t1 and the next register to the 64 bits starting at effective memory word address
+sd $t1,100000($t2)      Store Doubleword : Store contents of $t1 and the next register to the 64 bits starting at effective memory word address
+sd $t1,label            Store Doubleword : Store contents of $t1 and the next register to the 64 bits starting at effective memory word address
+sd $t1,label($t2)       Store Doubleword : Store contents of $t1 and the next register to the 64 bits starting at effective memory word address
+sd $t1,label+100000     Store Doubleword : Store contents of $t1 and the next register to the 64 bits starting at effective memory word address
+sd $t1,label+100000($t2)Store Doubleword : Store contents of $t1 and the next register to the 64 bits starting at effective memory word address
+seq $t1,$t2,$t3         Set EQual : if $t2 equal to $t3 then set $t1 to 1 else 0
+seq $t1,$t2,-100        Set EQual : if $t2 equal to 16-bit immediate then set $t1 to 1 else 0
+seq $t1,$t2,100000      Set EQual : if $t2 equal to 32-bit immediate then set $t1 to 1 else 0
+sge $t1,$t2,$t3         Set Greater or Equal : if $t2 greater or equal to $t3 then set $t1 to 1 else 0
+sge $t1,$t2,-100        Set Greater or Equal : if $t2 greater or equal to 16-bit immediate then set $t1 to 1 else 0
+sge $t1,$t2,100000      Set Greater or Equal : if $t2 greater or equal to 32-bit immediate then set $t1 to 1 else 0
+sgeu $t1,$t2,$t3        Set Greater or Equal Unsigned : if $t2 greater or equal to $t3 (unsigned compare) then set $t1 to 1 else 0
+sgeu $t1,$t2,-100       Set Greater or Equal Unsigned : if $t2 greater or equal to 16-bit immediate (unsigned compare) then set $t1 to 1 else 0
+sgeu $t1,$t2,100000     Set Greater or Equal Unsigned : if $t2 greater or equal to 32-bit immediate (unsigned compare) then set $t1 to 1 else 0
+sgt $t1,$t2,$t3         Set Greater Than : if $t2 greater than $t3 then set $t1 to 1 else 0
+sgt $t1,$t2,-100        Set Greater Than : if $t2 greater than 16-bit immediate then set $t1 to 1 else 0
+sgt $t1,$t2,100000      Set Greater Than : if $t2 greater than 32-bit immediate then set $t1 to 1 else 0
+sgtu $t1,$t2,$t3        Set Greater Than Unsigned : if $t2 greater than $t3 (unsigned compare) then set $t1 to 1 else 0
+sgtu $t1,$t2,-100       Set Greater Than Unsigned : if $t2 greater than 16-bit immediate (unsigned compare) then set $t1 to 1 else 0
+sgtu $t1,$t2,100000     Set Greater Than Unsigned : if $t2 greater than 32-bit immediate (unsigned compare) then set $t1 to 1 else 0
+sh $t1,($t2)            Store Halfword : Store the low-order 16 bits of $t1 into the effective memory halfword address
+sh $t1,-100             Store Halfword : Store the low-order 16 bits of $t1 into the effective memory halfword address
 sh $t1,-100($t2)        Store halfword : Store the low-order 16 bits of $t1 into the effective memory halfword address
+sh $t1,100              Store Halfword : Store the low-order 16 bits of $t1 into the effective memory halfword address
+sh $t1,100($t2)         Store Halfword : Store the low-order 16 bits of $t1 into the effective memory halfword address
+sh $t1,100000           Store Halfword : Store the low-order 16 bits of $t1 into the effective memory halfword address
+sh $t1,100000($t2)      Store Halfword : Store the low-order 16 bits of $t1 into the effective memory halfword address
+sh $t1,label            Store Halfword : Store the low-order 16 bits of $t1 into the effective memory halfword address
+sh $t1,label($t2)       Store Halfword : Store the low-order 16 bits of $t1 into the effective memory halfword address
+sh $t1,label+100000     Store Halfword : Store the low-order 16 bits of $t1 into the effective memory halfword address
+sh $t1,label+100000($t2)Store Halfword : Store the low-order 16 bits of $t1 into the effective memory halfword address
+sle $t1,$t2,$t3         Set Less or Equal : if $t2 less or equal to $t3 then set $t1 to 1 else 0
+sle $t1,$t2,-100        Set Less or Equal : if $t2 less or equal to 16-bit immediate then set $t1 to 1 else 0
+sle $t1,$t2,100000      Set Less or Equal : if $t2 less or equal to 32-bit immediate then set $t1 to 1 else 0
+sleu $t1,$t2,$t3        Set Less or Equal Unsigned: if $t2 less or equal to $t3 (unsigned compare) then set $t1 to 1 else 0
+sleu $t1,$t2,-100       Set Less or Equal Unsigned: if $t2 less or equal to 16-bit immediate (unsigned compare) then set $t1 to 1 else 0
+sleu $t1,$t2,100000     Set Less or Equal Unsigned: if $t2 less or equal to 32-bit immediate (unsigned compare) then set $t1 to 1 else 0
 sll $t1,$t2,10          Shift left logical : Set $t1 to result of shifting $t2 left by number of bits specified by immediate
 sllv $t1,$t2,$t3        Shift left logical variable : Set $t1 to result of shifting $t2 left by number of bits specified by value in low-order 5 bits of $t3
 slt $t1,$t2,$t3         Set less than : If $t2 is less than $t3, then set $t1 to 1 else set $t1 to 0
 slti $t1,$t2,-100       Set less than immediate : If $t2 is less than sign-extended 16-bit immediate, then set $t1 to 1 else set $t1 to 0
 sltiu $t1,$t2,-100      Set less than immediate unsigned : If $t2 is less than  sign-extended 16-bit immediate using unsigned comparison, then set $t1 to 1 else set $t1 to 0
 sltu $t1,$t2,$t3        Set less than unsigned : If $t2 is less than $t3 using unsigned comparision, then set $t1 to 1 else set $t1 to 0
+sne $t1,$t2,$t3         Set Not Equal : if $t2 not equal to $t3 then set $t1 to 1 else 0
+sne $t1,$t2,-100        Set Not Equal : if $t2 not equal to 16-bit immediate then set $t1 to 1 else 0
+sne $t1,$t2,100000      Set Not Equal : if $t2 not equal to 32-bit immediate then set $t1 to 1 else 0
 sqrt.d $f2,$f4          Square root double precision : Set $f2 to double-precision floating point square root of $f4
 sqrt.s $f0,$f1          Square root single precision : Set $f0 to single-precision floating point square root of $f1
 sra $t1,$t2,10          Shift right arithmetic : Set $t1 to result of sign-extended shifting $t2 right by number of bits specified by immediate
@@ -132,12 +356,46 @@ sub $t1,$t2,$t3         Subtraction with overflow : set $t1 to ($t2 minus $t3)
 sub.d $f2,$f4,$f6       Floating point subtraction double precision : Set $f2 to double-precision floating point value of $f4 minus $f6
 sub.s $f0,$f1,$f3       Floating point subtraction single precision : Set $f0 to single-precision floating point value of $f1  minus $f3
 subu $t1,$t2,$t3        Subtraction unsigned without overflow : set $t1 to ($t2 minus $t3), no overflow
+sw $t1,($t2)            Store Word : Store $t1 contents into effective memory word address
+sw $t1,-100             Store Word : Store $t1 contents into effective memory word address
 sw $t1,-100($t2)        Store word : Store contents of $t1 into effective memory word address
-swc1 $f1,-100($t2)      Store word from Coprocesor 1 (FPU) : Store 32 bit value in $f1 to effective memory word address
+sw $t1,100              Store Word : Store $t1 contents into effective memory word address
+sw $t1,100($t2)         Store Word : Store $t1 contents into effective memory word address
+sw $t1,100000           Store Word : Store $t1 contents into effective memory word address
+sw $t1,100000($t2)      Store Word : Store $t1 contents into effective memory word address
+sw $t1,label            Store Word : Store $t1 contents into memory word at label's address
+sw $t1,label($t2)       Store Word : Store $t1 contents into effective memory word address
+sw $t1,label+100000     Store Word : Store $t1 contents into effective memory word address
+sw $t1,label+100000($t2)Store Word : Store $t1 contents into effective memory word address
+swl $t1,($t2)           Store Word Left : Store high-order 1 to 4 bytes of $t1 into memory, starting with effective memory byte address and continuing through the low-order byte of its word
+swl $t1,-100            Store Word Left : Store high-order 1 to 4 bytes of $t1 into memory, starting with effective memory byte address and continuing through the low-order byte of its word
 swl $t1,-100($t2)       Store word left : Store high-order 1 to 4 bytes of $t1 into memory, starting with effective byte address and continuing through the low-order byte of its word
+swl $t1,100             Store Word Left : Store high-order 1 to 4 bytes of $t1 into memory, starting with effective memory byte address and continuing through the low-order byte of its word
+swl $t1,100($t2)        Store Word Left : Store high-order 1 to 4 bytes of $t1 into memory, starting with effective memory byte address and continuing through the low-order byte of its word
+swl $t1,100000          Store Word Left : Store high-order 1 to 4 bytes of $t1 into memory, starting with effective memory byte address and continuing through the low-order byte of its word
+swl $t1,100000($t2)     Store Word Left : Store high-order 1 to 4 bytes of $t1 into memory, starting with effective memory byte address and continuing through the low-order byte of its word
+swl $t1,label           Store Word Left : Store high-order 1 to 4 bytes of $t1 into memory, starting with effective memory byte address and continuing through the low-order byte of its word
+swl $t1,label($t2)      Store Word Left : Store high-order 1 to 4 bytes of $t1 into memory, starting with effective memory byte address and continuing through the low-order byte of its word
+swl $t1,label+100000    Store Word Left : Store high-order 1 to 4 bytes of $t1 into memory, starting with effective memory byte address and continuing through the low-order byte of its word
+swl $t1,label+100000($t2)Store Word Left : Store high-order 1 to 4 bytes of $t1 into memory, starting with effective memory byte address and continuing through the low-order byte of its word
+swr $t1,($t2)           Store Word Right : Store low-order 1 to 4 bytes of $t1 into memory, starting with high-order byte of word containing effective memory byte address and continuing through that byte address
+swr $t1,-100            Store Word Right : Store low-order 1 to 4 bytes of $t1 into memory, starting with high-order byte of word containing effective memory byte address and continuing through that byte address
 swr $t1,-100($t2)       Store word right : Store low-order 1 to 4 bytes of $t1 into memory, starting with high-order byte of word containing effective byte address and continuing through that byte address
+swr $t1,100             Store Word Right : Store low-order 1 to 4 bytes of $t1 into memory, starting with high-order byte of word containing effective memory byte address and continuing through that byte address
+swr $t1,100($t2)        Store Word Right : Store low-order 1 to 4 bytes of $t1 into memory, starting with high-order byte of word containing effective memory byte address and continuing through that byte address
+swr $t1,100000          Store Word Right : Store low-order 1 to 4 bytes of $t1 into memory, starting with high-order byte of word containing effective memory byte address and continuing through that byte address
+swr $t1,100000($t2)     Store Word Right : Store low-order 1 to 4 bytes of $t1 into memory, starting with high-order byte of word containing effective memory byte address and continuing through that byte address
+swr $t1,label           Store Word Right : Store low-order 1 to 4 bytes of $t1 into memory, starting with high-order byte of word containing effective memory byte address and continuing through that byte address
+swr $t1,label($t2)      Store Word Right : Store low-order 1 to 4 bytes of $t1 into memory, starting with high-order byte of word containing effective memory byte address and continuing through that byte address
+swr $t1,label+100000    Store Word Right : Store low-order 1 to 4 bytes of $t1 into memory, starting with high-order byte of word containing effective memory byte address and continuing through that byte address
+swr $t1,label+100000($t2)Store Word Right : Store low-order 1 to 4 bytes of $t1 into memory, starting with high-order byte of word containing effective memory byte address and continuing through that byte address
 syscall                 Issue a system call : Execute the system call specified by value in $v0
 trunc.w.d $f1,$f2       Truncate double precision to word : Set $f1 to 32-bit integer truncation of double-precision float in $f2
 trunc.w.s $f0,$f1       Truncate single precision to word : Set $f0 to 32-bit integer truncation of single-precision float in $f1
 xor $t1,$t2,$t3         Bitwise XOR (exclusive OR) : Set $t1 to bitwise XOR of $t2 and $t3
+xor $t1,$t2,100         XOR : set $t1 to ($t2 bitwise-exclusive-OR 16-bit unsigned immediate)
+xor $t1,100             XOR : set $t1 to ($t1 bitwise-exclusive-OR 16-bit unsigned immediate)
 xori $t1,$t2,100        Bitwise XOR immediate : Set $t1 to bitwise XOR of $t2 and zero-extended 16-bit immediate
+xori $t1,$t2,100000     XOR Immediate : set $t1 to ($t2 bitwise-exclusive-OR 32-bit immediate)
+xori $t1,100            XOR Immediate : set $t1 to ($t1 bitwise-exclusive-OR 16-bit unsigned immediate)
+xori $t1,100000         XOR Immediate : set $t1 to ($t1 bitwise-exclusive-OR 32-bit immediate)
