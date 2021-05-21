@@ -88,7 +88,7 @@ def _and(a: int, b: int) -> int:
 
 
 def andi(a: int, b: int) -> int:
-    if valid_immed_unsigned(b):
+    if not valid_immed_unsigned(b):
         raise ex.InvalidImmediate("Immediate is not unsigned 16 bit")
 
     return _and(a, b)

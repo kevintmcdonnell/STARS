@@ -1,10 +1,13 @@
-.data
-msg: .asciiz "Hello world\n"
-
 .text
-.globl main	# This comment with \n has no problem
-
+.globl main
 main:
-	jal func
+li $t0,-3
+li $t1,2
+div $t0,$t1
 
-.include "test2.asm"
+mflo $a0
+li $v0,1
+syscall
+mfhi $a0
+li $v0,1
+syscall
