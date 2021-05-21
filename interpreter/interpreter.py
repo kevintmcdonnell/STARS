@@ -393,7 +393,7 @@ class Interpreter(QWidget):
                 self.set_reg_double(r1, result)
 
             elif op in {'mult', 'multu', 'madd', 'maddu', 'msub', 'msubu'}:
-                signed = op[-1] == 'u'
+                signed = op[-1] != 'u'
                 r1_data = self.get_register(r1)
                 r2_data = self.get_register(r2)
 
