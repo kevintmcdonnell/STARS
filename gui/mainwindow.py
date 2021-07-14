@@ -562,7 +562,7 @@ class MainWindow(QMainWindow):
     def change_rep(self, t):
         self.rep = t
         if self.controller.good():
-            self.update_screen()
+            self.update_screen(self.intr.reg['pc'])
 
     def change_section(self, t):
         if t == 'Kernel':
