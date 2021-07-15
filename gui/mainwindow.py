@@ -117,23 +117,22 @@ class MainWindow(QMainWindow):
         self.float = False
         self.reg_button = QPushButton("Change")
         self.reg_button.clicked.connect(self.update_reg)
-        self.reg_box = QGridLayout()
+        self.reg_box = QTableWidget(33,2)
+        self.reg_box.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        self.reg_box.resizeRowsToContents()
+        self.reg_box.horizontalHeader().setStretchLastSection(True)
+        self.reg_box.setHorizontalHeaderLabels(["Name", "Value"])
         self.regs = {}
         self.rlabels = []
-        self.reg_box.setSpacing(0)
-        i = 0
-        for r in REGS:
-            self.regs[r] = QLabel('0x00000000')
+        for i, r in enumerate(REGS):
+            self.regs[r] = QTableWidgetItem('0x00000000')
             self.regs[r].setFont(QFont("Courier New", 8))
-            self.regs[r].setFrameShape(QFrame.Box)
-            self.regs[r].setFrameShadow(QFrame.Raised)
-            # self.regs[r].setLineWidth(2)
-            reg_label = QLabel(r)
+            self.regs[r].setTextAlignment(int(Qt.AlignRight))
+            reg_label = QTableWidgetItem(r)
             reg_label.setFont(QFont("Courier New", 8))
             self.rlabels.append(reg_label)
-            self.reg_box.addWidget(reg_label, i, 0)
-            self.reg_box.addWidget(self.regs[r], i, 1)
-            i += 1
+            self.reg_box.setItem(i, 0, reg_label)
+            self.reg_box.setItem(i, 1, self.regs[r])
 
         # self.freg_box = QGridLayout()
         # self.fregs = {}
@@ -150,7 +149,7 @@ class MainWindow(QMainWindow):
             # self.freg_box.addWidget(reg_label, i, 0)
             # self.freg_box.addWidget(self.fregs[r], i, 1)
             # i += 1
-        self.lay.addLayout(self.reg_box, 1, 3, 2, 1)
+        self.lay.addWidget(self.reg_box, 1, 3, 2, 1)
         self.lay.addWidget(self.reg_button, 0, 3)
         # self.lay.addLayout(self.freg_box, 1, 4, 2, 1)
 
