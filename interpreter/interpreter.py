@@ -655,6 +655,16 @@ class Interpreter(QWidget):
                     raise ex.InstrCountExceed(f'Exceeded maximum instruction count: {settings["max_instructions"]}')
 
                 self.instr = self.mem.text[str(pc)]
+                if self.instr == 'TERMINATE_EXECUTION':
+                    if settings['debug']:
+                        print()
+                        self.debug.listen(self)
+
+                    if settings['gui']:
+                        self.end.emit(False)
+
+                    break
+
                 self.reg['pc'] += 4
                 self.instruction_count += 1
 
@@ -667,17 +677,7 @@ class Interpreter(QWidget):
                 except AttributeError:
                     self.line_info = ''
 
-                if self.instr == 'TERMINATE_EXECUTION':
-                    if settings['debug']:
-                        print()
-                        self.debug.listen(self)
-
-                    if settings['gui']:
-                        self.end.emit(False)
-
-                    break
-
-                elif self.debug.debug(self.instr):
+                if self.debug.debug(self.instr):
                     if not self.debug.continueFlag:
                         self.pause_lock.clear()
                     if settings['gui']:
