@@ -171,23 +171,15 @@ class MainWindow(QMainWindow):
         self.lay.addLayout(flag_box, 3, 3)
 
     def init_instrs(self):
-        i = QWidget()
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setWidget(i)
         self.instrs = []
         self.pcs = []
         self.checkboxes = []
-        self.instr_grid = QGridLayout()
-        self.instr_grid.setSpacing(0)
-
-        i.setLayout(self.instr_grid)
-        scroll.setMaximumHeight(300)
-        self.lay.addWidget(scroll, 1, 1)
-        # self.instrs = QTextEdit()
-        # self.instrs.setLineWrapMode(QTextEdit.NoWrap)
-        # self.instrs.setReadOnly(True)
-        # self.left.addWidget(self.instrs)
+        self.instr_grid = QTableWidget()
+        self.instr_grid.setColumnCount(2)
+        self.instr_grid.resizeColumnsToContents()
+        self.instr_grid.horizontalHeader().setStretchLastSection(True)
+        self.instr_grid.setHorizontalHeaderLabels(["Bkpt", "Instruction"])
+        self.lay.addWidget(self.instr_grid, 1, 1)
 
     def add_edit(self):
         self.files = {} # filename -> (dirty: bool, path: str)
@@ -671,26 +663,30 @@ class MainWindow(QMainWindow):
         else:
             mem = self.intr.mem
             count = 0
+            self.instr_grid.setRowCount(len([k for k,j in mem.text.items() if type(j) is not str]))
             for k in mem.text.keys():
                 if type(mem.text[k]) is not str:
                     i = mem.text[k]
+                    cell = QWidget()
                     check = QCheckBox()
                     check.stateChanged.connect(lambda state, i=i: self.add_breakpoint(('b', str(i.filetag.file_name)[1:-1], str(i.filetag.line_no))) if state == Qt.Checked else self.remove_breakpoint(
                         ('b', str(i.filetag.file_name)[1:-1], str(i.filetag.line_no))))
                     self.checkboxes.append(check)
-                    self.instr_grid.addWidget(check, count, 0)
+                    layoutCheckbox = QHBoxLayout()
+                    layoutCheckbox.addWidget(check)
+                    layoutCheckbox.setAlignment(check, Qt.AlignCenter)
+                    layoutCheckbox.setContentsMargins(0, 0, 0, 0)
+                    cell.setLayout(layoutCheckbox)
+                    self.instr_grid.setCellWidget(count, 0, cell)
                     if i.is_from_pseudoinstr:
                         q = QLineEdit(f'0x{int(k):08x}\t{i.original_text} ( {i.basic_instr()} )')
-                        q.setReadOnly(True)
-                        q.setFont(QFont("Courier New", 10))
-                        self.instrs.append(q)
-                        self.instr_grid.addWidget(q, count, 1)
                     else:
                         q = QLineEdit(f'0x{int(k):08x}\t{i.basic_instr()}')
-                        q.setFont(QFont("Courier New", 10))
-                        q.setReadOnly(True)
-                        self.instrs.append(q)
-                        self.instr_grid.addWidget(q, count, 1)
+                    q.setFont(QFont("Courier New", 10))
+                    q.setReadOnly(True)
+                    q.setFrame(False)
+                    self.instrs.append(q)
+                    self.instr_grid.setCellWidget(count, 1, q)
                     count += 1
             self.instrs[0].setStyleSheet("QLineEdit { background: rgb(0, 255, 255) };")
             self.prev_instr = self.instrs[0]
