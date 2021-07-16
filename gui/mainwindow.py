@@ -373,22 +373,23 @@ class MainWindow(QMainWindow):
         self.addresses = self.addresses[:]
         self.mem_vals = []
         self.base_address = 0
+        table = QTableWidget(16,5)
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        table.verticalHeader().setVisible(False)
+        table.horizontalHeader().setVisible(False)
         count = 0
-        for i in range(1, 17):
+        for i in range(16):
             for j in range(5):
-                q = QLabel(" ")
-                q.setFrameShape(QFrame.Box)
-                q.setFrameShadow(QFrame.Raised)
-                q.setLineWidth(2)
+                q = QTableWidgetItem(" ")
                 if j == 0:
                     q.setText(f'0x{count:08x}')
                     q.setFont(QFont("Courier New"))
                     self.addresses[i - 1] = q
                 else:
                     self.mem_vals.append(q)
-                grid.addWidget(q, i, j)
+                table.setItem(i, j, q)
             count += 16
-
+        grid.addWidget(table, 1, 0, 16, 5)
         labels = QScrollArea()
         l = QWidget()
         labels.setMaximumHeight(400)
