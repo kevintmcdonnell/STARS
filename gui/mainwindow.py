@@ -338,6 +338,7 @@ class MainWindow(QMainWindow):
 
     def init_out(self):
         self.out = QTextEdit()
+        self.out.setReadOnly(True)
         self.out.setMaximumHeight(100)
         self.out.installEventFilter(self)
         self.lay.addWidget(self.out, 3, 0, 1, 2)
@@ -737,7 +738,6 @@ class MainWindow(QMainWindow):
     def update_console(self, s):
         self.console_sem.acquire()
         cur = self.out.textCursor()
-        cur.setPosition(QTextCursor.End)
         self.out.insertPlainText(s)
         self.out_pos = self.out.textCursor().position()
         self.console_sem.release()
