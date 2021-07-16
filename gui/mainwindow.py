@@ -341,15 +341,10 @@ class MainWindow(QMainWindow):
 
     def init_mem(self):
         grid = QGridLayout()
+        grid.setSpacing(0)
         self.section_dropdown = QComboBox()
         self.section_dropdown.addItems(['Kernel', '.data', 'stack', 'MMIO'])
         self.section_dropdown.currentTextChanged.connect(self.change_section)
-        grid.addWidget(self.section_dropdown, 0, 0)
-        grid.setSpacing(0)
-        grid.addWidget(QLabel("+0"), 0, 1)
-        grid.addWidget(QLabel("+4"), 0, 2)
-        grid.addWidget(QLabel("+8"), 0, 3)
-        grid.addWidget(QLabel("+c"), 0, 4)
         self.mem_right = QPushButton("🡣")
         self.mem_right.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
         self.mem_right.setMaximumWidth(25)
@@ -361,7 +356,8 @@ class MainWindow(QMainWindow):
         self.hdc_dropdown.currentTextChanged.connect(self.change_rep)
         grid.addWidget(self.mem_left, 1, 5, 8, 1)
         grid.addWidget(self.mem_right, 9, 5, 8, 1)
-        grid.addWidget(self.hdc_dropdown, 1, 6, 1, 2)
+        grid.addWidget(self.section_dropdown, 1, 6, 1, 1)
+        grid.addWidget(self.hdc_dropdown, 1, 7, 1, 1)
         self.addresses = [0] * 16
         self.addresses = self.addresses[:]
         self.mem_vals = []
@@ -369,8 +365,10 @@ class MainWindow(QMainWindow):
         table = QTableWidget(16,5)
         table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         table.verticalHeader().setVisible(False)
-        table.horizontalHeader().setVisible(False)
+        table.horizontalHeader().sectionPressed.disconnect()
         table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        table.setSelectionMode(QAbstractItemView.NoSelection)
+        table.setHorizontalHeaderLabels(["Address", "+0", "+4", "+8", "+c"])
         count = 0
         for i in range(16):
             for j in range(5):
