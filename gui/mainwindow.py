@@ -81,14 +81,14 @@ class MainWindow(QMainWindow):
         self.dark = False
         self.palette = QPalette()
         self.palette.setColor(QPalette.Window, QColor(25, 25, 25))  # 53 53 53
-        self.palette.setColor(QPalette.WindowText, Qt.darkCyan)
+        self.palette.setColor(QPalette.WindowText, Qt.white)
         self.palette.setColor(QPalette.Base, QColor(53, 53, 53))  # 25 25 25
         self.palette.setColor(QPalette.AlternateBase, QColor(53, 53, 53))
-        self.palette.setColor(QPalette.ToolTipBase, Qt.darkCyan)
-        self.palette.setColor(QPalette.ToolTipText, Qt.darkCyan)
-        self.palette.setColor(QPalette.Text, Qt.darkCyan)
+        self.palette.setColor(QPalette.ToolTipBase, Qt.white)
+        self.palette.setColor(QPalette.ToolTipText, Qt.white)
+        self.palette.setColor(QPalette.Text, Qt.white)
         self.palette.setColor(QPalette.Button, QColor(53, 53, 53))
-        self.palette.setColor(QPalette.ButtonText, Qt.darkCyan)
+        self.palette.setColor(QPalette.ButtonText, Qt.white)
         self.palette.setColor(QPalette.BrightText, Qt.red)
         self.palette.setColor(QPalette.Link, QColor(42, 130, 218))
         self.palette.setColor(QPalette.Highlight, QColor(42, 130, 218))
@@ -421,7 +421,7 @@ class MainWindow(QMainWindow):
         all_horizontal.addWidget(self.reg_box)
         all_horizontal.setStretchFactor(0, 3)
         all_horizontal.setStretchFactor(1, 0)
-        
+
         self.lay.addWidget(all_horizontal, 1, 0, 3, 4)
 
     def save_file(self, wid=None, ind=None):
@@ -522,12 +522,12 @@ class MainWindow(QMainWindow):
     def change_theme(self):
         if not self.dark:
             self.app.setPalette(self.palette)
-            for reg in REGS:
-                self.regs[reg].setPalette(self.palette)
+            # for reg in REGS:
+            #     self.regs[reg].setPalette(self.palette)
         else:
             self.app.setPalette(self.default_theme)
-            for reg in REGS:
-                self.regs[reg].setPalette(self.default_theme)
+            # for reg in REGS:
+            #     self.regs[reg].setPalette(self.default_theme)
         self.dark = not self.dark
 
     def start(self):
