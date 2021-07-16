@@ -106,12 +106,13 @@ class MainWindow(QMainWindow):
         self.init_out()
         self.init_regs()
         self.init_pa()
-        self.init_cop_flags()
+        # self.init_cop_flags()
         self.add_edit()
         center = QWidget()
         center.setLayout(self.lay)
         self.setCentralWidget(center)
         self.showMaximized()
+        self.init_splitters()
 
     def init_regs(self):
         self.float = False
@@ -153,7 +154,6 @@ class MainWindow(QMainWindow):
             # self.freg_box.addWidget(reg_label, i, 0)
             # self.freg_box.addWidget(self.fregs[r], i, 1)
             # i += 1
-        self.lay.addWidget(self.reg_box, 1, 3, 2, 1)
         self.lay.addWidget(self.reg_button, 0, 3)
         # self.lay.addLayout(self.freg_box, 1, 4, 2, 1)
 
@@ -183,7 +183,6 @@ class MainWindow(QMainWindow):
         self.instr_grid.resizeColumnsToContents()
         self.instr_grid.horizontalHeader().setStretchLastSection(True)
         self.instr_grid.setHorizontalHeaderLabels(["Bkpt", "Instruction"])
-        self.lay.addWidget(self.instr_grid, 1, 1)
 
     def add_edit(self):
         self.files = {} # filename -> (dirty: bool, path: str)
@@ -209,7 +208,6 @@ class MainWindow(QMainWindow):
         self.comp.setWrapAround(False)
         text_edit.setCompleter(self.comp)
 
-        self.lay.addWidget(self.tabs, 1, 0)
 
     def modelFromFile(self, filename, comp):
         f = QFile(filename)
@@ -337,9 +335,7 @@ class MainWindow(QMainWindow):
     def init_out(self):
         self.out = QTextEdit()
         self.out.setReadOnly(True)
-        self.out.setMaximumHeight(100)
         self.out.installEventFilter(self)
-        self.lay.addWidget(self.out, 3, 0, 1, 2)
 
     def init_mem(self):
         grid = QGridLayout()
@@ -393,8 +389,8 @@ class MainWindow(QMainWindow):
         self.labels.setSortingEnabled(True)
         self.labels.setHorizontalHeaderLabels(['', 'Label', 'Address'])
         grid.addWidget(self.labels, 2, 6, 15, 2)
-
-        self.lay.addLayout(grid, 2, 0, 1, 2)
+        self.mem_grid = QWidget()
+        self.mem_grid.setLayout(grid)
 
     def init_pa(self):
         self.pa = QLineEdit()
@@ -402,7 +398,31 @@ class MainWindow(QMainWindow):
         label = QLabel('Program Arguments:')
         pa.addWidget(label)
         pa.addWidget(self.pa)
-        self.lay.addLayout(pa, 0, 0, 1, 2)
+        self.lay.addLayout(pa, 0, 0, 1, 3)
+
+    def init_splitters(self): 
+        editor_instruction_horizontal = QSplitter()
+        editor_instruction_horizontal.addWidget(self.tabs)
+        editor_instruction_horizontal.addWidget(self.instr_grid)
+        largeWidth = QGuiApplication.primaryScreen().size().width()
+        editor_instruction_horizontal.setSizes([largeWidth, largeWidth]) # 50|50
+
+        left_vertical = QSplitter()
+        left_vertical.setOrientation(Qt.Vertical)
+        left_vertical.addWidget(editor_instruction_horizontal)
+        left_vertical.addWidget(self.mem_grid)
+        left_vertical.addWidget(self.out)
+        left_vertical.setStretchFactor(0, 10)
+        left_vertical.setStretchFactor(1, 4)
+        left_vertical.setStretchFactor(2, 2)
+
+        all_horizontal = QSplitter()
+        all_horizontal.addWidget(left_vertical)
+        all_horizontal.addWidget(self.reg_box)
+        all_horizontal.setStretchFactor(0, 3)
+        all_horizontal.setStretchFactor(1, 0)
+        
+        self.lay.addWidget(all_horizontal, 1, 0, 3, 4)
 
     def save_file(self, wid=None, ind=None):
         if not wid:
