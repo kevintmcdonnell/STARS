@@ -122,6 +122,7 @@ class MainWindow(QMainWindow):
         self.reg_box.resizeRowsToContents()
         self.reg_box.horizontalHeader().setStretchLastSection(True)
         self.reg_box.setHorizontalHeaderLabels(["Name", "Value"])
+        self.reg_box.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.regs = {}
         self.rlabels = []
         for i, r in enumerate(REGS):
@@ -369,6 +370,7 @@ class MainWindow(QMainWindow):
         table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         table.verticalHeader().setVisible(False)
         table.horizontalHeader().setVisible(False)
+        table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         count = 0
         for i in range(16):
             for j in range(5):
