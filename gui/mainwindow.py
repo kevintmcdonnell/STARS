@@ -123,6 +123,9 @@ class MainWindow(QMainWindow):
         self.reg_box.horizontalHeader().setStretchLastSection(True)
         self.reg_box.setHorizontalHeaderLabels(["Name", "Value"])
         self.reg_box.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.reg_box.horizontalHeader().sectionPressed.disconnect()
+        self.reg_box.setSelectionMode(QAbstractItemView.NoSelection)
+        self.reg_box.verticalHeader().setVisible(False)
         self.regs = {}
         self.rlabels = []
         for i, r in enumerate(REGS):
