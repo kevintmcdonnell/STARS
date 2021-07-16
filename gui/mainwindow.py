@@ -385,13 +385,15 @@ class MainWindow(QMainWindow):
                 table.setItem(i, j, q)
             count += 16
         grid.addWidget(table, 1, 0, 16, 5)
-        labels = QScrollArea()
-        l = QWidget()
-        labels.setMaximumHeight(400)
-        labels.setWidget(l)
-        self.lab_grid = QVBoxLayout()
-        labels.setLayout(self.lab_grid)
-        grid.addWidget(labels, 2, 6, 15, 2)
+        self.labels = QTableWidget()
+        self.labels.setColumnCount(3)
+        self.labels.verticalHeader().setVisible(False)
+        self.labels.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.labels.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.labels.setSelectionMode(QAbstractItemView.NoSelection)
+        self.labels.setSortingEnabled(True)
+        self.labels.setHorizontalHeaderLabels(['', 'Label', 'Address'])
+        grid.addWidget(self.labels, 2, 6, 15, 2)
 
         self.lay.addLayout(grid, 2, 0, 1, 2)
 
@@ -587,13 +589,14 @@ class MainWindow(QMainWindow):
         self.instr_count.setText(f'Instruction Count: {self.controller.get_instr_count()}\t\t')
 
     def fill_labels(self):
-        for i in reversed(range(self.lab_grid.count())):
-            self.lab_grid.itemAt(i).widget().setParent(None)
         labels = self.controller.get_labels()
-        for l in labels:
+        self.labels.setRowCount(len(labels))
+        for i, l in enumerate(labels):
             q = QPushButton(f'{l}: 0x{labels[l]:08x}')
             q.clicked.connect(lambda : self.mem_move_to(labels[l]))
-            self.lab_grid.addWidget(q)
+            self.labels.setCellWidget(i, 0, q)
+            self.labels.setItem(i, 1, QTableWidgetItem(f'{l}'))
+            self.labels.setItem(i, 2, QTableWidgetItem(f'0x{labels[l]:08x}'))
 
     def mem_move_to(self, addr):
         self.mem_sem.acquire()
