@@ -209,7 +209,7 @@ class MainWindow(QMainWindow):
         text_edit = TextEdit()
         text_edit.setAcceptRichText(False)
         self.comp = QCompleter()
-        self.comp.setModel(self.modelFromFile(r"wordslist.txt", self.comp))
+        self.comp.setModel(self.modelFromFile(r"gui/wordslist.txt", self.comp))
         self.comp.setModelSorting(QCompleter.CaseInsensitivelySortedModel)
         self.comp.setCaseSensitivity(Qt.CaseInsensitive)
         self.comp.setWrapAround(False)
