@@ -209,8 +209,6 @@ class MainWindow(QMainWindow):
         self.comp.setWrapAround(False)
         text_edit.setCompleter(self.comp)
 
-        self.new_tab()
-
         self.lay.addWidget(self.tabs, 1, 0)
 
     def modelFromFile(self, filename, comp):
@@ -795,7 +793,8 @@ class MainWindow(QMainWindow):
         i = self.tabs.currentIndex()
         if w is not None and (w.name not in self.files or not self.files[w.name]):
             self.tabs.setTabText(i, f'{self.tabs.tabText(i)} *')
-        self.files[w.name] = True
+        if w:
+            self.files[w.name] = True
 
 if __name__ == "__main__":
     app = QApplication()
