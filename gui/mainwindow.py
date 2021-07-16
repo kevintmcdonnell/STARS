@@ -99,7 +99,7 @@ class MainWindow(QMainWindow):
     def init_ui(self):
         self.setWindowTitle("STARS")
         self.lay = QGridLayout()
-        self.lay.setSpacing(0)
+        self.lay.setSpacing(5)
         self.init_menubar()
         self.init_instrs()
         self.init_mem()
@@ -345,7 +345,7 @@ class MainWindow(QMainWindow):
 
     def init_mem(self):
         grid = QGridLayout()
-        grid.setSpacing(0)
+        grid.setSpacing(5)
         self.section_dropdown = QComboBox()
         self.section_dropdown.addItems(['Kernel', '.data', 'stack', 'MMIO'])
         self.section_dropdown.currentTextChanged.connect(self.change_section)
