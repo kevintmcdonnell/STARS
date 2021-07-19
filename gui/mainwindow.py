@@ -106,7 +106,7 @@ class MainWindow(QMainWindow):
         self.init_out()
         self.init_regs()
         self.init_pa()
-        # self.init_cop_flags()
+        self.init_cop_flags()
         self.add_edit()
         center = QWidget()
         center.setLayout(self.lay)
@@ -172,7 +172,7 @@ class MainWindow(QMainWindow):
             flag_box.addWidget(c1, i, 0)
             flag_box.addWidget(c2, i, 1)
         flag_box.addWidget(QLabel('Coproc 1 Flags:'), 0, 0)
-        self.lay.addLayout(flag_box, 3, 3)
+        # self.lay.addLayout(flag_box, 3, 3)
 
     def init_instrs(self):
         self.instrs = []
