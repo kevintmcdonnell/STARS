@@ -37,3 +37,67 @@ REGS = ['$zero', '$at', '$v0', '$v1', '$a0', '$a1', '$a2', '$a3',
         'pc', 'hi', 'lo']
 
 F_REGS = [f'$f{i}' for i in range(32)]
+
+MENU_BAR = {
+    'File': {
+        'New': {
+            'Shortcut':'Ctrl+N',
+            'Action':'self.new_tab'
+        },
+        'Open': {
+            'Shortcut':'Ctrl+O',
+            'Action':'self.open_file'
+        },
+        'Save': {
+            'Shortcut':'Ctrl+S',
+            'Action':'self.save_file'
+        }
+    },
+    'Run': {
+        'Assemble': {
+            'Shortcut':'F3',
+            'Action':'lambda: self.assemble(self.tabs.currentWidget().name) if self.tabs.currentWidget().name else None'
+        },
+        'Start': {
+            'Shortcut':'F5',
+            'Action':'self.start'
+        },
+        'Step': {
+            'Shortcut':'F7',
+            'Action':'self.step'
+        },
+        'Backstep': {
+            'Shortcut':'F8',
+            'Action':'self.reverse'
+        },
+        'Pause': {
+            'Shortcut':'F9',
+            'Action':'self.pause'
+        }
+    },
+    'Settings': {
+        'Garbage Memory': {
+            'Checkbox': 'garbage_memory'
+        },
+        'Garbage Registers': {
+            'Checkbox': 'garbage_registers'
+        },
+        'Instruction Count': {
+            'Checkbox': 'disp_instr_count'
+        },
+        'Warnings': {
+            'Checkbox': 'warnings'
+        }
+    },
+    'Tools': {
+        'Dark Mode': {
+            'Action': "self.change_theme"
+        },
+        'MMIO Display': {
+            'Action': "self.launch_vt100"
+        }
+    },
+    'Help': {
+        'Help': {}
+    }    
+}

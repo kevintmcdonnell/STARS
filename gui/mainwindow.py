@@ -3,7 +3,7 @@ import sys
 from threading import Thread
 
 sys.path.append(os.getcwd())  # must be ran in sbumips directory (this is bc PYTHONPATH is weird in terminal)
-from constants import REGS, F_REGS
+from constants import REGS, F_REGS, MENU_BAR
 from interpreter.interpreter import Interpreter
 from sbumips import assemble
 from settings import settings
@@ -230,104 +230,41 @@ class MainWindow(QMainWindow):
     def init_menubar(self):
         bar = self.menuBar()
 
-        file_ = bar.addMenu("File")
-        open_ = QAction("Open", self)
-        open_.triggered.connect(self.open_file)
-        file_.addAction(open_)
-        save_ = QAction("Save", self)
-        save_.triggered.connect(self.save_file)
-        file_.addAction(save_)
-
-        tools = bar.addMenu("Tools")
-        dark_mode = QAction("Dark Mode", self)
-        dark_mode.triggered.connect(self.change_theme)
-        tools.addAction(dark_mode)
-        vt = QAction("MMIO Display", self)
-        vt.triggered.connect(self.launch_vt100)
-        tools.addAction(vt)
-
-        sett = bar.addMenu("Settings")
-        for s in ['garbage_memory', 'garbage_registers', 'disp_instr_count', 'warnings']:
-            pass
-        mem_wid = QWidgetAction(sett)
-        mem_box = QCheckBox("Garbage Memory")
-        if settings['garbage_memory']:
-            mem_box.setChecked()
-        mem_box.stateChanged.connect(lambda: self.controller.setSetting('garbage_memory', mem_box.isChecked()))
-        mem_wid.setDefaultWidget(mem_box)
-        sett.addAction(mem_wid)
-
-        reg_wid = QWidgetAction(sett)
-        reg_box = QCheckBox("Garbage Registers")
-        if settings['garbage_registers']:
-            reg_box.setChecked()
-        reg_box.stateChanged.connect(lambda: self.controller.setSetting('garbage_registers', reg_box.isChecked()))
-        reg_wid.setDefaultWidget(reg_box)
-        sett.addAction(reg_wid)
-
-        inst_wid = QWidgetAction(sett)
-        inst_box = QCheckBox("Instruction Count")
-        if settings['disp_instr_count']:
-            inst_box.setChecked()
-        inst_box.stateChanged.connect(lambda: self.controller.setSetting('disp_instr_count', inst_box.isChecked()))
-        inst_wid.setDefaultWidget(inst_box)
-        sett.addAction(inst_wid)
-
-        warn_wid = QWidgetAction(sett)
-        warn_box = QCheckBox("Warnings")
-        if settings['warnings']:
-            warn_box.setChecked()
-        warn_box.stateChanged.connect(lambda: self.controller.setSetting('warnings', warn_box.isChecked()))
-        warn_wid.setDefaultWidget(warn_box)
-        sett.addAction(warn_wid)
-
-        help_ = bar.addMenu("Help")
-
-        run = bar.addMenu("Run")
-        asm = QAction("Assemble (F3)", self)
-        asm.triggered.connect(lambda: self.assemble(self.tabs.currentWidget().name) if self.tabs.currentWidget().name else None)
-        asm_short = QShortcut(QKeySequence(self.tr("F3")), self)
-        asm_short.activated.connect(lambda: asm.trigger())
-        run.addAction(asm)
-        start = QAction("Start (F5)", self)
-        start.triggered.connect(self.start)
-        start_short = QShortcut(QKeySequence(self.tr("F5")), self)
-        start_short.activated.connect(lambda: start.trigger())
-        run.addAction(start)
-        step = QAction("Step (F7)", self)
-        step.triggered.connect(self.step)
-        step_short = QShortcut(QKeySequence(self.tr("F7")), self)
-        step_short.activated.connect(lambda: step.trigger())
-        run.addAction(step)
-        back = QAction("Back (F8)", self)
-        back.triggered.connect(self.reverse)
-        back_short = QShortcut(QKeySequence(self.tr("F8")), self)
-        back_short.activated.connect(lambda: back.trigger())
-        run.addAction(back)
-        pause = QAction('Pause (F9)', self)
-        pause.triggered.connect(self.pause)
-        pause_short = QShortcut(QKeySequence(self.tr("F9")), self)
-        pause_short.activated.connect(lambda: pause.trigger())
-        run.addAction(pause)
+        for tabs, values in MENU_BAR.items():
+            tab = bar.addMenu(tabs)
+            if tabs == 'Settings':
+                tab.triggered.connect(lambda selection: self.controller.setSetting(selection.data(), selection.isChecked()))
+            for option, controls in values.items():
+                action = QAction(f"&{option}", self) if 'Shortcut' in controls else QAction(option, self)
+                if 'Checkbox' in controls:
+                    action.setCheckable(True)
+                    action.setData(controls['Checkbox'])
+                    action.setChecked(settings[controls['Checkbox']])
+                if 'Action' in controls:
+                    action.triggered.connect(eval(controls['Action']))
+                if 'Shortcut' in controls:
+                    action.setShortcut(controls['Shortcut'])
+                tab.addAction(action)
 
         asm_but = QAction("✇", self)
         # asm_but.setToolTip('F3')
         # asm_but.setToolTipsVisible(True)
         # asm_but.setWhatsThis('F3')
-        asm_but.triggered.connect(lambda : asm.trigger())
+        asm_but.triggered.connect(lambda: self.assemble(self.tabs.currentWidget().name) if self.tabs.currentWidget() else None)
+        # asm_but.triggered.connect(lambda : asm.trigger())
         bar.addAction(asm_but)
-        start_but = QAction("▶️", self)
-        start_but.triggered.connect(lambda: start.trigger())
-        bar.addAction(start_but)
-        step_but = QAction("⏭", self)
-        step_but.triggered.connect(lambda: step.trigger())
-        bar.addAction(step_but)
-        back_but = QAction("⏮", self)
-        back_but.triggered.connect(lambda: back.trigger())
-        bar.addAction(back_but)
-        pause_but = QAction("⏸", self)
-        pause_but.triggered.connect(lambda: pause.trigger())
-        bar.addAction(pause_but)
+        # start_but = QAction("▶️", self)
+        # start_but.triggered.connect(lambda: start.trigger())
+        # bar.addAction(start_but)
+        # step_but = QAction("⏭", self)
+        # step_but.triggered.connect(lambda: step.trigger())
+        # bar.addAction(step_but)
+        # back_but = QAction("⏮", self)
+        # back_but.triggered.connect(lambda: back.trigger())
+        # bar.addAction(back_but)
+        # pause_but = QAction("⏸", self)
+        # pause_but.triggered.connect(lambda: pause.trigger())
+        # bar.addAction(pause_but)
 
         self.instr_count = QLabel("Instruction Count: 0\t\t")
         bar.setCornerWidget(self.instr_count)
