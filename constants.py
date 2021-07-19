@@ -56,7 +56,7 @@ MENU_BAR = {
     'Run': {
         'Assemble': {
             'Shortcut':'F3',
-            'Action':'lambda: self.assemble(self.tabs.currentWidget().name) if self.tabs.currentWidget().name else None'
+            'Action':'self.assemble'
         },
         'Start': {
             'Shortcut':'F5',

@@ -246,26 +246,6 @@ class MainWindow(QMainWindow):
                     action.setShortcut(controls['Shortcut'])
                 tab.addAction(action)
 
-        asm_but = QAction("✇", self)
-        # asm_but.setToolTip('F3')
-        # asm_but.setToolTipsVisible(True)
-        # asm_but.setWhatsThis('F3')
-        asm_but.triggered.connect(lambda: self.assemble(self.tabs.currentWidget().name) if self.tabs.currentWidget() else None)
-        # asm_but.triggered.connect(lambda : asm.trigger())
-        bar.addAction(asm_but)
-        # start_but = QAction("▶️", self)
-        # start_but.triggered.connect(lambda: start.trigger())
-        # bar.addAction(start_but)
-        # step_but = QAction("⏭", self)
-        # step_but.triggered.connect(lambda: step.trigger())
-        # bar.addAction(step_but)
-        # back_but = QAction("⏮", self)
-        # back_but.triggered.connect(lambda: back.trigger())
-        # bar.addAction(back_but)
-        # pause_but = QAction("⏸", self)
-        # pause_but.triggered.connect(lambda: pause.trigger())
-        # bar.addAction(pause_but)
-
         self.instr_count = QLabel("Instruction Count: 0\t\t")
         bar.setCornerWidget(self.instr_count)
 
@@ -424,7 +404,10 @@ class MainWindow(QMainWindow):
             self.new_tab(wid=wid, name=n)
 
 
-    def assemble(self, filename):
+    def assemble(self):
+        if self.tabs.currentWidget() is None:
+            return
+        filename = self.tabs.currentWidget().name
         try:
             if self.running:
                 self.intr.end.emit(False)
