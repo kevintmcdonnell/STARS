@@ -394,7 +394,7 @@ class MainWindow(QMainWindow):
         try:
             filename = QFileDialog.getOpenFileName(self, 'Open', '', options=QFileDialog.DontUseNativeDialog)
         except:
-            self.out.setPlainText(f'Could not open file\n')
+            self.update_console(f'Could not open file\n')
             return
 
         if not filename or len(filename[0]) == 0:
@@ -422,7 +422,6 @@ class MainWindow(QMainWindow):
                 self.intr.end.emit(False)
             for i in range(self.len):
                 self.save_file(wid=self.tabs.widget(i), ind=i)
-            self.out.setPlainText('')
             self.result = assemble(filename)
             self.intr = Interpreter(self.result, self.pa.text().split())
             self.controller.set_interp(self.intr)
@@ -439,14 +438,9 @@ class MainWindow(QMainWindow):
 
         except Exception as e:
             if hasattr(e, 'message'):
-                self.console_sem.acquire()
-                self.out.setPlainText(type(e).__name__ + ": " + e.message)
-                self.console_sem.release()
-
+                self.update_console(type(e).__name__ + ": " + e.message)
             else:
-                self.console_sem.acquire()
-                self.out.setPlainText(type(e).__name__ + ": " + str(e))
-                self.console_sem.release()
+                self.update_console(type(e).__name__ + ": " + str(e))
 
     def change_theme(self):
         if not self.dark:
@@ -467,7 +461,6 @@ class MainWindow(QMainWindow):
             self.controller.set_interp(self.intr)
             self.changed_interp.emit()
             self.controller.pause(False)
-            self.out.setPlainText('')
             self.out_pos = self.out.textCursor().position()
             self.program = Thread(target=self.intr.interpret, daemon=True)
             for b in self.breakpoints:
@@ -489,7 +482,6 @@ class MainWindow(QMainWindow):
             self.set_running(True)
             self.controller.set_interp(self.intr)
             self.controller.set_pause(True)
-            self.out.setPlainText('')
             self.program = Thread(target=self.intr.interpret, daemon=True)
             for b in self.breakpoints:
                 self.controller.add_breakpoint(b)
@@ -685,7 +677,7 @@ class MainWindow(QMainWindow):
     def update_console(self, s="", clear=False):
         self.console_sem.acquire()
         if clear:
-            self.out.setPlainText("")
+            self.out.setPlainText(s)
         else:
             self.out.insertPlainText(s)
         self.console_sem.release()
