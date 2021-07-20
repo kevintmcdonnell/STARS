@@ -740,6 +740,7 @@ class MainWindow(QMainWindow):
             wid.setCompleter(self.comp)
             wid.textChanged.connect(self.update_dirty)
         self.tabs.addTab(wid, name)
+        self.tabs.setCurrentWidget(wid)
         self.update_button_status(assemble=True)
         self.highlighter[name] = Highlighter(wid.document())
 
