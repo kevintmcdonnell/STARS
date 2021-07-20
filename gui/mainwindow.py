@@ -11,6 +11,7 @@ from controller import Controller
 from gui.vt100 import VT100
 from gui.textedit import TextEdit
 from gui.syntaxhighlighter import Highlighter
+from gui.widgetfactory import *
 
 from PySide2.QtCore import Qt, QSemaphore, QEvent, Signal, QFile, QStringListModel
 from PySide2.QtGui import QTextCursor, QGuiApplication, QPalette, QColor, QFont, QKeySequence, QCursor
@@ -118,15 +119,8 @@ class MainWindow(QMainWindow):
         self.float = False
         self.reg_button = QPushButton("Change")
         self.reg_button.clicked.connect(self.update_reg)
-        self.reg_box = QTableWidget(33,2)
-        self.reg_box.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        self.reg_box = create_table(33, 2, ["Name", "Value"], stretch_last=True)
         self.reg_box.resizeRowsToContents()
-        self.reg_box.horizontalHeader().setStretchLastSection(True)
-        self.reg_box.setHorizontalHeaderLabels(["Name", "Value"])
-        self.reg_box.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.reg_box.horizontalHeader().sectionPressed.disconnect()
-        self.reg_box.setSelectionMode(QAbstractItemView.NoSelection)
-        self.reg_box.verticalHeader().setVisible(False)
         self.regs = {}
         self.rlabels = []
         for i, r in enumerate(REGS):
@@ -178,11 +172,8 @@ class MainWindow(QMainWindow):
         self.instrs = []
         self.pcs = []
         self.checkboxes = []
-        self.instr_grid = QTableWidget()
-        self.instr_grid.setColumnCount(2)
+        self.instr_grid = create_table(0, 2, ["Bkpt", "Instruction"], stretch_last=True)
         self.instr_grid.resizeColumnsToContents()
-        self.instr_grid.horizontalHeader().setStretchLastSection(True)
-        self.instr_grid.setHorizontalHeaderLabels(["Bkpt", "Instruction"])
 
     def add_edit(self):
         self.files = {} # filename -> (dirty: bool, path: str)
@@ -291,13 +282,7 @@ class MainWindow(QMainWindow):
         self.addresses = self.addresses[:]
         self.mem_vals = []
         self.base_address = 0
-        table = QTableWidget(16,5)
-        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        table.verticalHeader().setVisible(False)
-        table.horizontalHeader().sectionPressed.disconnect()
-        table.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        table.setSelectionMode(QAbstractItemView.NoSelection)
-        table.setHorizontalHeaderLabels(["Address", "+0", "+4", "+8", "+c"])
+        table = create_table(16, 5, ["Address", "+0", "+4", "+8", "+c"])
         count = 0
         for i in range(16):
             for j in range(5):
@@ -311,14 +296,8 @@ class MainWindow(QMainWindow):
                 table.setItem(i, j, q)
             count += 16
         grid.addWidget(table, 1, 0, 16, 5)
-        self.labels = QTableWidget()
-        self.labels.setColumnCount(3)
-        self.labels.verticalHeader().setVisible(False)
-        self.labels.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.labels.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.labels.setSelectionMode(QAbstractItemView.NoSelection)
+        self.labels = create_table(0, 3, ['', 'Label', 'Address'])
         self.labels.setSortingEnabled(True)
-        self.labels.setHorizontalHeaderLabels(['', 'Label', 'Address'])
         grid.addWidget(self.labels, 2, 6, 15, 2)
         self.mem_grid = QWidget()
         self.mem_grid.setLayout(grid)
@@ -621,24 +600,15 @@ class MainWindow(QMainWindow):
             for k in mem.text.keys():
                 if type(mem.text[k]) is not str:
                     i = mem.text[k]
-                    cell = QWidget()
-                    check = QCheckBox()
+                    cell, check = create_breakpoint()
                     check.stateChanged.connect(lambda state, i=i: self.add_breakpoint(('b', str(i.filetag.file_name)[1:-1], str(i.filetag.line_no))) if state == Qt.Checked else self.remove_breakpoint(
                         ('b', str(i.filetag.file_name)[1:-1], str(i.filetag.line_no))))
                     self.checkboxes.append(check)
-                    layoutCheckbox = QHBoxLayout()
-                    layoutCheckbox.addWidget(check)
-                    layoutCheckbox.setAlignment(check, Qt.AlignCenter)
-                    layoutCheckbox.setContentsMargins(0, 0, 0, 0)
-                    cell.setLayout(layoutCheckbox)
                     self.instr_grid.setCellWidget(count, 0, cell)
                     if i.is_from_pseudoinstr:
-                        q = QLineEdit(f'0x{int(k):08x}\t{i.original_text} ( {i.basic_instr()} )')
+                        q = create_instruction(f'0x{int(k):08x}\t{i.original_text} ( {i.basic_instr()} )')
                     else:
-                        q = QLineEdit(f'0x{int(k):08x}\t{i.basic_instr()}')
-                    q.setFont(QFont("Courier New", 10))
-                    q.setReadOnly(True)
-                    q.setFrame(False)
+                        q = create_instruction(f'0x{int(k):08x}\t{i.basic_instr()}')
                     self.instrs.append(q)
                     self.instr_grid.setCellWidget(count, 1, q)
                     count += 1
