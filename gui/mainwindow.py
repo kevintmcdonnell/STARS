@@ -116,40 +116,33 @@ class MainWindow(QMainWindow):
         self.init_splitters()
 
     def init_regs(self):
-        self.float = False
-        self.reg_button = QPushButton("Change")
-        self.reg_button.clicked.connect(self.update_reg)
-        self.reg_box = create_table(33, 2, ["Name", "Value"], stretch_last=True)
-        self.reg_box.resizeRowsToContents()
         self.regs = {}
-        self.rlabels = []
+        self.reg_box = QTabWidget()
+        reg_box = create_table(len(REGS), 2, ["Name", "Value"], stretch_last=True)
+        reg_box.resizeRowsToContents()
         for i, r in enumerate(REGS):
             self.regs[r] = QTableWidgetItem('0x00000000')
             self.regs[r].setFont(QFont("Courier New", 8))
             self.regs[r].setTextAlignment(int(Qt.AlignRight))
             reg_label = QTableWidgetItem(r)
             reg_label.setFont(QFont("Courier New", 8))
-            self.rlabels.append(reg_label)
-            self.reg_box.setItem(i, 0, reg_label)
-            self.reg_box.setItem(i, 1, self.regs[r])
-
-        # self.freg_box = QGridLayout()
-        # self.fregs = {}
-        # self.freg_box.setSpacing(0)
-        # i = 0
-        for r in F_REGS:
-            self.regs[r] = QLabel('0x00000000')
+            reg_box.setItem(i, 0, reg_label)
+            reg_box.setItem(i, 1, self.regs[r])
+            
+        freg_box = create_table(len(F_REGS), 2, ["Name", "Value"], stretch_last=True) 
+        freg_box.resizeRowsToContents()
+        for i, r in enumerate(F_REGS):
+            self.regs[r] = QTableWidgetItem('0x00000000')
             self.regs[r].setFont(QFont("Courier New", 8))
-            self.regs[r].setFrameShape(QFrame.Box)
-            self.regs[r].setFrameShadow(QFrame.Raised)
-            # self.regs[r].setLineWidth(2)
-            # reg_label = QLabel(r)
-            # reg_label.setFont(QFont("Courier New", 8))
-            # self.freg_box.addWidget(reg_label, i, 0)
-            # self.freg_box.addWidget(self.fregs[r], i, 1)
-            # i += 1
-        self.lay.addWidget(self.reg_button, 0, 3)
-        # self.lay.addLayout(self.freg_box, 1, 4, 2, 1)
+            self.regs[r].setTextAlignment(int(Qt.AlignRight))
+            reg_label = QTableWidgetItem(r)
+            reg_label.setFont(QFont("Courier New", 8))
+            freg_box.setItem(i, 0, reg_label)
+            freg_box.setItem(i, 1, self.regs[r])
+        self.reg_box.addTab(reg_box, "Registers")
+        self.reg_box.addTab(freg_box, "Coproc 1")
+        self.reg_box.tabBar().setDocumentMode(True)
+
 
     def init_cop_flags(self):
         flag_box = QGridLayout()
@@ -553,21 +546,8 @@ class MainWindow(QMainWindow):
                 self.flags[i].setCheckState(Qt.Unchecked)
 
     def fill_reg(self):
-        i = 0
-
-        for j in range(len(REGS)):
-            if self.float and j < len(F_REGS):
-                r = F_REGS[j]
-                self.rlabels[i].setText(f'{r:5}')
-                i += 1
-                if self.rep == "Decimal":
-                    self.regs[r].setText(f'{self.intr.f_reg[r]:8f}')
-                else:
-                    self.regs[r].setText(f'0x{self.controller.get_reg_word(r):08x}')
-            else:
-                r = REGS[j]
-                self.rlabels[i].setText(f'{r:5}')
-                i += 1
+        for r in self.regs.keys():
+            if r in REGS:
                 if self.rep == "Decimal":
                     self.regs[r].setText(str(self.intr.reg[r]))
                 else:
@@ -575,7 +555,11 @@ class MainWindow(QMainWindow):
                     if a < 0:
                         a += 2 ** 32
                     self.regs[r].setText(f'0x{a:08x}')
-
+            else:
+                if self.rep == "Decimal":
+                    self.regs[r].setText(f'{self.intr.f_reg[r]:8f}')
+                else:
+                    self.regs[r].setText(f'0x{self.controller.get_reg_word(r):08x}')
 
     def fill_instrs(self, pc):
         # pc = self.intr.reg['pc']
@@ -685,10 +669,6 @@ class MainWindow(QMainWindow):
         if self.vt100:
             self.vt100.close()
         self.vt100 = VT100(self.controller, self.changed_interp)
-
-    def update_reg(self):
-        self.float = not self.float
-        self.fill_reg()
 
     def close_tab(self, i):
         if self.tabs.currentIndex() == i:
