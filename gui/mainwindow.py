@@ -301,12 +301,20 @@ class MainWindow(QMainWindow):
         label = QLabel('Program Arguments:')
         pa.addWidget(label)
         pa.addWidget(self.pa)
-        self.lay.addLayout(pa, 0, 0, 1, 3)
+        self.pa_lay = QWidget()
+        self.pa_lay.setLayout(pa)
 
     def init_splitters(self): 
+        instruction_pa = QSplitter()
+        instruction_pa.setOrientation(Qt.Vertical)
+        instruction_pa.addWidget(self.pa_lay)
+        instruction_pa.addWidget(self.instr_grid)
+        instruction_pa.setStretchFactor(0, 1)
+        instruction_pa.setStretchFactor(1, 9)
+
         editor_instruction_horizontal = QSplitter()
         editor_instruction_horizontal.addWidget(self.tabs)
-        editor_instruction_horizontal.addWidget(self.instr_grid)
+        editor_instruction_horizontal.addWidget(instruction_pa)
         largeWidth = QGuiApplication.primaryScreen().size().width()
         editor_instruction_horizontal.setSizes([largeWidth, largeWidth]) # 50|50
 
@@ -325,7 +333,7 @@ class MainWindow(QMainWindow):
         all_horizontal.setStretchFactor(0, 3)
         all_horizontal.setStretchFactor(1, 0)
 
-        self.lay.addWidget(all_horizontal, 1, 0, 3, 4)
+        self.lay.addWidget(all_horizontal, 0, 0)
 
     def save_file(self, wid=None, ind=None):
         if not wid:
