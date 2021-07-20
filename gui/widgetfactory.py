@@ -30,6 +30,7 @@ def create_table(rows: int, cols: int, labels: [str], stretch_last: bool=False) 
         table.horizontalHeader().setStretchLastSection(True)
     else:
         table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+    table.setAlternatingRowColors(True)
     table.setEditTriggers(QAbstractItemView.NoEditTriggers)
     table.setSelectionMode(QAbstractItemView.NoSelection)
     table.setHorizontalHeaderLabels(labels)
