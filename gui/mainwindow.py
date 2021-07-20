@@ -253,6 +253,15 @@ class MainWindow(QMainWindow):
         self.out = QTextEdit()
         self.out.setReadOnly(True)
         self.out.installEventFilter(self)
+        clear_button = QPushButton("Clear")
+        clear_button.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Expanding)
+        clear_button.pressed.connect(lambda: self.update_console(clear=True))
+        grid = QGridLayout()
+        grid.setSpacing(0)
+        self.out_section = QWidget()
+        grid.addWidget(clear_button, 0, 0, 1, 1)
+        grid.addWidget(self.out, 0, 1, 1, 49)
+        self.out_section.setLayout(grid)
 
     def init_mem(self):
         grid = QGridLayout()
@@ -328,7 +337,7 @@ class MainWindow(QMainWindow):
         left_vertical.setOrientation(Qt.Vertical)
         left_vertical.addWidget(editor_instruction_horizontal)
         left_vertical.addWidget(self.mem_grid)
-        left_vertical.addWidget(self.out)
+        left_vertical.addWidget(self.out_section)
         left_vertical.setStretchFactor(0, 10)
         left_vertical.setStretchFactor(1, 4)
         left_vertical.setStretchFactor(2, 2)
@@ -516,7 +525,7 @@ class MainWindow(QMainWindow):
     def set_running(self, run):
         self.run_sem.acquire()
         self.running = run
-        if not run:
+        if not run: # run finish TODO disable buttons and add an indicator
             self.instrs = []
         self.run_sem.release()
 
@@ -673,11 +682,12 @@ class MainWindow(QMainWindow):
         self.mem_sem.release()
         self.fill_mem()
 
-    def update_console(self, s):
+    def update_console(self, s="", clear=False):
         self.console_sem.acquire()
-        cur = self.out.textCursor()
-        self.out.insertPlainText(s)
-        self.out_pos = self.out.textCursor().position()
+        if clear:
+            self.out.setPlainText("")
+        else:
+            self.out.insertPlainText(s)
         self.console_sem.release()
 
     def eventFilter(self, obj, event):
