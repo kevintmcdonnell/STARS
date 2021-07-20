@@ -56,23 +56,33 @@ MENU_BAR = {
     'Run': {
         'Assemble': {
             'Shortcut':'F3',
-            'Action':'self.assemble'
+            'Action':'self.assemble',
+            'Tag':'assemble',
+            'Start':False
         },
         'Start': {
             'Shortcut':'F5',
-            'Action':'self.start'
+            'Action':'self.start',
+            'Tag':'start',
+            'Start':False
         },
         'Step': {
             'Shortcut':'F7',
-            'Action':'self.step'
+            'Action':'self.step',
+            'Tag':'step',
+            'Start':False
         },
         'Backstep': {
             'Shortcut':'F8',
-            'Action':'self.reverse'
+            'Action':'self.reverse',
+            'Tag':'backstep',
+            'Start':False
         },
         'Pause': {
             'Shortcut':'F9',
-            'Action':'self.pause'
+            'Action':'self.pause',
+            'Tag':'pause',
+            'Start':False
         }
     },
     'Settings': {

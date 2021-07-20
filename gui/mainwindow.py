@@ -229,6 +229,7 @@ class MainWindow(QMainWindow):
 
     def init_menubar(self):
         bar = self.menuBar()
+        self.menu_items = {}
 
         for tabs, values in MENU_BAR.items():
             tab = bar.addMenu(tabs)
@@ -244,6 +245,10 @@ class MainWindow(QMainWindow):
                     action.triggered.connect(eval(controls['Action']))
                 if 'Shortcut' in controls:
                     action.setShortcut(controls['Shortcut'])
+                if 'Tag' in controls:
+                    self.menu_items[controls['Tag']] = action
+                if 'Start' in controls:
+                    action.setEnabled(controls['Start'])
                 tab.addAction(action)
 
         self.instr_count = QLabel("Instruction Count: 0\t\t")
@@ -435,6 +440,7 @@ class MainWindow(QMainWindow):
             self.intr.end.connect(self.set_running)
             self.breakpoints = []
             self.setWindowTitle(f'STARS')
+            self.update_button_status(start=True, step=True, backstep=True, pause=True)
 
         except Exception as e:
             if hasattr(e, 'message'):
@@ -517,8 +523,10 @@ class MainWindow(QMainWindow):
     def set_running(self, run):
         self.run_sem.acquire()
         self.running = run
-        if not run: # run finish TODO disable buttons and add an indicator
+        if not run:
             self.instrs = []
+            self.update_console("\n-- program is finished running --\n\n")
+            self.update_button_status(start=False, step=False, pause=False)
         self.run_sem.release()
 
     def update_screen(self, pc):
@@ -713,10 +721,14 @@ class MainWindow(QMainWindow):
         self.fill_reg()
 
     def close_tab(self, i):
+        if self.tabs.currentIndex() == i:
+            self.update_button_status(start=False, step=False, backstep=False, pause=False)
         if self.tabs.widget(i).name in self.files:
             self.files.pop(self.tabs.widget(i).name)
         self.tabs.removeTab(i)
         self.len -= 1
+        if self.len == 0:
+            self.update_button_status(assemble=False, start=False, step=False, backstep=False, pause=False)
 
     def new_tab(self, wid=None, name=''):
         self.count += 1
@@ -728,6 +740,7 @@ class MainWindow(QMainWindow):
             wid.setCompleter(self.comp)
             wid.textChanged.connect(self.update_dirty)
         self.tabs.addTab(wid, name)
+        self.update_button_status(assemble=True)
         self.highlighter[name] = Highlighter(wid.document())
 
     def update_dirty(self):
@@ -737,6 +750,10 @@ class MainWindow(QMainWindow):
             self.tabs.setTabText(i, f'{self.tabs.tabText(i)} *')
         if w:
             self.files[w.name] = True
+
+    def update_button_status(self, **button_status):
+        for tag, status in button_status.items():
+            self.menu_items[tag].setEnabled(status)
 
 if __name__ == "__main__":
     app = QApplication()
