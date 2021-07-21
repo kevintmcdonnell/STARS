@@ -362,9 +362,9 @@ class MainWindow(QMainWindow):
         self.lay.addWidget(all_horizontal, 1, 0, 3, 4)
 
     def save_file(self, wid=None, ind=None):
-        if not wid:
+        if wid is None:
             wid = self.tabs.currentWidget()
-        if not ind:
+        if ind is None:
             ind = self.tabs.currentIndex()
         key = wid.name
         to_write = wid.toPlainText()

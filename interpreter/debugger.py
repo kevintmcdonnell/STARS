@@ -255,7 +255,7 @@ class Debug:
     def __init__(self):
         self.stack = []
         self.continueFlag = False
-        self.breakpoints = []
+        self.breakpoints = set()
         self.handle = {'b': self.addBreakpoint,
                        'break': self.addBreakpoint,
                        'n': next,
@@ -486,7 +486,7 @@ class Debug:
 
     def addBreakpoint(self, cmd: List[str], interp) -> bool:  # cmd = ['b', filename, lineno]
         if len(cmd) == 3 and str(cmd[2]).isdecimal():
-            self.breakpoints.append((f'"{cmd[1]}"', cmd[2]))  # filename, lineno
+            self.breakpoints.add((f'"{cmd[1]}"', cmd[2]))  # filename, lineno
             return True
 
         print_usage_text()
