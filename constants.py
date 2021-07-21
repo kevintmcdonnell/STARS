@@ -54,7 +54,9 @@ MENU_BAR = {
         },
         'Save': {
             'Shortcut':'Ctrl+S',
-            'Action':'self.save_file'
+            'Action':'self.save_file',
+            'Tag':'save',
+            'Start':False
         }
     },
     'Run': {

@@ -46,3 +46,11 @@ def create_table(rows: int, cols: int, labels: List[str], stretch_last: bool=Fal
     table.verticalHeader().setVisible(False)
 
     return table
+
+def create_save_confirmation(text: str) -> QMessageBox:
+    dialog = QMessageBox()
+    dialog.setText(text)
+    dialog.setStandardButtons(QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel)
+    dialog.setDefaultButton(QMessageBox.Save)
+
+    return dialog
