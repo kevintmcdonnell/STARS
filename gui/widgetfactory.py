@@ -1,4 +1,4 @@
-from typing import List
+from typing import Callable, List, Tuple
 
 from PySide2.QtCore import Qt
 from PySide2.QtGui import QFont
@@ -50,7 +50,7 @@ def create_table(rows: int, cols: int, labels: List[str], stretch_last: bool=Fal
     return table
 
 def create_save_confirmation(filename: str="") -> QMessageBox:
-    '''Create a confirmation dialog for closing unsaved tabs.'''
+    '''Creates a confirmation dialog for closing unsaved tabs.'''
     dialog = QMessageBox()
     if filename:
         dialog.setText(SAVE_SINGLE.format(filename))
@@ -60,3 +60,13 @@ def create_save_confirmation(filename: str="") -> QMessageBox:
     dialog.setDefaultButton(QMessageBox.Save)
 
     return dialog
+
+def create_button(text: str, clicked_function: Callable[..., None]=None, 
+            policy: Tuple[QSizePolicy, QSizePolicy]=None) -> QPushButton:
+    '''Returns a button that triggers the provided function when clicked.'''
+    button = QPushButton(text)
+    button.clicked.connect(clicked_function)
+    if policy:
+        button.setSizePolicy(*policy)
+    
+    return button

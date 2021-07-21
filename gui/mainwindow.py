@@ -148,14 +148,12 @@ class MainWindow(QMainWindow):
     def add_edit(self):
         self.files = {} # filename -> (dirty: bool, path: str)
         self.file_count = 0 # number of tabs
-        
+
         self.tabs = QTabWidget()
         self.tabs.setTabsClosable(True)
         self.tabs.tabCloseRequested.connect(self.close_tab)
 
-        nt = QPushButton('+')
-        nt.clicked.connect(self.new_tab)
-        self.tabs.setCornerWidget(nt)
+        self.tabs.setCornerWidget(create_button('+', self.new_tab))
 
         # initialize autocomplete
         self.comp = QCompleter()
@@ -212,9 +210,7 @@ class MainWindow(QMainWindow):
     def init_out(self):
         self.out = QTextEdit()
         self.out.setReadOnly(True)
-        clear_button = QPushButton("Clear")
-        clear_button.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Expanding)
-        clear_button.pressed.connect(lambda: self.update_console(clear=True))
+        clear_button = create_button("Clear", lambda: self.update_console(clear=True), (QSizePolicy.Minimum, QSizePolicy.Expanding))
         grid = QGridLayout()
         grid.setSpacing(0)
         self.out_section = QWidget()
@@ -228,11 +224,9 @@ class MainWindow(QMainWindow):
         self.section_dropdown = QComboBox()
         self.section_dropdown.addItems(['Kernel', '.data', 'stack', 'MMIO'])
         self.section_dropdown.currentTextChanged.connect(self.change_section)
-        self.mem_right = QPushButton("🡣")
-        self.mem_right.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        self.mem_right = create_button("🡣", self.mem_rightclick, (QSizePolicy.Preferred, QSizePolicy.Expanding))
         self.mem_right.setMaximumWidth(25)
-        self.mem_left = QPushButton("🡡")
-        self.mem_left.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        self.mem_left = create_button("🡡", self.mem_leftclick, (QSizePolicy.Preferred, QSizePolicy.Expanding))
         self.mem_left.setMaximumWidth(25)
         self.hdc_dropdown = QComboBox()
         self.hdc_dropdown.addItems(["Hexadecimal", "Decimal", "ASCII"])
@@ -355,8 +349,8 @@ class MainWindow(QMainWindow):
             self.intr.step.connect(self.update_screen)
             self.intr.console_out.connect(self.update_console)
             self.intr.user_input.connect(self.get_input)
-            self.mem_right.clicked.connect(self.mem_rightclick)
-            self.mem_left.clicked.connect(self.mem_leftclick)
+            # self.mem_right.clicked.connect()
+            # self.mem_left.clicked.connect(self.mem_leftclick)
             self.intr.end.connect(self.set_running)
             self.setWindowTitle(f'STARS')
             self.update_button_status(start=True, step=True, backstep=True, pause=True)
@@ -455,8 +449,7 @@ class MainWindow(QMainWindow):
         labels = self.controller.get_labels()
         self.labels.setRowCount(len(labels))
         for i, l in enumerate(labels):
-            q = QPushButton(f'{l}: 0x{labels[l]:08x}')
-            q.clicked.connect(lambda : self.mem_move_to(labels[l]))
+            q = create_button(f'{l}: 0x{labels[l]:08x}', lambda : self.mem_move_to(labels[l]))
             self.labels.setCellWidget(i, 0, q)
             self.labels.setItem(i, 1, QTableWidgetItem(f'{l}'))
             self.labels.setItem(i, 2, QTableWidgetItem(f'0x{labels[l]:08x}'))
