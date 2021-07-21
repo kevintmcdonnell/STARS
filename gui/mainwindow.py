@@ -14,7 +14,7 @@ from gui.syntaxhighlighter import Highlighter
 from gui.widgetfactory import *
 
 from PySide2.QtCore import Qt, QSemaphore, QEvent, Signal, QFile, QStringListModel
-from PySide2.QtGui import QTextCursor, QGuiApplication, QPalette, QColor, QFont, QKeySequence, QCursor, QBrush
+from PySide2.QtGui import QTextCursor, QGuiApplication, QPalette, QColor, QKeySequence, QCursor, QBrush
 from PySide2.QtWidgets import *
 
 '''
@@ -119,22 +119,18 @@ class MainWindow(QMainWindow):
         reg_box = create_table(len(REGS), 2, ["Name", "Value"], stretch_last=True)
         reg_box.resizeRowsToContents()
         for i, r in enumerate(REGS):
-            self.regs[r] = QTableWidgetItem('0x00000000')
-            self.regs[r].setFont(QFont("Courier New", 8))
+            self.regs[r] = create_cell('0x00000000')
             self.regs[r].setTextAlignment(int(Qt.AlignRight))
-            reg_label = QTableWidgetItem(r)
-            reg_label.setFont(QFont("Courier New", 8))
+            reg_label = create_cell(r)
             reg_box.setItem(i, 0, reg_label)
             reg_box.setItem(i, 1, self.regs[r])
             
         freg_box = create_table(len(F_REGS), 2, ["Name", "Value"], stretch_last=True) 
         freg_box.resizeRowsToContents()
         for i, r in enumerate(F_REGS):
-            self.regs[r] = QTableWidgetItem('0x00000000')
-            self.regs[r].setFont(QFont("Courier New", 8))
+            self.regs[r] = create_cell('0x00000000')
             self.regs[r].setTextAlignment(int(Qt.AlignRight))
-            reg_label = QTableWidgetItem(r)
-            reg_label.setFont(QFont("Courier New", 8))
+            reg_label = create_cell(r)
             freg_box.setItem(i, 0, reg_label)
             freg_box.setItem(i, 1, self.regs[r])
         self.reg_box.addTab(reg_box, "Registers")
@@ -272,12 +268,11 @@ class MainWindow(QMainWindow):
         count = 0
         for i in range(16):
             for j in range(5):
-                q = QTableWidgetItem(" ")
                 if j == 0:
-                    q.setText(f'0x{count:08x}')
-                    q.setFont(QFont("Courier New"))
+                    q = create_cell(f'0x{count:08x}')
                     self.addresses[i - 1] = q
                 else:
+                    q = create_cell(" ")
                     self.mem_vals.append(q)
                 table.setItem(i, j, q)
             count += 16
