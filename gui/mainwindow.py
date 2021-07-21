@@ -180,15 +180,12 @@ class MainWindow(QMainWindow):
         nt.clicked.connect(self.new_tab)
         self.tabs.setCornerWidget(nt)
 
-
-        text_edit = TextEdit()
+        # initialize autocomplete
         self.comp = QCompleter()
         self.comp.setModel(self.modelFromFile(r"gui/wordslist.txt", self.comp))
         self.comp.setModelSorting(QCompleter.CaseInsensitivelySortedModel)
         self.comp.setCaseSensitivity(Qt.CaseInsensitive)
         self.comp.setWrapAround(False)
-        text_edit.setCompleter(self.comp)
-
 
     def modelFromFile(self, filename, comp):
         f = QFile(filename)
@@ -382,17 +379,12 @@ class MainWindow(QMainWindow):
         if not filename or len(filename[0]) == 0:
             return
 
-        s = []
+        wid = TextEdit(name=filename[0], completer=self.comp, textChanged=self.update_dirty)
         with open(filename[0]) as f:
-            s = f.readlines()
-        wid = TextEdit(name=filename[0])
-        wid.textChanged.connect(self.update_dirty)
-        wid.setCompleter(self.comp)
-        wid.setPlainText(''.join(s))
-        n = filename[0].split('/')[-1]
+            wid.setPlainText(f.read())
         if not filename[0] in self.files:
             self.files[filename[0]] = False
-            self.new_tab(wid=wid, name=n)
+            self.new_tab(wid=wid, name=wid.getFilename())
 
 
     def assemble(self):
@@ -675,9 +667,7 @@ class MainWindow(QMainWindow):
         if len(name) == 0:
             name = f'main{"" if self.count == 1 else self.count-1}.asm'
         if not wid:
-            wid = TextEdit(name=name)
-            wid.setCompleter(self.comp)
-            wid.textChanged.connect(self.update_dirty)
+            wid = TextEdit(name=name, completer=self.comp, textChanged=self.update_dirty)
         self.tabs.addTab(wid, name)
         self.tabs.setCurrentWidget(wid)
         self.update_button_status(assemble=True)
