@@ -630,10 +630,10 @@ class MainWindow(QMainWindow):
 
     def close_tab(self, i):
         if self.tabs.tabText(i)[-1] == "*":
-            choice = create_save_confirmation("Modified").exec_()
+            choice = create_save_confirmation(self.tabs.widget(i).getFilename()).exec_()
             if choice == QMessageBox.Save:
                 self.save_file(self.tabs.widget(i), i)
-            elif QMessageBox.Cancel:
+            elif choice == QMessageBox.Cancel:
                 return
         if self.tabs.currentIndex() == i:
             self.update_button_status(start=False, step=False, backstep=False, pause=False)
@@ -667,6 +667,18 @@ class MainWindow(QMainWindow):
     def update_button_status(self, **button_status):
         for tag, status in button_status.items():
             self.menu_items[tag].setEnabled(status)
+
+    def closeEvent(self, event):
+        unsaved_files = [i for i in range(self.len) if self.tabs.tabText(i)[-1] == "*"]
+        if unsaved_files:
+            choice = create_save_confirmation().exec_()
+            if choice == QMessageBox.Cancel:
+                event.ignore()
+            else:
+                if choice == QMessageBox.Save:
+                    for i in unsaved_files:
+                        self.save_file(self.tabs.widget(i), i)
+                event.accept()
 
 if __name__ == "__main__":
     app = QApplication()

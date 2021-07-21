@@ -42,6 +42,10 @@ F_REGS = [f'$f{i}' for i in range(32)]
 # The index of the type is used to resolve the input type in GUI
 USER_INPUT_TYPE = ["str", "int"] 
 
+# For save prompt
+SAVE_SINGLE = "Changes to {} will be lost unless you save. Do you wish to save all changes now?"
+SAVE_MULTIPLE = "Changes to one or more files will be lost unless you save. Do you wish to save all changes now?"
+
 MENU_BAR = {
     'File': {
         'New': {

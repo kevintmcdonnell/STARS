@@ -4,6 +4,8 @@ from PySide2.QtCore import Qt
 from PySide2.QtGui import QFont
 from PySide2.QtWidgets import *
 
+from constants import *
+
 def create_breakpoint(text="") -> (QWidget, QCheckBox):
     '''Returns a checkbox, with the given text, centered inside of a widget.'''
     cell = QWidget()
@@ -47,9 +49,13 @@ def create_table(rows: int, cols: int, labels: List[str], stretch_last: bool=Fal
 
     return table
 
-def create_save_confirmation(text: str) -> QMessageBox:
+def create_save_confirmation(filename: str="") -> QMessageBox:
+    '''Create a confirmation dialog for closing unsaved tabs.'''
     dialog = QMessageBox()
-    dialog.setText(text)
+    if filename:
+        dialog.setText(SAVE_SINGLE.format(filename))
+    else: 
+        dialog.setText(SAVE_MULTIPLE)
     dialog.setStandardButtons(QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel)
     dialog.setDefaultButton(QMessageBox.Save)
 
