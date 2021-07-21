@@ -116,27 +116,17 @@ class MainWindow(QMainWindow):
     def init_regs(self):
         self.regs = {}
         self.reg_box = QTabWidget()
-        reg_box = create_table(len(REGS), 2, ["Name", "Value"], stretch_last=True)
-        reg_box.resizeRowsToContents()
-        for i, r in enumerate(REGS):
-            self.regs[r] = create_cell('0x00000000')
-            self.regs[r].setTextAlignment(int(Qt.AlignRight))
-            reg_label = create_cell(r)
-            reg_box.setItem(i, 0, reg_label)
-            reg_box.setItem(i, 1, self.regs[r])
-            
-        freg_box = create_table(len(F_REGS), 2, ["Name", "Value"], stretch_last=True) 
-        freg_box.resizeRowsToContents()
-        for i, r in enumerate(F_REGS):
-            self.regs[r] = create_cell('0x00000000')
-            self.regs[r].setTextAlignment(int(Qt.AlignRight))
-            reg_label = create_cell(r)
-            freg_box.setItem(i, 0, reg_label)
-            freg_box.setItem(i, 1, self.regs[r])
-        self.reg_box.addTab(reg_box, "Registers")
-        self.reg_box.addTab(freg_box, "Coproc 1")
         self.reg_box.tabBar().setDocumentMode(True)
-
+        for name, register_set in {"Registers": REGS, "Coproc 1": F_REGS}.items():
+            box = create_table(len(register_set), 2, ["Name", "Value"], stretch_last=True)
+            box.resizeRowsToContents()
+            for i, r in enumerate(register_set):
+                self.regs[r] = create_cell('0x00000000')
+                self.regs[r].setTextAlignment(int(Qt.AlignRight))
+                label = create_cell(r)
+                box.setItem(i, 0, label)
+                box.setItem(i, 1, self.regs[r])
+            self.reg_box.addTab(box, name)
 
     def init_cop_flags(self):
         flag_box = QGridLayout()
