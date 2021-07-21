@@ -147,11 +147,8 @@ class MainWindow(QMainWindow):
 
     def add_edit(self):
         self.files = {} # filename -> (dirty: bool, path: str)
-        self.new_files = set()
-        self.highlighter = {}
-
-        self.count = 0
-        self.len = 0
+        self.file_count = 0 # number of tabs
+        
         self.tabs = QTabWidget()
         self.tabs.setTabsClosable(True)
         self.tabs.tabCloseRequested.connect(self.close_tab)
@@ -307,63 +304,38 @@ class MainWindow(QMainWindow):
 
         self.lay.addWidget(all_horizontal, 0, 0)
 
-    def save_file(self, wid=None, ind=None):
+    def save_file(self, wid: TextEdit=None, ind: int=None):
         if wid is None:
             wid = self.tabs.currentWidget()
         if ind is None:
             ind = self.tabs.currentIndex()
-        key = wid.name
-        to_write = wid.toPlainText()
-        f = None
-        try:
-            if key in self.files:
-                if not self.files[key]:
-                    return
-                f = open(key, 'w+')
+        if wid.is_new():
+            filename = QFileDialog.getSaveFileName(self, 'Save', f'{key}', options=QFileDialog.DontUseNativeDialog)
+            if len(filename) < 2 or filename[0] is None:
+                return
+            self.files.pop(wid.name)
+            wid.name = filename[0]
+            wid.set_new(False)
+            self.files[wid.name] = True
 
-                f.write(to_write)
-                f.close()
-                self.files[key] = False
-                n = key.split('/')[-1]
-                self.tabs.setTabText(ind, n)
-
-            else:
-                filename = QFileDialog.getSaveFileName(self, 'Save', f'{key}', options=QFileDialog.DontUseNativeDialog)
-                if len(filename) < 2 or filename[0] is None:
-                    return
-                key = filename[0]
-                f = open(key, 'w+')
-
-                f.write(to_write)
-                f.close()
-                wid.name = filename[0]
-                n = filename[0].split('/')[-1]
-                self.tabs.setTabText(ind, n)
-                self.files[key] = False
-
-
-        except:
-            if f:
-                f.close()
-            return
+        if self.files[wid.name]:
+            with open(wid.name, 'w+') as f:
+                f.write(wid.toPlainText())
+            self.files[wid.name] = False
+            self.tabs.setTabText(ind, wid.getFilename())
 
     def open_file(self):
         try:
-            filename = QFileDialog.getOpenFileName(self, 'Open', '', options=QFileDialog.DontUseNativeDialog)
+            filename, _ = QFileDialog.getOpenFileName(self, 'Open', '', options=QFileDialog.DontUseNativeDialog)
+            if not filename:
+                return
+            if filename not in self.files:
+                with open(filename) as f:
+                    wid = TextEdit(name=filename, text=f.read(), completer=self.comp, textChanged=self.update_dirty)
+                self.new_tab(wid=wid)
         except:
             self.update_console(f'Could not open file\n')
             return
-
-        if not filename or len(filename[0]) == 0:
-            return
-
-        wid = TextEdit(name=filename[0], completer=self.comp, textChanged=self.update_dirty)
-        with open(filename[0]) as f:
-            wid.setPlainText(f.read())
-        if not filename[0] in self.files:
-            self.files[filename[0]] = False
-            self.new_tab(wid=wid, name=wid.getFilename())
-
 
     def assemble(self):
         if self.tabs.currentWidget() is None:
@@ -372,7 +344,7 @@ class MainWindow(QMainWindow):
         try:
             if self.running:
                 self.intr.end.emit(False)
-            for i in range(self.len):
+            for i in range(self.file_count):
                 self.save_file(wid=self.tabs.widget(i), ind=i)
             self.result = assemble(filename)
             self.intr = Interpreter(self.result, self.pa.text().split())
@@ -642,36 +614,35 @@ class MainWindow(QMainWindow):
         if self.tabs.widget(i).name in self.files:
             self.files.pop(self.tabs.widget(i).name)
         self.tabs.removeTab(i)
-        self.len -= 1
-        if self.len == 0:
+        self.file_count -= 1
+        if self.file_count == 0:
             self.update_button_status(save=False, close=False, assemble=False, start=False, step=False, backstep=False, pause=False)
 
-    def new_tab(self, wid=None, name=''):
-        self.count += 1
-        self.len += 1
-        if len(name) == 0:
-            name = f'main{"" if self.count == 1 else self.count-1}.asm'
+    def new_tab(self, wid: TextEdit=None):
+        self.file_count += 1
         if not wid:
-            wid = TextEdit(name=name, completer=self.comp, textChanged=self.update_dirty)
-        self.tabs.addTab(wid, name)
+            wid = TextEdit(completer=self.comp, textChanged=self.update_dirty)
+        self.tabs.addTab(wid, wid.getFilename())
         self.tabs.setCurrentWidget(wid)
         self.update_button_status(save=True, close=True, assemble=True)
-        self.highlighter[name] = Highlighter(wid.document())
+        Highlighter(wid.document())
 
     def update_dirty(self):
         w = self.tabs.currentWidget()
         i = self.tabs.currentIndex()
-        if w is not None and (w.name not in self.files or not self.files[w.name]):
-            self.tabs.setTabText(i, f'{self.tabs.tabText(i)} *')
-        if w:
-            self.files[w.name] = True
+        if w is not None:
+            if w.is_new() or w.name in self.files:
+                self.files[w.name] = True
+                self.tabs.setTabText(i, f'{self.tabs.tabText(i)} *')
+            else:
+                self.files[w.name] = False
 
     def update_button_status(self, **button_status):
         for tag, status in button_status.items():
             self.menu_items[tag].setEnabled(status)
 
     def closeEvent(self, event):
-        unsaved_files = [i for i in range(self.len) if self.tabs.tabText(i)[-1] == "*"]
+        unsaved_files = [i for i in range(self.file_count) if self.tabs.tabText(i)[-1] == "*"]
         if unsaved_files:
             choice = create_save_confirmation().exec_()
             if choice == QMessageBox.Cancel:
