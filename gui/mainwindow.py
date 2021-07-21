@@ -76,8 +76,6 @@ class MainWindow(QMainWindow):
         self.running = False
         self.run_sem = QSemaphore(1)
 
-        self.breakpoints = []
-
         self.default_theme = QGuiApplication.palette()
         self.dark = False
         self.palette = QPalette()
@@ -417,7 +415,6 @@ class MainWindow(QMainWindow):
             self.mem_right.clicked.connect(self.mem_rightclick)
             self.mem_left.clicked.connect(self.mem_leftclick)
             self.intr.end.connect(self.set_running)
-            self.breakpoints = []
             self.setWindowTitle(f'STARS')
             self.update_button_status(start=True, step=True, backstep=True, pause=True)
 
@@ -448,8 +445,6 @@ class MainWindow(QMainWindow):
             self.controller.pause(False)
             self.out_pos = self.out.textCursor().position()
             self.program = Thread(target=self.intr.interpret, daemon=True)
-            for b in self.breakpoints:
-                self.controller.add_breakpoint(b)
             self.program.start()
         elif not self.controller.cont():
             self.controller.pause(False)
@@ -468,8 +463,6 @@ class MainWindow(QMainWindow):
             self.controller.set_interp(self.intr)
             self.controller.set_pause(True)
             self.program = Thread(target=self.intr.interpret, daemon=True)
-            for b in self.breakpoints:
-                self.controller.add_breakpoint(b)
             self.program.start()
         else:
             self.controller.set_pause(True)
@@ -657,11 +650,9 @@ class MainWindow(QMainWindow):
 
     def add_breakpoint(self, cmd):
         self.controller.add_breakpoint(cmd)
-        self.breakpoints.append(cmd)
 
     def remove_breakpoint(self, cmd):
         self.controller.remove_breakpoint((f'"{cmd[1]}"', cmd[2]))
-        self.breakpoints.remove(cmd)
 
     def launch_vt100(self):
         if self.vt100:
