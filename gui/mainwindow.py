@@ -105,7 +105,6 @@ class MainWindow(QMainWindow):
         self.init_out()
         self.init_regs()
         self.init_pa()
-        self.init_cop_flags()
         self.add_edit()
         center = QWidget()
         center.setLayout(self.lay)
@@ -115,6 +114,7 @@ class MainWindow(QMainWindow):
 
     def init_regs(self):
         self.regs = {}
+        self.flags = []
         self.reg_box = QTabWidget()
         self.reg_box.tabBar().setDocumentMode(True)
         for name, register_set in {"Registers": REGS, "Coproc 1": F_REGS}.items():
@@ -126,24 +126,18 @@ class MainWindow(QMainWindow):
                 label = create_cell(r)
                 box.setItem(i, 0, label)
                 box.setItem(i, 1, self.regs[r])
+            if name == "Coproc 1": # add coproc flags
+                holder = QSplitter(Qt.Vertical)
+                holder.addWidget(box)
+                holder.setStretchFactor(0, 20)
+                box = create_table(4, 2, ["Condition", "Flags"])
+                for count in range(8):
+                    cell, check = create_breakpoint(f"{count}")
+                    self.flags.append(check)
+                    box.setCellWidget(count/2, count%2, cell)
+                holder.addWidget(box)
+                box = holder
             self.reg_box.addTab(box, name)
-
-    def init_cop_flags(self):
-        flag_box = QGridLayout()
-        flag_box.setSpacing(0)
-        self.flags = []
-        count = 0
-        for i in range(1, 5):
-            c1 = QCheckBox(f'{count}')
-            self.flags.append(c1)
-            count += 1
-            c2 = QCheckBox(f'{count}')
-            count += 1
-            self.flags.append(c2)
-            flag_box.addWidget(c1, i, 0)
-            flag_box.addWidget(c2, i, 1)
-        flag_box.addWidget(QLabel('Coproc 1 Flags:'), 0, 0)
-        # self.lay.addLayout(flag_box, 3, 3)
 
     def init_instrs(self):
         self.instrs = []

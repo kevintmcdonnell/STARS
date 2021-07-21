@@ -4,10 +4,10 @@ from PySide2.QtCore import Qt
 from PySide2.QtGui import QFont
 from PySide2.QtWidgets import *
 
-def create_breakpoint() -> (QWidget, QCheckBox):
-    '''Returns a checkbox center inside of a widget.'''
+def create_breakpoint(text="") -> (QWidget, QCheckBox):
+    '''Returns a checkbox, with the given text, centered inside of a widget.'''
     cell = QWidget()
-    check = QCheckBox()
+    check = QCheckBox(text)
     layoutCheckbox = QHBoxLayout()
     layoutCheckbox.addWidget(check)
     layoutCheckbox.setAlignment(check, Qt.AlignCenter)
