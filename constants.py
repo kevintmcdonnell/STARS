@@ -56,6 +56,12 @@ MENU_BAR = {
             'Shortcut':'Ctrl+O',
             'Action':'self.open_file'
         },
+        'Close': {
+            'Shortcut':'Ctrl+W',
+            'Action':'self.close_tab',
+            'Tag':'close',
+            'Start':False
+        },
         'Save': {
             'Shortcut':'Ctrl+S',
             'Action':'self.save_file',

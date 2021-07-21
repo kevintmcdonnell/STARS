@@ -629,6 +629,8 @@ class MainWindow(QMainWindow):
         self.vt100 = VT100(self.controller, self.changed_interp)
 
     def close_tab(self, i):
+        if type(i) is bool:
+            i = self.tabs.currentIndex()
         if self.tabs.tabText(i)[-1] == "*":
             choice = create_save_confirmation(self.tabs.widget(i).getFilename()).exec_()
             if choice == QMessageBox.Save:
@@ -642,7 +644,7 @@ class MainWindow(QMainWindow):
         self.tabs.removeTab(i)
         self.len -= 1
         if self.len == 0:
-            self.update_button_status(save=False, assemble=False, start=False, step=False, backstep=False, pause=False)
+            self.update_button_status(save=False, close=False, assemble=False, start=False, step=False, backstep=False, pause=False)
 
     def new_tab(self, wid=None, name=''):
         self.count += 1
@@ -653,7 +655,7 @@ class MainWindow(QMainWindow):
             wid = TextEdit(name=name, completer=self.comp, textChanged=self.update_dirty)
         self.tabs.addTab(wid, name)
         self.tabs.setCurrentWidget(wid)
-        self.update_button_status(save=True, assemble=True)
+        self.update_button_status(save=True, close=True, assemble=True)
         self.highlighter[name] = Highlighter(wid.document())
 
     def update_dirty(self):
