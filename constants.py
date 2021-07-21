@@ -38,6 +38,14 @@ REGS = ['$zero', '$at', '$v0', '$v1', '$a0', '$a1', '$a2', '$a3',
 
 F_REGS = [f'$f{i}' for i in range(32)]
 
+# For syscalls that require user input.
+# The index of the type is used to resolve the input type in GUI
+USER_INPUT_TYPE = ["str", "int"] 
+
+# For save prompt
+SAVE_SINGLE = "Changes to {} will be lost unless you save. Do you wish to save all changes now?"
+SAVE_MULTIPLE = "Changes to one or more files will be lost unless you save. Do you wish to save all changes now?"
+
 MENU_BAR = {
     'File': {
         'New': {
@@ -50,29 +58,41 @@ MENU_BAR = {
         },
         'Save': {
             'Shortcut':'Ctrl+S',
-            'Action':'self.save_file'
+            'Action':'self.save_file',
+            'Tag':'save',
+            'Start':False
         }
     },
     'Run': {
         'Assemble': {
             'Shortcut':'F3',
-            'Action':'lambda: self.assemble(self.tabs.currentWidget().name) if self.tabs.currentWidget().name else None'
+            'Action':'self.assemble',
+            'Tag':'assemble',
+            'Start':False
         },
         'Start': {
             'Shortcut':'F5',
-            'Action':'self.start'
+            'Action':'self.start',
+            'Tag':'start',
+            'Start':False
         },
         'Step': {
             'Shortcut':'F7',
-            'Action':'self.step'
+            'Action':'self.step',
+            'Tag':'step',
+            'Start':False
         },
         'Backstep': {
             'Shortcut':'F8',
-            'Action':'self.reverse'
+            'Action':'self.reverse',
+            'Tag':'backstep',
+            'Start':False
         },
         'Pause': {
             'Shortcut':'F9',
-            'Action':'self.pause'
+            'Action':'self.pause',
+            'Tag':'pause',
+            'Start':False
         }
     },
     'Settings': {

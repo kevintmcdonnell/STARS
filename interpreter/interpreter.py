@@ -41,6 +41,7 @@ class Interpreter(QWidget):
     end = Signal(bool)
     start = Signal()
     mem_access = Signal()
+    user_input = Signal(int)
 
     def out(self, s: str, end='') -> None:
         if settings['gui']:
@@ -48,9 +49,10 @@ class Interpreter(QWidget):
         else:
             print(s, end=end)
 
-    def input(self):
+    def input(self, input_type: str):
         if settings['gui']:
             self.input_lock.clear()
+            self.user_input.emit(const.USER_INPUT_TYPE.index(input_type))
             self.input_lock.wait()
             return self.input_str
         else:

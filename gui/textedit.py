@@ -21,11 +21,13 @@ class QLineNumberArea(QWidget):
         self.codeEditor.lineNumberAreaPaintEvent(event)
 
 class TextEdit(QPlainTextEdit):
-    def __init__(self, parent=None, name=''):
+    def __init__(self, parent=None, name='', completer=None, textChanged=None):
         super().__init__(parent)
         self.setPlainText("")
-        self.completer = None
+        self.completer = completer
         self.name = name
+        if textChanged:
+            self.textChanged.connect(textChanged)
         self.lineNumberArea = QLineNumberArea(self)
         self.blockCountChanged.connect(self.updateLineNumberAreaWidth)
         self.updateRequest.connect(self.updateLineNumberArea)
@@ -100,7 +102,7 @@ class TextEdit(QPlainTextEdit):
 
         self.completer.activated.connect(self.insertCompletion)
 
-    def getCompleter(self):
+    def getCompleter(self) -> QCompleter:
         return self.completer
 
     def insertCompletion(self, completion):
@@ -155,6 +157,8 @@ class TextEdit(QPlainTextEdit):
         cr.setWidth(self.completer.popup().sizeHintForColumn(0) + self.completer.popup().verticalScrollBar().sizeHint().width())
         self.completer.complete(cr)
 
+    def getFilename(self) -> str:
+        return self.name.split('/')[-1]
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
