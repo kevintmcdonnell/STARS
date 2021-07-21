@@ -3,7 +3,7 @@ import sys
 from threading import Thread
 
 sys.path.append(os.getcwd())  # must be ran in sbumips directory (this is bc PYTHONPATH is weird in terminal)
-from constants import REGS, F_REGS, MENU_BAR
+from constants import REGS, F_REGS, MENU_BAR, USER_INPUT_TYPE
 from interpreter.interpreter import Interpreter
 from sbumips import assemble
 from settings import settings
@@ -235,7 +235,6 @@ class MainWindow(QMainWindow):
     def init_out(self):
         self.out = QTextEdit()
         self.out.setReadOnly(True)
-        self.out.installEventFilter(self)
         clear_button = QPushButton("Clear")
         clear_button.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Expanding)
         clear_button.pressed.connect(lambda: self.update_console(clear=True))
@@ -404,6 +403,7 @@ class MainWindow(QMainWindow):
             self.fill_labels()
             self.intr.step.connect(self.update_screen)
             self.intr.console_out.connect(self.update_console)
+            self.intr.user_input.connect(self.get_input)
             self.mem_right.clicked.connect(self.mem_rightclick)
             self.mem_left.clicked.connect(self.mem_leftclick)
             self.intr.end.connect(self.set_running)
@@ -627,18 +627,16 @@ class MainWindow(QMainWindow):
             self.out.insertPlainText(s)
         self.console_sem.release()
 
-    def eventFilter(self, obj, event):
-        if event.type() == QEvent.KeyPress and obj is self.out:
-            if event.key() == Qt.Key_Return and self.out.hasFocus():
-                self.console_sem.acquire()
-                cur = self.out.textCursor()
-                cur.setPosition(self.out_pos, QTextCursor.KeepAnchor)
-                s = cur.selectedText()
-                cur.setPosition(QTextCursor.End)
-                self.out_pos = self.out.textCursor().position()
-                self.console_sem.release()
-                self.intr.set_input(s)
-        return super().eventFilter(obj, event)
+    def get_input(self, input_type):
+        if USER_INPUT_TYPE[input_type] == "int":
+            value, state = QInputDialog.getInt(self, "Enter an integer", "Value")
+        elif USER_INPUT_TYPE[input_type] == "str":
+            value, state = QInputDialog.getText(self, "Enter a string", "Value")
+        
+        if state:
+            self.intr.set_input(value)
+        else:
+            self.get_input(input_type)
 
     def add_breakpoint(self, cmd):
         self.controller.add_breakpoint(cmd)
