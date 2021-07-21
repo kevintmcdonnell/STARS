@@ -14,7 +14,7 @@ from gui.syntaxhighlighter import Highlighter
 from gui.widgetfactory import *
 
 from PySide2.QtCore import Qt, QSemaphore, QEvent, Signal, QFile, QStringListModel
-from PySide2.QtGui import QTextCursor, QGuiApplication, QPalette, QColor, QFont, QKeySequence, QCursor
+from PySide2.QtGui import QTextCursor, QGuiApplication, QPalette, QColor, QFont, QKeySequence, QCursor, QBrush
 from PySide2.QtWidgets import *
 
 '''
@@ -164,8 +164,7 @@ class MainWindow(QMainWindow):
     def init_instrs(self):
         self.instrs = []
         self.pcs = []
-        self.checkboxes = []
-        self.instr_grid = create_table(0, 2, ["Bkpt", "Instruction"], stretch_last=True)
+        self.instr_grid = create_table(0, 4, ["Bkpt", f"{'Address': ^14}", f"{'Instruction': ^40}", "Source"], stretch_last=True)
         self.instr_grid.resizeColumnsToContents()
 
     def add_edit(self):
@@ -572,39 +571,30 @@ class MainWindow(QMainWindow):
     def fill_instrs(self, pc):
         # pc = self.intr.reg['pc']
         if len(self.instrs) > 0:
-            # fmt = QTextCharFormat()
-            # self.prev_instr.setTextFormat(fmt)
-            #
-            #
-            # fmt = QTextCharFormat()
-            # fmt.setBackground(Qt.cyan)
-            # self.instrs[pc - settings['initial_pc']].setTextFormat(fmt)
-            self.prev_instr.setStyleSheet("QLineEdit { background: rgb(255, 255, 255) };")
             prev_ind = (pc - settings['initial_pc']) // 4
+            for section in self.prev_instr:
+                section.setBackground(self.instr_grid.item(prev_ind, 1).background())
             if prev_ind < len(self.instrs):
                 self.prev_instr = self.instrs[prev_ind]
-            self.prev_instr.setStyleSheet("QLineEdit { background: rgb(0, 255, 255) };")
-
+            for section in self.prev_instr:
+                section.setBackground(QBrush(Qt.cyan))
         else:
             mem = self.intr.mem
-            count = 0
             self.instr_grid.setRowCount(len([k for k,j in mem.text.items() if type(j) is not str]))
-            for k in mem.text.keys():
-                if type(mem.text[k]) is not str:
-                    i = mem.text[k]
+            for count, (k, i) in enumerate(mem.text.items()):
+                if type(i) is not str:
                     cell, check = create_breakpoint()
                     check.stateChanged.connect(lambda state, i=i: self.add_breakpoint(('b', str(i.filetag.file_name)[1:-1], str(i.filetag.line_no))) if state == Qt.Checked else self.remove_breakpoint(
                         ('b', str(i.filetag.file_name)[1:-1], str(i.filetag.line_no))))
-                    self.checkboxes.append(check)
                     self.instr_grid.setCellWidget(count, 0, cell)
-                    if i.is_from_pseudoinstr:
-                        q = create_instruction(f'0x{int(k):08x}\t{i.original_text} ( {i.basic_instr()} )')
-                    else:
-                        q = create_instruction(f'0x{int(k):08x}\t{i.basic_instr()}')
-                    self.instrs.append(q)
-                    self.instr_grid.setCellWidget(count, 1, q)
-                    count += 1
-            self.instrs[0].setStyleSheet("QLineEdit { background: rgb(0, 255, 255) };")
+                    
+                    values = [f"0x{int(k):08x}", 
+                                f"{i.basic_instr()}", 
+                                f"{i.filetag.line_no}: {i.original_text}"]
+                    row = create_instruction(values, self.instr_grid, count)
+                    self.instrs.append(row)
+            for section in self.instrs[0]:
+                section.setBackground(QBrush(Qt.cyan))
             self.prev_instr = self.instrs[0]
 
     def fill_mem(self):
