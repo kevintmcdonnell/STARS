@@ -46,6 +46,16 @@ USER_INPUT_TYPE = ["str", "int"]
 SAVE_SINGLE = "Changes to {} will be lost unless you save. Do you wish to save all changes now?"
 SAVE_MULTIPLE = "Changes to one or more files will be lost unless you save. Do you wish to save all changes now?"
 
+# For memory byte representation 
+MEMORY_REPR = {
+    "Hexadecimal":"0x{:02x}", 
+    "Decimal":"{:3}",
+    "ASCII":"{:2}"
+}
+
+# Size of memory show in table
+MEMORY_SIZE = 256
+
 MENU_BAR = {
     'File': {
         'New': {

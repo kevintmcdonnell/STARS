@@ -3,7 +3,7 @@ import sys
 from threading import Thread
 
 sys.path.append(os.getcwd())  # must be ran in sbumips directory (this is bc PYTHONPATH is weird in terminal)
-from constants import REGS, F_REGS, MENU_BAR, USER_INPUT_TYPE
+from constants import REGS, F_REGS, MENU_BAR, USER_INPUT_TYPE, MEMORY_REPR, MEMORY_SIZE
 from interpreter.interpreter import Interpreter
 from sbumips import assemble
 from settings import settings
@@ -224,12 +224,13 @@ class MainWindow(QMainWindow):
         self.section_dropdown = QComboBox()
         self.section_dropdown.addItems(['Kernel', '.data', 'stack', 'MMIO'])
         self.section_dropdown.currentTextChanged.connect(self.change_section)
+        self.section_dropdown.setCurrentIndex(1)
         self.mem_right = create_button("🡣", self.mem_rightclick, (QSizePolicy.Preferred, QSizePolicy.Expanding))
         self.mem_right.setMaximumWidth(25)
         self.mem_left = create_button("🡡", self.mem_leftclick, (QSizePolicy.Preferred, QSizePolicy.Expanding))
         self.mem_left.setMaximumWidth(25)
         self.hdc_dropdown = QComboBox()
-        self.hdc_dropdown.addItems(["Hexadecimal", "Decimal", "ASCII"])
+        self.hdc_dropdown.addItems(MEMORY_REPR.keys())
         self.hdc_dropdown.currentTextChanged.connect(self.change_rep)
         grid.addWidget(self.mem_left, 1, 5, 8, 1)
         grid.addWidget(self.mem_right, 9, 5, 8, 1)
@@ -238,14 +239,14 @@ class MainWindow(QMainWindow):
         self.addresses = [0] * 16
         self.addresses = self.addresses[:]
         self.mem_vals = []
-        self.base_address = 0
+        self.base_address = settings['data_min']
         table = create_table(16, 5, ["Address", "+0", "+4", "+8", "+c"])
         count = 0
         for i in range(16):
             for j in range(5):
                 if j == 0:
-                    q = create_cell(f'0x{count:08x}')
-                    self.addresses[i - 1] = q
+                    q = create_cell(f'0x{count+self.base_address:08x}')
+                    self.addresses[i] = q
                 else:
                     q = create_cell(" ")
                     self.mem_vals.append(q)
@@ -528,21 +529,18 @@ class MainWindow(QMainWindow):
 
     def fill_mem(self):
         self.mem_sem.acquire()
-        count = self.base_address
-        for q in self.mem_vals:
-            if self.rep == "Decimal":
-                q.setText(f'{self.controller.get_byte(count + 3):3} {self.controller.get_byte(count + 2):3} {self.controller.get_byte(count + 1):3} {self.controller.get_byte(count):3}')
-            elif self.rep == "ASCII":
-                q.setText(
-                    f'{to_ascii(self.controller.get_byte(count + 3, signed=True)):2} {to_ascii(self.controller.get_byte(count + 2, signed=True)):2} {to_ascii(self.controller.get_byte(count + 1, signed=True)):2} {to_ascii(self.controller.get_byte(count, signed=True)):2}')
-            else:
-                q.setText(
-                    f'0x{self.controller.get_byte(count + 3):02x} 0x{self.controller.get_byte(count + 2):02x} 0x{self.controller.get_byte(count + 1):02x} 0x{self.controller.get_byte(count):02x}')
-            count += 4
-        count = self.base_address
-        for a in self.addresses:
-            a.setText(f'0x{count:08x}')
-            count += 16
+        for q, count in zip(self.mem_vals, range(self.base_address, self.base_address+MEMORY_SIZE, 4)):
+            memory_format = MEMORY_REPR[self.rep]
+            signed = True if self.rep == "ASCII" else False
+            offsets = range(3, -1, -1) # [3,2,1,0]
+            byte_value = [self.controller.get_byte(count+i, signed=signed) for i in offsets]
+            if self.rep == "ASCII":
+                byte_value = [to_ascii(value) for value in byte_value]
+            text = " ".join([memory_format.format(value) for value in byte_value])
+            q.setText(text)
+        for a, count in zip(self.addresses, range(self.base_address, self.base_address+MEMORY_SIZE, 16)):
+            text = f'{count}' if self.rep == "Decimal" else f'0x{count:08x}'
+            a.setText(text)
         self.mem_sem.release()
 
     def mem_rightclick(self):
