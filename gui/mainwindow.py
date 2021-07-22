@@ -155,8 +155,16 @@ class MainWindow(QMainWindow):
         f = QFile(filename)
         if not f.open(QFile.ReadOnly):
             return QStringListModel(comp)
+
         QGuiApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-        words = [str(line.trimmed(), encoding='ascii') for line in f.readlines() if len(line) > 0]
+
+        words = []
+        while not f.atEnd():
+            line = f.readLine()
+            if len(line) > 0:
+                s = str(line.trimmed(), encoding='ascii')
+                words.append(s)
+
         QGuiApplication.restoreOverrideCursor()
 
         return QStringListModel(words, comp)
