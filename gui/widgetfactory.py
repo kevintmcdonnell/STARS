@@ -78,3 +78,11 @@ def create_dropdown(items: List[str], select_function: Callable[..., None]=None)
     dropdown.activated["QString"].connect(select_function)
 
     return dropdown
+
+def create_widget(layout: QLayout=None) -> QWidget:
+    '''Returns a widget with the given layout.'''
+    widget = QWidget()
+    if layout:
+        widget.setLayout(layout)
+
+    return widget

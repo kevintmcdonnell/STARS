@@ -96,8 +96,7 @@ class MainWindow(QMainWindow):
         self.init_regs()
         self.init_pa()
         self.add_edit()
-        center = QWidget()
-        center.setLayout(self.lay)
+        center = create_widget(self.lay)
         self.setCentralWidget(center)
         self.showMaximized()
         self.init_splitters()
@@ -202,10 +201,9 @@ class MainWindow(QMainWindow):
         clear_button = create_button("Clear", lambda: self.update_console(clear=True), (QSizePolicy.Minimum, QSizePolicy.Expanding))
         grid = QGridLayout()
         grid.setSpacing(0)
-        self.out_section = QWidget()
         grid.addWidget(clear_button, 0, 0, 1, 1)
         grid.addWidget(self.out, 0, 1, 1, 49)
-        self.out_section.setLayout(grid)
+        self.out_section = create_widget(layout=grid)
 
     def init_mem(self):
         grid = QGridLayout()
@@ -234,8 +232,7 @@ class MainWindow(QMainWindow):
         self.labels = create_table(0, len(LABEL_HEADER), LABEL_HEADER)
         self.labels.setSortingEnabled(True)
         grid.addWidget(self.labels, 2, 6, 15, 2)
-        self.mem_grid = QWidget()
-        self.mem_grid.setLayout(grid)
+        self.mem_grid = create_widget(layout=grid)
 
     def init_pa(self):
         self.pa = QLineEdit()
@@ -243,8 +240,7 @@ class MainWindow(QMainWindow):
         label = QLabel('Program Arguments:')
         pa.addWidget(label)
         pa.addWidget(self.pa)
-        self.pa_lay = QWidget()
-        self.pa_lay.setLayout(pa)
+        self.pa_lay = create_widget(layout=pa)
 
     def init_splitters(self): 
         instruction_pa = QSplitter(Qt.Vertical)
