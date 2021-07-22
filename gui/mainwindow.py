@@ -108,7 +108,7 @@ class MainWindow(QMainWindow):
         self.reg_box = QTabWidget()
         self.reg_box.tabBar().setDocumentMode(True)
         for name, register_set in {"Registers": REGS, "Coproc 1": F_REGS}.items():
-            box = create_table(len(register_set), 2, ["Name", "Value"], stretch_last=True)
+            box = create_table(len(register_set), len(REGISTER_HEADER), REGISTER_HEADER, stretch_last=True)
             box.resizeRowsToContents()
             for i, r in enumerate(register_set):
                 self.regs[r] = create_cell(f'0x{settings.get(f"initial_{r}", 0):08x}')
@@ -120,7 +120,7 @@ class MainWindow(QMainWindow):
                 holder = QSplitter(Qt.Vertical)
                 holder.addWidget(box)
                 holder.setStretchFactor(0, 20)
-                box = create_table(4, 2, ["Condition", "Flags"])
+                box = create_table(4, len(COPROC_FLAGS_HEADER), COPROC_FLAGS_HEADER)
                 for count in range(8):
                     cell, check = create_breakpoint(f"{count}")
                     self.flags.append(check)
@@ -132,7 +132,7 @@ class MainWindow(QMainWindow):
     def init_instrs(self):
         self.instrs = []
         self.pcs = []
-        self.instr_grid = create_table(0, 4, ["Bkpt", f"{'Address': ^14}", f"{'Instruction': ^40}", "Source"], stretch_last=True)
+        self.instr_grid = create_table(0, len(INSTR_HEADER), INSTR_HEADER, stretch_last=True)
         self.instr_grid.resizeColumnsToContents()
 
     def add_edit(self):
@@ -210,7 +210,7 @@ class MainWindow(QMainWindow):
     def init_mem(self):
         grid = QGridLayout()
         grid.setSpacing(5)
-        self.section_dropdown = create_dropdown(['Kernel', '.data', 'stack', 'MMIO'], self.change_section)
+        self.section_dropdown = create_dropdown(MEMORY_SECTION, self.change_section)
         self.section_dropdown.setCurrentIndex(1)
         self.mem_right = create_button("🡣", self.mem_rightclick, (QSizePolicy.Preferred, QSizePolicy.Expanding))
         self.mem_right.setMaximumWidth(25)
@@ -231,7 +231,7 @@ class MainWindow(QMainWindow):
         for i, cell in enumerate(self.mem_vals):
             table.setItem(i/MEMORY_COLUMN_COUNT, (i%MEMORY_COLUMN_COUNT)+1, cell)
         grid.addWidget(table, 1, 0, 16, 5)
-        self.labels = create_table(0, 3, ['', 'Label', 'Address'])
+        self.labels = create_table(0, len(LABEL_HEADER), LABEL_HEADER)
         self.labels.setSortingEnabled(True)
         grid.addWidget(self.labels, 2, 6, 15, 2)
         self.mem_grid = QWidget()

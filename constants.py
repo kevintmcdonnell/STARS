@@ -59,6 +59,13 @@ MEMORY_ROW_COUNT = 16
 MEMORY_COLUMN_COUNT = 4
 MEMORY_SIZE = MEMORY_ROW_COUNT * MEMORY_COLUMN_COUNT * 4 # 256
 MEMORY_TABLE_HEADER = ["Address"] + [f"+{MEMORY_WIDTH*i:x}" for i in range(MEMORY_COLUMN_COUNT)]
+MEMORY_SECTION = ['Kernel', '.data', 'stack', 'MMIO'] # Memory Section Dropdown
+
+# Table Headers
+LABEL_HEADER = ['', 'Label', 'Address']
+INSTR_HEADER = ["Bkpt", f"{'Address': ^14}", f"{'Instruction': ^40}", "Source"]
+REGISTER_HEADER = ["Name", "Value"]
+COPROC_FLAGS_HEADER = ["Condition", "Flags"]
 
 MENU_BAR = {
     'File': {
