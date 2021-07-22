@@ -87,8 +87,6 @@ class MainWindow(QMainWindow):
 
     def init_ui(self):
         self.setWindowTitle(WINDOW_TITLE)
-        self.lay = QGridLayout()
-        self.lay.setSpacing(5)
         self.init_menubar()
         self.init_instrs()
         self.init_mem()
@@ -96,10 +94,8 @@ class MainWindow(QMainWindow):
         self.init_regs()
         self.init_pa()
         self.add_edit()
-        center = create_widget(self.lay)
-        self.setCentralWidget(center)
-        self.showMaximized()
         self.init_splitters()
+        self.showMaximized()
 
     def init_regs(self):
         self.regs = {}
@@ -116,16 +112,13 @@ class MainWindow(QMainWindow):
                 box.setItem(i, 0, label)
                 box.setItem(i, 1, self.regs[r])
             if name == "Coproc 1": # add coproc flags
-                holder = QSplitter(Qt.Vertical)
-                holder.addWidget(box)
-                holder.setStretchFactor(0, 20)
-                box = create_table(4, len(COPROC_FLAGS_HEADER), COPROC_FLAGS_HEADER)
+                flags = create_table(4, len(COPROC_FLAGS_HEADER), COPROC_FLAGS_HEADER)
                 for count in range(8):
                     cell, check = create_breakpoint(f"{count}")
                     self.flags.append(check)
-                    box.setCellWidget(count/2, count%2, cell)
-                holder.addWidget(box)
-                box = holder
+                    flags.setCellWidget(count/2, count%2, cell)
+                box = create_splitter(orientation=Qt.Vertical,
+                    widgets=[box, flags], stretch_factors=[20])
             self.reg_box.addTab(box, name)
 
     def init_instrs(self):
@@ -243,33 +236,19 @@ class MainWindow(QMainWindow):
         self.pa_lay = create_widget(layout=pa)
 
     def init_splitters(self): 
-        instruction_pa = QSplitter(Qt.Vertical)
-        instruction_pa.addWidget(self.pa_lay)
-        instruction_pa.addWidget(self.instr_grid)
-        instruction_pa.setStretchFactor(0, 1)
-        instruction_pa.setStretchFactor(1, 9)
-
-        editor_instruction_horizontal = QSplitter()
-        editor_instruction_horizontal.addWidget(self.tabs)
-        editor_instruction_horizontal.addWidget(instruction_pa)
         largeWidth = QGuiApplication.primaryScreen().size().width()
-        editor_instruction_horizontal.setSizes([largeWidth, largeWidth]) # 50|50
+        instruction_pa = create_splitter(orientation=Qt.Vertical, 
+            widgets=[self.pa_lay, self.instr_grid], stretch_factors=[1, 9])
+        editor_instruction_horizontal = create_splitter(
+            widgets=[self.tabs, instruction_pa], sizes=[largeWidth, largeWidth])
+        left_vertical = create_splitter(orientation=Qt.Vertical,
+            widgets=[editor_instruction_horizontal, self.mem_grid, self.out_section],
+            stretch_factors=[10, 4, 2])
+        all_horizontal = create_splitter(
+            widgets=[left_vertical, self.reg_box], stretch_factors=[3, 0])
+        all_horizontal.setContentsMargins(10,10,10,10)
 
-        left_vertical = QSplitter(Qt.Vertical)
-        left_vertical.addWidget(editor_instruction_horizontal)
-        left_vertical.addWidget(self.mem_grid)
-        left_vertical.addWidget(self.out_section)
-        left_vertical.setStretchFactor(0, 10)
-        left_vertical.setStretchFactor(1, 4)
-        left_vertical.setStretchFactor(2, 2)
-
-        all_horizontal = QSplitter()
-        all_horizontal.addWidget(left_vertical)
-        all_horizontal.addWidget(self.reg_box)
-        all_horizontal.setStretchFactor(0, 3)
-        all_horizontal.setStretchFactor(1, 0)
-
-        self.lay.addWidget(all_horizontal, 0, 0)
+        self.setCentralWidget(all_horizontal)
 
     def save_file(self, wid: TextEdit=None, ind: int=None):
         if wid is None:

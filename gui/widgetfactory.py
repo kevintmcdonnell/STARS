@@ -86,3 +86,16 @@ def create_widget(layout: QLayout=None) -> QWidget:
         widget.setLayout(layout)
 
     return widget
+
+def create_splitter(orientation: Qt.Orientation=Qt.Horizontal, widgets: List[QWidget]=[], 
+            stretch_factors: List[int]=[], sizes: List[int]=[]) -> QSplitter:
+    ''' Returns a splitter in the provided orientation containing the given widgets.'''
+    splitter = QSplitter(orientation)
+    for widget in widgets:
+        splitter.addWidget(widget)
+    for i, factor in enumerate(stretch_factors):
+        splitter.setStretchFactor(i, factor)
+    if sizes:
+        splitter.setSizes(sizes)
+        
+    return splitter
