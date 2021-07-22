@@ -121,7 +121,7 @@ class MainWindow(QMainWindow):
             box = create_table(len(register_set), 2, ["Name", "Value"], stretch_last=True)
             box.resizeRowsToContents()
             for i, r in enumerate(register_set):
-                self.regs[r] = create_cell('0x00000000')
+                self.regs[r] = create_cell(f'0x{settings.get(f"initial_{r}", 0):08x}')
                 self.regs[r].setTextAlignment(int(Qt.AlignRight))
                 label = create_cell(r)
                 box.setItem(i, 0, label)
@@ -578,6 +578,7 @@ class MainWindow(QMainWindow):
                 return
         if self.tabs.currentIndex() == i:
             self.update_button_status(start=False, step=False, backstep=False, pause=False)
+            self.clear_tables()
         if self.tabs.widget(i).name in self.files:
             self.files.pop(self.tabs.widget(i).name)
         self.tabs.removeTab(i)
@@ -620,6 +621,14 @@ class MainWindow(QMainWindow):
                     for i in unsaved_files:
                         self.save_file(self.tabs.widget(i), i)
                 event.accept()
+
+    def clear_tables(self):
+        self.instr_grid.setRowCount(0) # remove instructions
+        self.labels.setRowCount(0) # remove labels
+        for cell in self.mem_vals: # clear memory
+            cell.setText("")
+        for r, cell in self.regs.items(): # reset registers
+            cell.setText(f'0x{settings.get(f"initial_{r}", 0):08x}')
 
 if __name__ == "__main__":
     app = QApplication()
