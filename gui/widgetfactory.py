@@ -49,9 +49,11 @@ def create_table(rows: int, cols: int, labels: List[str], stretch_last: bool=Fal
 
     return table
 
-def create_save_confirmation(filename: str="") -> QMessageBox:
+def create_save_confirmation(filename: str="", dark: bool=False) -> QMessageBox:
     '''Create a confirmation dialog for closing unsaved tabs.'''
     dialog = QMessageBox()
+    if dark:
+        dialog.setStyleSheet("background-color: rgb(53,53,53)")
     if filename:
         dialog.setText(SAVE_SINGLE.format(filename))
     else: 

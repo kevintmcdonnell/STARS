@@ -82,7 +82,7 @@ class MainWindow(QMainWindow):
         self.palette.setColor(QPalette.Window, QColor(25, 25, 25))  # 53 53 53
         self.palette.setColor(QPalette.WindowText, Qt.white)
         self.palette.setColor(QPalette.Base, QColor(53, 53, 53))  # 25 25 25
-        self.palette.setColor(QPalette.AlternateBase, QColor(53, 53, 53))
+        self.palette.setColor(QPalette.AlternateBase, QColor(63, 63, 63))
         self.palette.setColor(QPalette.ToolTipBase, Qt.white)
         self.palette.setColor(QPalette.ToolTipText, Qt.white)
         self.palette.setColor(QPalette.Text, Qt.white)
@@ -92,6 +92,9 @@ class MainWindow(QMainWindow):
         self.palette.setColor(QPalette.Link, QColor(42, 130, 218))
         self.palette.setColor(QPalette.Highlight, QColor(42, 130, 218))
         self.palette.setColor(QPalette.HighlightedText, Qt.black)
+
+        self.tableHead = []
+        self.button = []
 
         self.init_ui()
 
@@ -119,6 +122,7 @@ class MainWindow(QMainWindow):
         self.reg_box.tabBar().setDocumentMode(True)
         for name, register_set in {"Registers": REGS, "Coproc 1": F_REGS}.items():
             box = create_table(len(register_set), 2, ["Name", "Value"], stretch_last=True)
+            self.tableHead.append(box.horizontalHeader())
             box.resizeRowsToContents()
             for i, r in enumerate(register_set):
                 self.regs[r] = create_cell('0x00000000')
@@ -131,6 +135,7 @@ class MainWindow(QMainWindow):
                 holder.addWidget(box)
                 holder.setStretchFactor(0, 20)
                 box = create_table(4, 2, ["Condition", "Flags"])
+                self.tableHead.append(box.horizontalHeader())
                 for count in range(8):
                     cell, check = create_breakpoint(f"{count}")
                     self.flags.append(check)
@@ -143,6 +148,7 @@ class MainWindow(QMainWindow):
         self.instrs = []
         self.pcs = []
         self.instr_grid = create_table(0, 4, ["Bkpt", f"{'Address': ^14}", f"{'Instruction': ^40}", "Source"], stretch_last=True)
+        self.tableHead.append(self.instr_grid.horizontalHeader())
         self.instr_grid.resizeColumnsToContents()
 
     def add_edit(self):
@@ -157,6 +163,7 @@ class MainWindow(QMainWindow):
         self.tabs.tabCloseRequested.connect(self.close_tab)
 
         nt = QPushButton('+')
+        self.button.append(nt)
         nt.clicked.connect(self.new_tab)
         self.tabs.setCornerWidget(nt)
 
@@ -216,6 +223,7 @@ class MainWindow(QMainWindow):
         self.out = QTextEdit()
         self.out.setReadOnly(True)
         clear_button = QPushButton("Clear")
+        self.button.append(clear_button)
         clear_button.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Expanding)
         clear_button.pressed.connect(lambda: self.update_console(clear=True))
         grid = QGridLayout()
@@ -232,9 +240,11 @@ class MainWindow(QMainWindow):
         self.section_dropdown.addItems(['Kernel', '.data', 'stack', 'MMIO'])
         self.section_dropdown.currentTextChanged.connect(self.change_section)
         self.mem_right = QPushButton("🡣")
+        self.button.append(self.mem_right)
         self.mem_right.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
         self.mem_right.setMaximumWidth(25)
         self.mem_left = QPushButton("🡡")
+        self.button.append(self.mem_left)
         self.mem_left.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
         self.mem_left.setMaximumWidth(25)
         self.hdc_dropdown = QComboBox()
@@ -249,6 +259,8 @@ class MainWindow(QMainWindow):
         self.mem_vals = []
         self.base_address = 0
         table = create_table(16, 5, ["Address", "+0", "+4", "+8", "+c"])
+        self.tableHead.append(table.horizontalHeader())
+        self.mem_lefts = table
         count = 0
         for i in range(16):
             for j in range(5):
@@ -262,6 +274,7 @@ class MainWindow(QMainWindow):
             count += 16
         grid.addWidget(table, 1, 0, 16, 5)
         self.labels = create_table(0, 3, ['', 'Label', 'Address'])
+        self.tableHead.append(self.labels.horizontalHeader())
         self.labels.setSortingEnabled(True)
         grid.addWidget(self.labels, 2, 6, 15, 2)
         self.mem_grid = QWidget()
@@ -398,10 +411,41 @@ class MainWindow(QMainWindow):
     def change_theme(self):
         if not self.dark:
             self.app.setPalette(self.palette)
+            self.menuBar().setStyleSheet("background-color: rgb(25,25,25)")
+            self.section_dropdown.setStyleSheet("background-color: rgb(53,53,53)")
+            self.hdc_dropdown.setStyleSheet("background-color: rgb(53,53,53)")
+            for head in self.tableHead:
+                head.setStyleSheet("QHeaderView::section {background-color: rgb(53,53,53)}")
+            self.reg_box.setStyleSheet("QTabBar::tab {background-color : rgb(53,53,53)} QTabBar::tab:selected {background-color : rgb(63,63,63)} QScrollBar{background: rgb(53,53,53)}")
+            for button in self.button:
+                button.setStyleSheet("background-color : rgb(53,53,53)")
+            self.pa.setStyleSheet("background-color : rgb(53,53,53)")
+            self.tabs.setStyleSheet("QTabBar::tab {background-color : rgb(53,53,53)} QWidget {background-color : rgb(53,53,53)} QScrollBar{background: rgb(53,53,53)}")
+            self.instr_grid.setStyleSheet("QScrollBar{ background: rgb(53,53,53)}")
+            self.mem_lefts.setStyleSheet("QScrollBar{ background: rgb(53,53,53)}")
+            self.labels.setStyleSheet("QScrollBar{ background: rgb(53,53,53)}")
+            self.out.setStyleSheet("QScrollBar{ background: rgb(53,53,53)}")
+            self.mem_grid.setStyleSheet("background-color: rgb(53,53,53)")
+            # self.tabs.setStyleSheet("QTabWidget::tab-bar{background : rgb(53,53,53)} QTabBar::tab {background : rgb(53,53,53)}")
             # for reg in REGS:
             #     self.regs[reg].setPalette(self.palette)
         else:
             self.app.setPalette(self.default_theme)
+            self.menuBar().setStyleSheet("")
+            self.section_dropdown.setStyleSheet("")
+            self.hdc_dropdown.setStyleSheet("")
+            for head in self.tableHead:
+                head.setStyleSheet("")
+            self.reg_box.setStyleSheet("")
+            for button in self.button:
+                button.setStyleSheet("")
+            self.pa.setStyleSheet("")
+            self.tabs.setStyleSheet("")
+            self.instr_grid.setStyleSheet("")
+            self.mem_lefts.setStyleSheet("")
+            self.labels.setStyleSheet("")
+            self.out.setStyleSheet("")
+            self.mem_grid.setStyleSheet("")
             # for reg in REGS:
             #     self.regs[reg].setPalette(self.default_theme)
         self.dark = not self.dark
@@ -630,7 +674,7 @@ class MainWindow(QMainWindow):
 
     def close_tab(self, i):
         if self.tabs.tabText(i)[-1] == "*":
-            choice = create_save_confirmation(self.tabs.widget(i).getFilename()).exec_()
+            choice = create_save_confirmation(self.tabs.widget(i).getFilename(), self.dark).exec_()
             if choice == QMessageBox.Save:
                 self.save_file(self.tabs.widget(i), i)
             elif choice == QMessageBox.Cancel:
@@ -671,7 +715,7 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         unsaved_files = [i for i in range(self.len) if self.tabs.tabText(i)[-1] == "*"]
         if unsaved_files:
-            choice = create_save_confirmation().exec_()
+            choice = create_save_confirmation("", self.dark).exec_()
             if choice == QMessageBox.Cancel:
                 event.ignore()
             else:
