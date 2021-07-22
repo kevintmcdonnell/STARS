@@ -391,9 +391,7 @@ class MainWindow(QMainWindow):
         elif t == 'MMIO':
             self.base_address = 0xffff0000
         else:
-            self.base_address = settings['initial_$sp'] - 0xc
-            if self.base_address % MEMORY_SIZE != 0:
-                self.base_address -= self.base_address % MEMORY_SIZE
+            self.base_address = (settings['initial_$sp'] - 0xc) & ~(MEMORY_SIZE-1) # multiple of MEMORY_SIZE
         self.fill_mem()
 
     def set_running(self, run):
@@ -423,9 +421,7 @@ class MainWindow(QMainWindow):
 
     def mem_move_to(self, addr):
         self.mem_sem.acquire()
-        if addr % MEMORY_SIZE != 0:
-            addr -= (addr % MEMORY_SIZE)
-        self.base_address = addr
+        self.base_address = addr & ~(MEMORY_SIZE-1) # 0x100-1 -> 0xff (multiple of MEMORY_SIZE)
         self.mem_sem.release()
         self.section_dropdown.setCurrentIndex(0)
         if addr >= settings['data_min']:
