@@ -602,6 +602,7 @@ class MainWindow(QMainWindow):
             wid = TextEdit(completer=self.comp, textChanged=self.update_dirty)
         self.tabs.addTab(wid, wid.getFilename())
         self.tabs.setCurrentWidget(wid)
+        wid.setFocus()
         self.update_button_status(save=True, close=True, assemble=True)
         Highlighter(wid.document())
 
