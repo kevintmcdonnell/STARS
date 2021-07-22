@@ -18,7 +18,7 @@ def create_breakpoint(text="") -> (QWidget, QCheckBox):
 
     return cell, check
 
-def create_cell(text: str) -> QTableWidgetItem:
+def create_cell(text: str="") -> QTableWidgetItem:
     '''Returns a cell for a QTableWidget.'''
     line = QTableWidgetItem(text)
     line.setFont(QFont("Courier New", 10))
@@ -70,3 +70,11 @@ def create_button(text: str, clicked_function: Callable[..., None]=None,
         button.setSizePolicy(*policy)
     
     return button
+
+def create_dropdown(items: List[str], select_function: Callable[..., None]=None) -> QComboBox:
+    '''Returns a dropdown that calls the provided function when an item is selected.'''
+    dropdown = QComboBox()
+    dropdown.addItems(items)
+    dropdown.currentTextChanged.connect(select_function)
+
+    return dropdown

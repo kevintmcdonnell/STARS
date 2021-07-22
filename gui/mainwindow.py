@@ -221,37 +221,26 @@ class MainWindow(QMainWindow):
     def init_mem(self):
         grid = QGridLayout()
         grid.setSpacing(5)
-        self.section_dropdown = QComboBox()
-        self.section_dropdown.addItems(['Kernel', '.data', 'stack', 'MMIO'])
-        self.section_dropdown.currentTextChanged.connect(self.change_section)
+        self.section_dropdown = create_dropdown(['Kernel', '.data', 'stack', 'MMIO'], self.change_section)
         self.section_dropdown.setCurrentIndex(1)
         self.mem_right = create_button("🡣", self.mem_rightclick, (QSizePolicy.Preferred, QSizePolicy.Expanding))
         self.mem_right.setMaximumWidth(25)
         self.mem_left = create_button("🡡", self.mem_leftclick, (QSizePolicy.Preferred, QSizePolicy.Expanding))
         self.mem_left.setMaximumWidth(25)
-        self.hdc_dropdown = QComboBox()
-        self.hdc_dropdown.addItems(MEMORY_REPR.keys())
-        self.hdc_dropdown.currentTextChanged.connect(self.change_rep)
+        self.hdc_dropdown = create_dropdown(MEMORY_REPR.keys(), self.change_rep)
         grid.addWidget(self.mem_left, 1, 5, 8, 1)
         grid.addWidget(self.mem_right, 9, 5, 8, 1)
         grid.addWidget(self.section_dropdown, 1, 6, 1, 1)
         grid.addWidget(self.hdc_dropdown, 1, 7, 1, 1)
-        self.addresses = [0] * 16
-        self.addresses = self.addresses[:]
-        self.mem_vals = []
         self.base_address = settings['data_min']
         table = create_table(16, 5, ["Address", "+0", "+4", "+8", "+c"])
-        count = 0
-        for i in range(16):
-            for j in range(5):
-                if j == 0:
-                    q = create_cell(f'0x{count+self.base_address:08x}')
-                    self.addresses[i] = q
-                else:
-                    q = create_cell(" ")
-                    self.mem_vals.append(q)
-                table.setItem(i, j, q)
-            count += 16
+        self.addresses = [create_cell(f'0x{address:08x}') for address in 
+                                range(self.base_address, self.base_address+MEMORY_SIZE, 16)]
+        for i, cell in enumerate(self.addresses):
+            table.setItem(i, 0, cell)
+        self.mem_vals = [create_cell() for i in range(16*4)]
+        for i, cell in enumerate(self.mem_vals):
+            table.setItem(i/4, (i%4)+1, cell)
         grid.addWidget(table, 1, 0, 16, 5)
         self.labels = create_table(0, 3, ['', 'Label', 'Address'])
         self.labels.setSortingEnabled(True)
@@ -269,8 +258,7 @@ class MainWindow(QMainWindow):
         self.pa_lay.setLayout(pa)
 
     def init_splitters(self): 
-        instruction_pa = QSplitter()
-        instruction_pa.setOrientation(Qt.Vertical)
+        instruction_pa = QSplitter(Qt.Vertical)
         instruction_pa.addWidget(self.pa_lay)
         instruction_pa.addWidget(self.instr_grid)
         instruction_pa.setStretchFactor(0, 1)
@@ -282,8 +270,7 @@ class MainWindow(QMainWindow):
         largeWidth = QGuiApplication.primaryScreen().size().width()
         editor_instruction_horizontal.setSizes([largeWidth, largeWidth]) # 50|50
 
-        left_vertical = QSplitter()
-        left_vertical.setOrientation(Qt.Vertical)
+        left_vertical = QSplitter(Qt.Vertical)
         left_vertical.addWidget(editor_instruction_horizontal)
         left_vertical.addWidget(self.mem_grid)
         left_vertical.addWidget(self.out_section)
