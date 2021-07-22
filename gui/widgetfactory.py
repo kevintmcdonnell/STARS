@@ -1,4 +1,4 @@
-from typing import Callable, List, Tuple
+from typing import Callable, List, Tuple, Union
 
 from PySide2.QtCore import Qt
 from PySide2.QtGui import QFont
@@ -62,12 +62,14 @@ def create_save_confirmation(filename: str="") -> QMessageBox:
     return dialog
 
 def create_button(text: str, clicked_function: Callable[..., None]=None, 
-            policy: Tuple[QSizePolicy, QSizePolicy]=None) -> QPushButton:
+            policy: Tuple[QSizePolicy, QSizePolicy]=None, maximum_width: int=None) -> QPushButton:
     '''Returns a button that triggers the provided function when clicked.'''
     button = QPushButton(text)
     button.clicked.connect(clicked_function)
     if policy:
         button.setSizePolicy(*policy)
+    if maximum_width is not None:
+        button.setMaximumWidth(maximum_width)
     
     return button
 
@@ -89,7 +91,7 @@ def create_widget(layout: QLayout=None) -> QWidget:
 
 def create_splitter(orientation: Qt.Orientation=Qt.Horizontal, widgets: List[QWidget]=[], 
             stretch_factors: List[int]=[], sizes: List[int]=[]) -> QSplitter:
-    ''' Returns a splitter in the provided orientation containing the given widgets.'''
+    '''Returns a splitter in the provided orientation containing the given widgets.'''
     splitter = QSplitter(orientation)
     for widget in widgets:
         splitter.addWidget(widget)
@@ -97,5 +99,18 @@ def create_splitter(orientation: Qt.Orientation=Qt.Horizontal, widgets: List[QWi
         splitter.setStretchFactor(i, factor)
     if sizes:
         splitter.setSizes(sizes)
-        
+
     return splitter
+
+def create_box_layout(direction: QBoxLayout.Direction, 
+            sections: List[Union[QWidget, QBoxLayout]]=[]) -> QBoxLayout:
+    '''Returns a box layout containing the given sections in the provided direction.'''
+    box = QBoxLayout(direction)
+    for section in sections:
+        if type(section) is QBoxLayout:
+            box.addLayout(section)
+        else:
+            box.addWidget(section)
+    box.setContentsMargins(0, 0, 0, 0)
+
+    return box

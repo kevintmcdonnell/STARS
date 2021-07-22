@@ -192,26 +192,15 @@ class MainWindow(QMainWindow):
         self.out = QTextEdit()
         self.out.setReadOnly(True)
         clear_button = create_button("Clear", lambda: self.update_console(clear=True), (QSizePolicy.Minimum, QSizePolicy.Expanding))
-        grid = QGridLayout()
+        grid = create_box_layout(direction=QBoxLayout.LeftToRight, sections=[clear_button, self.out])
         grid.setSpacing(0)
-        grid.addWidget(clear_button, 0, 0, 1, 1)
-        grid.addWidget(self.out, 0, 1, 1, 49)
         self.out_section = create_widget(layout=grid)
 
     def init_mem(self):
-        grid = QGridLayout()
-        grid.setSpacing(5)
-        self.section_dropdown = create_dropdown(MEMORY_SECTION, self.change_section)
-        self.section_dropdown.setCurrentIndex(1)
-        self.mem_right = create_button("🡣", self.mem_rightclick, (QSizePolicy.Preferred, QSizePolicy.Expanding))
-        self.mem_right.setMaximumWidth(25)
-        self.mem_left = create_button("🡡", self.mem_leftclick, (QSizePolicy.Preferred, QSizePolicy.Expanding))
-        self.mem_left.setMaximumWidth(25)
-        self.hdc_dropdown = create_dropdown(MEMORY_REPR.keys(), self.change_rep)
-        grid.addWidget(self.mem_left, 1, 5, 8, 1)
-        grid.addWidget(self.mem_right, 9, 5, 8, 1)
-        grid.addWidget(self.section_dropdown, 1, 6, 1, 1)
-        grid.addWidget(self.hdc_dropdown, 1, 7, 1, 1)
+        # initialize memory table and left/right buttons
+        self.mem_right = create_button("🡣", self.mem_rightclick, (QSizePolicy.Preferred, QSizePolicy.Expanding), maximum_width=25)
+        self.mem_left = create_button("🡡", self.mem_leftclick, (QSizePolicy.Preferred, QSizePolicy.Expanding), maximum_width=25)
+        
         self.base_address = settings['data_min']
         table = create_table(MEMORY_ROW_COUNT, MEMORY_COLUMN_COUNT+1, MEMORY_TABLE_HEADER)
         self.addresses = [create_cell(WORD_HEX_FORMAT.format(address)) for address in 
@@ -221,19 +210,34 @@ class MainWindow(QMainWindow):
         self.mem_vals = [create_cell() for i in range(MEMORY_ROW_COUNT*MEMORY_COLUMN_COUNT)]
         for i, cell in enumerate(self.mem_vals):
             table.setItem(i/MEMORY_COLUMN_COUNT, (i%MEMORY_COLUMN_COUNT)+1, cell)
-        grid.addWidget(table, 1, 0, 16, 5)
+
+        arrow_grid = create_box_layout(direction=QBoxLayout.TopToBottom,
+            sections=[self.mem_left, self.mem_right])
+        memory_grid = create_box_layout(direction=QBoxLayout.LeftToRight,
+            sections=[table, arrow_grid])
+
+        # Initialize dropdowns and labels table
+        self.section_dropdown = create_dropdown(MEMORY_SECTION, self.change_section)
+        self.section_dropdown.setCurrentIndex(1)
+        self.hdc_dropdown = create_dropdown(MEMORY_REPR.keys(), self.change_rep)
         self.labels = create_table(0, len(LABEL_HEADER), LABEL_HEADER)
         self.labels.setSortingEnabled(True)
-        grid.addWidget(self.labels, 2, 6, 15, 2)
-        self.mem_grid = create_widget(layout=grid)
+
+        dropdown_grid = create_box_layout(direction=QBoxLayout.LeftToRight,
+            sections=[self.section_dropdown, self.hdc_dropdown])
+        right_area = create_splitter(orientation=Qt.Vertical,
+            widgets=[create_widget(layout=dropdown_grid), self.labels])
+
+        # Splitter for the memory area and dropdown/labels area
+        self.mem_grid = create_splitter(
+            widgets=[create_widget(layout=memory_grid), right_area],
+            stretch_factors=[2, 1])
 
     def init_pa(self):
         self.pa = QLineEdit()
-        pa = QHBoxLayout()
-        label = QLabel('Program Arguments:')
-        pa.addWidget(label)
-        pa.addWidget(self.pa)
-        self.pa_lay = create_widget(layout=pa)
+        layout = create_box_layout(direction=QBoxLayout.LeftToRight,
+            sections=[QLabel('Program Arguments:'), self.pa])
+        self.pa_lay = create_widget(layout=layout)
 
     def init_splitters(self): 
         largeWidth = QGuiApplication.primaryScreen().size().width()
@@ -246,7 +250,7 @@ class MainWindow(QMainWindow):
             stretch_factors=[10, 4, 2])
         all_horizontal = create_splitter(
             widgets=[left_vertical, self.reg_box], stretch_factors=[3, 0])
-        all_horizontal.setContentsMargins(10,10,10,10)
+        all_horizontal.setContentsMargins(10,20,10,10)
 
         self.setCentralWidget(all_horizontal)
 
