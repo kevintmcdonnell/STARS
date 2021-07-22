@@ -414,8 +414,7 @@ class MainWindow(QMainWindow):
             self.base_address = settings['initial_$sp'] - 0xc
             if self.base_address % 256 != 0:
                 self.base_address -= self.base_address % 256
-        if self.controller.good():
-            self.fill_mem()
+        self.fill_mem()
 
     def set_running(self, run):
         self.run_sem.acquire()
@@ -509,23 +508,22 @@ class MainWindow(QMainWindow):
 
     def fill_mem(self):
         self.mem_sem.acquire()
-        for q, count in zip(self.mem_vals, range(self.base_address, self.base_address+MEMORY_SIZE, 4)):
-            memory_format = MEMORY_REPR[self.rep]
-            signed = True if self.rep == "ASCII" else False
-            offsets = range(3, -1, -1) # [3,2,1,0]
-            byte_value = [self.controller.get_byte(count+i, signed=signed) for i in offsets]
-            if self.rep == "ASCII":
-                byte_value = [to_ascii(value) for value in byte_value]
-            text = " ".join([memory_format.format(value) for value in byte_value])
-            q.setText(text)
+        if self.controller.good():
+            for q, count in zip(self.mem_vals, range(self.base_address, self.base_address+MEMORY_SIZE, 4)):
+                memory_format = MEMORY_REPR[self.rep]
+                signed = True if self.rep == "ASCII" else False
+                offsets = range(3, -1, -1) # [3,2,1,0]
+                byte_value = [self.controller.get_byte(count+i, signed=signed) for i in offsets]
+                if self.rep == "ASCII":
+                    byte_value = [to_ascii(value) for value in byte_value]
+                text = " ".join([memory_format.format(value) for value in byte_value])
+                q.setText(text)
         for a, count in zip(self.addresses, range(self.base_address, self.base_address+MEMORY_SIZE, 16)):
             text = f'{count}' if self.rep == "Decimal" else f'0x{count:08x}'
             a.setText(text)
         self.mem_sem.release()
 
     def mem_rightclick(self):
-        if not self.controller.good():
-            return
         self.mem_sem.acquire()
         if self.base_address <= settings['data_max'] - 256:
             self.base_address += 256
@@ -533,8 +531,6 @@ class MainWindow(QMainWindow):
         self.fill_mem()
 
     def mem_leftclick(self):
-        if not self.controller.good():
-            return
         self.mem_sem.acquire()
         if self.base_address >= 256:
             self.base_address -= 256
