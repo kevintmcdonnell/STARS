@@ -303,16 +303,16 @@ class MainWindow(QMainWindow):
             wid = self.tabs.currentWidget()
         if ind is None:
             ind = self.tabs.currentIndex()
-        if wid.is_new():
-            filename = QFileDialog.getSaveFileName(self, 'Save', f'{key}', options=QFileDialog.DontUseNativeDialog)
-            if len(filename) < 2 or filename[0] is None:
+        if wid.is_new() and self.files.get(wid.name, False):
+            filename, _ = QFileDialog.getSaveFileName(self, 'Save', f'{wid.name}', options=QFileDialog.DontUseNativeDialog)
+            if not filename:
                 return
-            self.files.pop(wid.name)
+            value = self.files.pop(wid.name)
             wid.name = filename[0]
             wid.set_new(False)
-            self.files[wid.name] = True
+            self.files[wid.name] = value
 
-        if self.files[wid.name]:
+        if self.files.get(wid.name, False):
             with open(wid.name, 'w+') as f:
                 f.write(wid.toPlainText())
             self.files[wid.name] = False
@@ -626,7 +626,7 @@ class MainWindow(QMainWindow):
         if w is not None:
             if w.is_new() or w.name in self.files:
                 self.files[w.name] = True
-                self.tabs.setTabText(i, f'{self.tabs.tabText(i)} *')
+                self.tabs.setTabText(i, f'{w.getFilename()} *')
             else:
                 self.files[w.name] = False
 
