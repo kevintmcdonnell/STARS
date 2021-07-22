@@ -33,22 +33,16 @@ def to_ascii(c):
     if c in range(127):
         if c == 0:  # Null terminator
             return "\\0"
-
         elif c == 9:  # Tab
             return "\\t"
-
         elif c == 10:  # Newline
             return "\\n"
-
         elif c >= 32:  # Regular character
             return chr(c)
-
         else:  # Invalid character
             return '.'
-
     else:  # Invalid character
         return '.'
-
 
 class MainWindow(QMainWindow):
     changed_interp = Signal()
@@ -56,20 +50,16 @@ class MainWindow(QMainWindow):
     def __init__(self, app):
         super().__init__()
         self.vt100 = None
-
         self.app = app
-
         self.controller = Controller(None, None)
 
         settings['gui'] = True
         settings['debug'] = True
 
         self.console_sem = QSemaphore(1)
-        self.out_pos = 0
         self.mem_sem = QSemaphore(1)
         self.result = None
         self.intr = None
-        self.cur_file = None
 
         self.rep = 'Hexadecimal'
 
@@ -152,7 +142,6 @@ class MainWindow(QMainWindow):
         self.tabs = QTabWidget()
         self.tabs.setTabsClosable(True)
         self.tabs.tabCloseRequested.connect(self.close_tab)
-
         self.tabs.setCornerWidget(create_button('+', self.new_tab))
 
         # initialize autocomplete
@@ -166,16 +155,8 @@ class MainWindow(QMainWindow):
         f = QFile(filename)
         if not f.open(QFile.ReadOnly):
             return QStringListModel(comp)
-
         QGuiApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-
-        words = []
-        while not f.atEnd():
-            line = f.readLine()
-            if len(line) > 0:
-                s = str(line.trimmed(), encoding='ascii')
-                words.append(s)
-
+        words = [str(line.trimmed(), encoding='ascii') for line in f.readlines() if len(line) > 0]
         QGuiApplication.restoreOverrideCursor()
 
         return QStringListModel(words, comp)
@@ -322,13 +303,12 @@ class MainWindow(QMainWindow):
     def assemble(self):
         if self.tabs.currentWidget() is None:
             return
-        filename = self.tabs.currentWidget().name
         try:
             if self.running:
                 self.intr.end.emit(False)
             for i in range(self.file_count):
                 self.save_file(wid=self.tabs.widget(i), ind=i)
-            self.result = assemble(filename)
+            self.result = assemble(self.tabs.currentWidget().name)
             self.intr = Interpreter(self.result, self.pa.text().split())
             self.controller.set_interp(self.intr)
             self.instrs = []
@@ -337,10 +317,7 @@ class MainWindow(QMainWindow):
             self.intr.step.connect(self.update_screen)
             self.intr.console_out.connect(self.update_console)
             self.intr.user_input.connect(self.get_input)
-            # self.mem_right.clicked.connect()
-            # self.mem_left.clicked.connect(self.mem_leftclick)
             self.intr.end.connect(self.set_running)
-            self.setWindowTitle(f'STARS')
             self.update_button_status(start=True, step=True, backstep=True, pause=True)
 
         except Exception as e:
@@ -368,7 +345,6 @@ class MainWindow(QMainWindow):
             self.controller.set_interp(self.intr)
             self.changed_interp.emit()
             self.controller.pause(False)
-            self.out_pos = self.out.textCursor().position()
             self.program = Thread(target=self.intr.interpret, daemon=True)
             self.program.start()
         elif not self.controller.cont():
