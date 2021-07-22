@@ -3,7 +3,7 @@ import sys
 from threading import Thread
 
 sys.path.append(os.getcwd())  # must be ran in sbumips directory (this is bc PYTHONPATH is weird in terminal)
-from constants import REGS, F_REGS, MENU_BAR, USER_INPUT_TYPE, MEMORY_REPR, MEMORY_SIZE
+from constants import *
 from interpreter.interpreter import Interpreter
 from sbumips import assemble
 from settings import settings
@@ -214,14 +214,14 @@ class MainWindow(QMainWindow):
         grid.addWidget(self.section_dropdown, 1, 6, 1, 1)
         grid.addWidget(self.hdc_dropdown, 1, 7, 1, 1)
         self.base_address = settings['data_min']
-        table = create_table(16, 5, ["Address", "+0", "+4", "+8", "+c"])
+        table = create_table(MEMORY_ROW_COUNT, MEMORY_COLUMN_COUNT+1, MEMORY_TABLE_HEADER)
         self.addresses = [create_cell(f'0x{address:08x}') for address in 
-                                range(self.base_address, self.base_address+MEMORY_SIZE, 16)]
+                                range(self.base_address, self.base_address+MEMORY_SIZE, MEMORY_COLUMN_COUNT*MEMORY_WIDTH)]
         for i, cell in enumerate(self.addresses):
             table.setItem(i, 0, cell)
-        self.mem_vals = [create_cell() for i in range(16*4)]
+        self.mem_vals = [create_cell() for i in range(MEMORY_ROW_COUNT*MEMORY_COLUMN_COUNT)]
         for i, cell in enumerate(self.mem_vals):
-            table.setItem(i/4, (i%4)+1, cell)
+            table.setItem(i/MEMORY_COLUMN_COUNT, (i%MEMORY_COLUMN_COUNT)+1, cell)
         grid.addWidget(table, 1, 0, 16, 5)
         self.labels = create_table(0, 3, ['', 'Label', 'Address'])
         self.labels.setSortingEnabled(True)
@@ -388,8 +388,8 @@ class MainWindow(QMainWindow):
             self.base_address = 0xffff0000
         else:
             self.base_address = settings['initial_$sp'] - 0xc
-            if self.base_address % 256 != 0:
-                self.base_address -= self.base_address % 256
+            if self.base_address % MEMORY_SIZE != 0:
+                self.base_address -= self.base_address % MEMORY_SIZE
         self.fill_mem()
 
     def set_running(self, run):
@@ -419,8 +419,8 @@ class MainWindow(QMainWindow):
 
     def mem_move_to(self, addr):
         self.mem_sem.acquire()
-        if addr % 256 != 0:
-            addr -= (addr % 256)
+        if addr % MEMORY_SIZE != 0:
+            addr -= (addr % MEMORY_SIZE)
         self.base_address = addr
         self.mem_sem.release()
         self.section_dropdown.setCurrentIndex(0)
@@ -485,31 +485,31 @@ class MainWindow(QMainWindow):
     def fill_mem(self):
         self.mem_sem.acquire()
         if self.controller.good():
-            for q, count in zip(self.mem_vals, range(self.base_address, self.base_address+MEMORY_SIZE, 4)):
+            for q, count in zip(self.mem_vals, range(self.base_address, self.base_address+MEMORY_SIZE, MEMORY_WIDTH)):
                 memory_format = MEMORY_REPR[self.rep]
                 signed = True if self.rep == "ASCII" else False
-                offsets = range(3, -1, -1) # [3,2,1,0]
+                offsets = range(MEMORY_WIDTH)[::-1] # [3,2,1,0]
                 byte_value = [self.controller.get_byte(count+i, signed=signed) for i in offsets]
                 if self.rep == "ASCII":
                     byte_value = [to_ascii(value) for value in byte_value]
                 text = " ".join([memory_format.format(value) for value in byte_value])
                 q.setText(text)
-        for a, count in zip(self.addresses, range(self.base_address, self.base_address+MEMORY_SIZE, 16)):
+        for a, count in zip(self.addresses, range(self.base_address, self.base_address+MEMORY_SIZE, MEMORY_COLUMN_COUNT*MEMORY_WIDTH)):
             text = f'{count}' if self.rep == "Decimal" else f'0x{count:08x}'
             a.setText(text)
         self.mem_sem.release()
 
     def mem_rightclick(self):
         self.mem_sem.acquire()
-        if self.base_address <= settings['data_max'] - 256:
-            self.base_address += 256
+        if self.base_address <= settings['data_max'] - MEMORY_SIZE:
+            self.base_address += MEMORY_SIZE
         self.mem_sem.release()
         self.fill_mem()
 
     def mem_leftclick(self):
         self.mem_sem.acquire()
-        if self.base_address >= 256:
-            self.base_address -= 256
+        if self.base_address >= MEMORY_SIZE:
+            self.base_address -= MEMORY_SIZE
         self.mem_sem.release()
         self.fill_mem()
 

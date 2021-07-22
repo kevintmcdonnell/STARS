@@ -54,7 +54,11 @@ MEMORY_REPR = {
 }
 
 # Size of memory show in table
-MEMORY_SIZE = 256
+MEMORY_WIDTH = 4 # bytes per column
+MEMORY_ROW_COUNT = 16
+MEMORY_COLUMN_COUNT = 4
+MEMORY_SIZE = MEMORY_ROW_COUNT * MEMORY_COLUMN_COUNT * 4 # 256
+MEMORY_TABLE_HEADER = ["Address"] + [f"+{MEMORY_WIDTH*i:x}" for i in range(MEMORY_COLUMN_COUNT)]
 
 MENU_BAR = {
     'File': {
