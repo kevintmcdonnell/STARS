@@ -437,29 +437,22 @@ class MainWindow(QMainWindow):
         labels = self.controller.get_labels()
         self.labels.setRowCount(len(labels))
         for i, l in enumerate(labels):
-            q = create_button(f'{l}: 0x{labels[l]:08x}', lambda : self.mem_move_to(labels[l]))
+            q = create_button(f'{l}: 0x{labels[l]:08x}', lambda state=None, addr=labels[l]: self.mem_move_to(addr))
             self.labels.setCellWidget(i, 0, q)
             self.labels.setItem(i, 1, QTableWidgetItem(f'{l}'))
             self.labels.setItem(i, 2, QTableWidgetItem(f'0x{labels[l]:08x}'))
 
     def mem_move_to(self, addr):
         self.mem_sem.acquire()
-
-        if addr % 256 == 0:
-            self.base_address = addr
-
-        else:
+        if addr % 256 != 0:
             addr -= (addr % 256)
-            self.base_address = addr
-
+        self.base_address = addr
         self.mem_sem.release()
-
         self.section_dropdown.setCurrentIndex(0)
         if addr >= settings['data_min']:
             self.section_dropdown.setCurrentIndex(1)
         if addr >= 0xffff0000:
             self.section_dropdown.setCurrentIndex(2)
-
         self.fill_mem()
 
     def fill_flags(self):

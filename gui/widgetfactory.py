@@ -75,6 +75,6 @@ def create_dropdown(items: List[str], select_function: Callable[..., None]=None)
     '''Returns a dropdown that calls the provided function when an item is selected.'''
     dropdown = QComboBox()
     dropdown.addItems(items)
-    dropdown.currentTextChanged.connect(select_function)
+    dropdown.activated["QString"].connect(select_function)
 
     return dropdown
