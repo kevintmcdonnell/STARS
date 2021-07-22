@@ -61,7 +61,7 @@ class MainWindow(QMainWindow):
         self.result = None
         self.intr = None
 
-        self.rep = 'Hexadecimal'
+        self.rep = MEMORY_REPR_DEFAULT
 
         self.running = False
         self.run_sem = QSemaphore(1)
@@ -86,7 +86,7 @@ class MainWindow(QMainWindow):
         self.init_ui()
 
     def init_ui(self):
-        self.setWindowTitle("STARS")
+        self.setWindowTitle(WINDOW_TITLE)
         self.lay = QGridLayout()
         self.lay.setSpacing(5)
         self.init_menubar()
@@ -110,7 +110,7 @@ class MainWindow(QMainWindow):
             box = create_table(len(register_set), len(REGISTER_HEADER), REGISTER_HEADER, stretch_last=True)
             box.resizeRowsToContents()
             for i, r in enumerate(register_set):
-                self.regs[r] = create_cell(f'0x{settings.get(f"initial_{r}", 0):08x}')
+                self.regs[r] = create_cell(WORD_HEX_FORMAT.format(settings.get(f"initial_{r}", 0)))
                 self.regs[r].setTextAlignment(int(Qt.AlignRight))
                 label = create_cell(r)
                 box.setItem(i, 0, label)
@@ -145,7 +145,7 @@ class MainWindow(QMainWindow):
 
         # initialize autocomplete
         self.comp = QCompleter()
-        self.comp.setModel(self.modelFromFile(r"gui/wordslist.txt", self.comp))
+        self.comp.setModel(self.modelFromFile(WORDLIST_PATH, self.comp))
         self.comp.setModelSorting(QCompleter.CaseInsensitivelySortedModel)
         self.comp.setCaseSensitivity(Qt.CaseInsensitive)
         self.comp.setWrapAround(False)
@@ -177,7 +177,7 @@ class MainWindow(QMainWindow):
             if tabs == 'Settings':
                 tab.triggered.connect(lambda selection: self.controller.setSetting(selection.data(), selection.isChecked()))
             for option, controls in values.items():
-                action = QAction(f"&{option}", self) if 'Shortcut' in controls else QAction(option, self)
+                action = QAction(option, self)
                 if 'Checkbox' in controls:
                     action.setCheckable(True)
                     action.setData(controls['Checkbox'])
@@ -192,7 +192,7 @@ class MainWindow(QMainWindow):
                     action.setEnabled(controls['Start'])
                 tab.addAction(action)
 
-        self.instr_count = QLabel("Instruction Count: 0\t\t")
+        self.instr_count = QLabel(INSTRUCTION_COUNT.format(0))
         bar.setCornerWidget(self.instr_count)
 
     def init_out(self):
@@ -221,7 +221,7 @@ class MainWindow(QMainWindow):
         grid.addWidget(self.hdc_dropdown, 1, 7, 1, 1)
         self.base_address = settings['data_min']
         table = create_table(MEMORY_ROW_COUNT, MEMORY_COLUMN_COUNT+1, MEMORY_TABLE_HEADER)
-        self.addresses = [create_cell(f'0x{address:08x}') for address in 
+        self.addresses = [create_cell(WORD_HEX_FORMAT.format(address)) for address in 
                                 range(self.base_address, self.base_address+MEMORY_SIZE, MEMORY_COLUMN_COUNT*MEMORY_WIDTH)]
         for i, cell in enumerate(self.addresses):
             table.setItem(i, 0, cell)
@@ -301,7 +301,7 @@ class MainWindow(QMainWindow):
                     wid = TextEdit(name=filename, text=f.read(), completer=self.comp, textChanged=self.update_dirty)
                 self.new_tab(wid=wid)
         except:
-            self.update_console(f'Could not open file\n')
+            self.update_console(OPEN_FILE_FAILED)
             return
 
     def assemble(self):
@@ -389,7 +389,7 @@ class MainWindow(QMainWindow):
         elif t == '.data':
             self.base_address = settings['data_min']
         elif t == 'MMIO':
-            self.base_address = 0xffff0000
+            self.base_address = settings['mmio_base']
         else:
             self.base_address = (settings['initial_$sp'] - 0xc) & ~(MEMORY_SIZE-1) # multiple of MEMORY_SIZE
         self.fill_mem()
@@ -399,7 +399,7 @@ class MainWindow(QMainWindow):
         self.running = run
         if not run:
             self.instrs = []
-            self.update_console("\n-- program is finished running --\n\n")
+            self.update_console(PROGRAM_FINISHED)
             self.update_button_status(start=False, step=False, pause=False)
         self.run_sem.release()
 
@@ -408,16 +408,17 @@ class MainWindow(QMainWindow):
         self.fill_instrs(pc)
         self.fill_mem()
         self.fill_flags()
-        self.instr_count.setText(f'Instruction Count: {self.controller.get_instr_count()}\t\t')
+        self.instr_count.setText(INSTRUCTION_COUNT.format(self.controller.get_instr_count()))
 
     def fill_labels(self):
         labels = self.controller.get_labels()
         self.labels.setRowCount(len(labels))
-        for i, l in enumerate(labels):
-            q = create_button(f'{l}: 0x{labels[l]:08x}', lambda state=None, addr=labels[l]: self.mem_move_to(addr))
+        for i, (l, addr) in enumerate(labels.items()):
+            q = create_button(f'{l}: {WORD_HEX_FORMAT.format(addr)}', 
+                    lambda state=None, addr=addr: self.mem_move_to(addr))
             self.labels.setCellWidget(i, 0, q)
             self.labels.setItem(i, 1, QTableWidgetItem(f'{l}'))
-            self.labels.setItem(i, 2, QTableWidgetItem(f'0x{labels[l]:08x}'))
+            self.labels.setItem(i, 2, QTableWidgetItem(WORD_HEX_FORMAT.format(addr)))
 
     def mem_move_to(self, addr):
         self.mem_sem.acquire()
@@ -426,7 +427,7 @@ class MainWindow(QMainWindow):
         self.section_dropdown.setCurrentIndex(0)
         if addr >= settings['data_min']:
             self.section_dropdown.setCurrentIndex(1)
-        if addr >= 0xffff0000:
+        if addr >= settings['mmio_base']:
             self.section_dropdown.setCurrentIndex(2)
         self.fill_mem()
 
@@ -446,12 +447,12 @@ class MainWindow(QMainWindow):
                     a = self.intr.reg[r]
                     if a < 0:
                         a += 2 ** 32
-                    self.regs[r].setText(f'0x{a:08x}')
+                    self.regs[r].setText(WORD_HEX_FORMAT.format(a))
             else:
                 if self.rep == "Decimal":
                     self.regs[r].setText(f'{self.intr.f_reg[r]:8f}')
                 else:
-                    self.regs[r].setText(f'0x{self.controller.get_reg_word(r):08x}')
+                    self.regs[r].setText(WORD_HEX_FORMAT.format(self.controller.get_reg_word(r)))
 
     def fill_instrs(self, pc):
         # pc = self.intr.reg['pc']
@@ -473,7 +474,7 @@ class MainWindow(QMainWindow):
                         ('b', str(i.filetag.file_name)[1:-1], str(i.filetag.line_no))))
                     self.instr_grid.setCellWidget(count, 0, cell)
                     
-                    values = [f"0x{int(k):08x}", 
+                    values = [WORD_HEX_FORMAT.format(int(k)), 
                                 f"{i.basic_instr()}", 
                                 f"{i.filetag.line_no}: {i.original_text}"]
                     row = create_instruction(values, self.instr_grid, count)
@@ -495,7 +496,7 @@ class MainWindow(QMainWindow):
                 text = " ".join([memory_format.format(value) for value in byte_value])
                 q.setText(text)
         for a, count in zip(self.addresses, range(self.base_address, self.base_address+MEMORY_SIZE, MEMORY_COLUMN_COUNT*MEMORY_WIDTH)):
-            text = f'{count}' if self.rep == "Decimal" else f'0x{count:08x}'
+            text = f'{count}' if self.rep == "Decimal" else WORD_HEX_FORMAT.format(count)
             a.setText(text)
         self.mem_sem.release()
 
@@ -522,10 +523,8 @@ class MainWindow(QMainWindow):
         self.console_sem.release()
 
     def get_input(self, input_type):
-        if USER_INPUT_TYPE[input_type] == "int":
-            value, state = QInputDialog.getInt(self, "Enter an integer", "Value")
-        elif USER_INPUT_TYPE[input_type] == "str":
-            value, state = QInputDialog.getText(self, "Enter a string", "Value")
+        value, state = QInputDialog.getInt(self, 
+                INPUT_MESSAGE[USER_INPUT_TYPE[input_type]], INPUT_LABEL)
         
         if state:
             self.intr.set_input(value)
@@ -604,7 +603,7 @@ class MainWindow(QMainWindow):
         for cell in self.mem_vals: # clear memory
             cell.setText("")
         for r, cell in self.regs.items(): # reset registers
-            cell.setText(f'0x{settings.get(f"initial_{r}", 0):08x}')
+            cell.setText(WORD_HEX_FORMAT.format(settings.get(f"initial_{r}", 0)))
 
 if __name__ == "__main__":
     app = QApplication()
