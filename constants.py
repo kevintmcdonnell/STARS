@@ -46,6 +46,45 @@ USER_INPUT_TYPE = ["str", "int"]
 SAVE_SINGLE = "Changes to {} will be lost unless you save. Do you wish to save all changes now?"
 SAVE_MULTIPLE = "Changes to one or more files will be lost unless you save. Do you wish to save all changes now?"
 
+# For memory byte representation 
+MEMORY_REPR = {
+    "Hexadecimal":"0x{:02x}", 
+    "Decimal":"{:3}",
+    "ASCII":"{:2}"
+}
+MEMORY_REPR_DEFAULT = 'Hexadecimal'
+
+# Size of memory show in table
+MEMORY_WIDTH = 4 # bytes per column
+MEMORY_ROW_COUNT = 16
+MEMORY_COLUMN_COUNT = 4
+MEMORY_SIZE = MEMORY_ROW_COUNT * MEMORY_COLUMN_COUNT * 4 # 256
+MEMORY_TABLE_HEADER = ["Address"] + [f"+{MEMORY_WIDTH*i:x}" for i in range(MEMORY_COLUMN_COUNT)]
+MEMORY_SECTION = ['Kernel', '.data', 'stack', 'MMIO'] # Memory Section Dropdown
+
+WORD_HEX_FORMAT = "0x{:08x}"
+
+# Table Headers
+LABEL_HEADER = ['', 'Label', 'Address']
+INSTR_HEADER = ["Bkpt", f"{'Address': ^14}", f"{'Instruction': ^40}", "Source"]
+REGISTER_HEADER = ["Name", "Value"]
+COPROC_FLAGS_HEADER = ["Condition", "Flags"]
+
+# PRESET MESSAGES
+PROGRAM_FINISHED = "\n-- program is finished running --\n\n"
+OPEN_FILE_FAILED = 'Could not open file\n'
+INSTRUCTION_COUNT = "Instruction Count: {}\t\t"
+
+# For message in dialog for syscalls that require user input
+INPUT_MESSAGE = {
+    "int": "Enter an integer",
+    "str": "Enter a string" 
+}
+INPUT_LABEL = "Value"
+
+WINDOW_TITLE = "STARS"
+WORDLIST_PATH = r"gui/wordslist.txt"
+
 MENU_BAR = {
     'File': {
         'New': {
@@ -55,6 +94,12 @@ MENU_BAR = {
         'Open': {
             'Shortcut':'Ctrl+O',
             'Action':'self.open_file'
+        },
+        'Close': {
+            'Shortcut':'Ctrl+W',
+            'Action':'self.close_tab',
+            'Tag':'close',
+            'Start':False
         },
         'Save': {
             'Shortcut':'Ctrl+S',

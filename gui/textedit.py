@@ -9,6 +9,9 @@ from os import pathsep
 '''
 Line Number Code Editor adapted from https://doc.qt.io/qt-5/qtwidgets-widgets-codeeditor-example.html
 '''
+# Internal counter for tracking number of new files
+NEWFILE_COUNT = 1
+
 class QLineNumberArea(QWidget):
     def __init__(self, editor):
         super().__init__(editor)
@@ -21,10 +24,17 @@ class QLineNumberArea(QWidget):
         self.codeEditor.lineNumberAreaPaintEvent(event)
 
 class TextEdit(QPlainTextEdit):
-    def __init__(self, parent=None, name='', completer=None, textChanged=None):
+
+    def __init__(self, parent=None, name='', text='', completer=None, textChanged=None):
         super().__init__(parent)
-        self.setPlainText("")
+        self.setPlainText(text)
         self.completer = completer
+        self.new_file = False
+        if name == '':
+            global NEWFILE_COUNT
+            name = f'main{NEWFILE_COUNT}.asm'
+            NEWFILE_COUNT += 1
+            self.new_file = True
         self.name = name
         if textChanged:
             self.textChanged.connect(textChanged)
@@ -159,6 +169,12 @@ class TextEdit(QPlainTextEdit):
 
     def getFilename(self) -> str:
         return self.name.split('/')[-1]
+
+    def is_new(self) -> bool:
+        return self.new_file
+
+    def set_new(self, value: bool) -> None:
+        self.new_file = value
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
