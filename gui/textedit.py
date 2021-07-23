@@ -37,6 +37,7 @@ class TextEdit(QPlainTextEdit):
             self.new_file = True
         self.name = name
         if textChanged:
+            self.textChangedFunction = textChanged
             self.textChanged.connect(textChanged)
         if theme:
             self.theme = theme['Editor'] # [Line_number, Line_number_box, Current_Line_Highlight]
@@ -184,7 +185,9 @@ class TextEdit(QPlainTextEdit):
         self.theme = theme['Editor'] 
         self.syntax_theme = theme['Highlighter']
         self.highlighter.update_highlight(self.syntax_theme)
+        self.textChanged.disconnect(self.textChangedFunction)
         self.setPlainText(self.toPlainText()) # update text to redo highlighting
+        self.textChanged.connect(self.textChangedFunction)
         self.cursorPositionChanged.emit()
 
 class MainWindow(QMainWindow):
