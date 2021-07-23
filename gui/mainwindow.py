@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 from threading import Thread
@@ -58,36 +59,37 @@ class MainWindow(QMainWindow):
 
         self.console_sem = QSemaphore(1)
         self.mem_sem = QSemaphore(1)
+        self.run_sem = QSemaphore(1)
+        self.running = False
         self.result = None
         self.intr = None
 
-        self.high_light = Qt.lightGray
-
         self.rep = MEMORY_REPR_DEFAULT
 
-        self.running = False
-        self.run_sem = QSemaphore(1)
-
-        self.default_theme = QGuiApplication.palette()
         self.dark = False
-        self.palette = QPalette()
-        self.palette.setColor(QPalette.Window, QColor(25, 25, 25))  # 53 53 53
-        self.palette.setColor(QPalette.WindowText, Qt.white)
-        self.palette.setColor(QPalette.Base, QColor(53, 53, 53))  # 25 25 25
-        self.palette.setColor(QPalette.AlternateBase, QColor(63, 63, 63))
-        self.palette.setColor(QPalette.ToolTipBase, Qt.white)
-        self.palette.setColor(QPalette.ToolTipText, Qt.white)
-        self.palette.setColor(QPalette.Text, Qt.white)
-        self.palette.setColor(QPalette.Button, QColor(53, 53, 53))
-        self.palette.setColor(QPalette.ButtonText, Qt.white)
-        self.palette.setColor(QPalette.BrightText, Qt.red)
-        self.palette.setColor(QPalette.Link, QColor(42, 130, 218))
-        self.palette.setColor(QPalette.Highlight, QColor(42, 130, 218))
-        self.palette.setColor(QPalette.HighlightedText, Qt.lightGray)
-
-        self.tableHead = []
-
+        self.default_theme = QGuiApplication.palette()
+        self.load_preferences()
         self.init_ui()
+
+    def load_preferences(self, theme: str="default_theme"):
+        self.theme = theme
+        # load json for user preferences
+        with open(PREFERNCES_PATH) as f:
+            self.preferences = json.load(f)
+        choice = self.preferences[self.theme]
+        self.high_light = choice["Instruction_Highlight"]
+        if 'QPalette' in choice:
+            self.palette = QPalette()
+            for key, val in choice['QPalette'].items():
+                self.palette.setColor(eval(key), QColor(val))
+        else:
+            self.palette = self.default_theme
+        if 'Stylesheet' in choice:
+            self.style_sheet = " ".join(
+                [f'{obj}{{{";".join([f"{attr}: {value}" for attr, value in values.items()])}}}'
+                        for obj, values in choice['Stylesheet'].items()])
+        else:
+            self.style_sheet = ""
 
     def init_ui(self):
         self.setWindowTitle(WINDOW_TITLE)
@@ -99,6 +101,7 @@ class MainWindow(QMainWindow):
         self.init_pa()
         self.add_edit()
         self.init_splitters()
+        self.setCentralWidget(self.all_horizontal)
         self.showMaximized()
 
     def init_regs(self):
@@ -108,7 +111,6 @@ class MainWindow(QMainWindow):
         self.reg_box.tabBar().setDocumentMode(True)
         for name, register_set in {"Registers": REGS, "Coproc 1": F_REGS}.items():
             box = create_table(len(register_set), len(REGISTER_HEADER), REGISTER_HEADER, stretch_last=True)
-            self.tableHead.append(box)
             box.resizeRowsToContents()
             for i, r in enumerate(register_set):
                 self.regs[r] = create_cell(WORD_HEX_FORMAT.format(settings.get(f"initial_{r}", 0)))
@@ -118,7 +120,6 @@ class MainWindow(QMainWindow):
                 box.setItem(i, 1, self.regs[r])
             if name == "Coproc 1": # add coproc flags
                 flags = create_table(4, len(COPROC_FLAGS_HEADER), COPROC_FLAGS_HEADER)
-                self.tableHead.append(flags)
                 for count in range(8):
                     cell, check = create_breakpoint(f"{count}")
                     self.flags.append(check)
@@ -131,7 +132,6 @@ class MainWindow(QMainWindow):
         self.instrs = []
         self.pcs = []
         self.instr_grid = create_table(0, len(INSTR_HEADER), INSTR_HEADER, stretch_last=True)
-        self.tableHead.append(self.instr_grid)
         self.instr_grid.resizeColumnsToContents()
 
     def add_edit(self):
@@ -198,7 +198,6 @@ class MainWindow(QMainWindow):
     def init_out(self):
         self.out = QTextEdit()
         self.out.setReadOnly(True)
-        self.tableHead.append(self.out)
         self.clear_button = create_button("Clear", lambda: self.update_console(clear=True), (QSizePolicy.Minimum, QSizePolicy.Expanding))
         grid = create_box_layout(direction=QBoxLayout.LeftToRight, sections=[self.clear_button, self.out])
         grid.setSpacing(0)
@@ -206,13 +205,8 @@ class MainWindow(QMainWindow):
 
     def init_mem(self):
         # initialize memory table and left/right buttons
-        self.mem_right = create_button("🡣", self.mem_rightclick, (QSizePolicy.Preferred, QSizePolicy.Expanding), maximum_width=25)
-        self.mem_left = create_button("🡡", self.mem_leftclick, (QSizePolicy.Preferred, QSizePolicy.Expanding), maximum_width=25)
-        
         self.base_address = settings['data_min']
         table = create_table(MEMORY_ROW_COUNT, MEMORY_COLUMN_COUNT+1, MEMORY_TABLE_HEADER)
-        self.tableHead.append(table)
-        self.mem_lefts = table
         self.addresses = [create_cell(WORD_HEX_FORMAT.format(address)) for address in 
                                 range(self.base_address, self.base_address+MEMORY_SIZE, MEMORY_COLUMN_COUNT*MEMORY_WIDTH)]
         for i, cell in enumerate(self.addresses):
@@ -222,7 +216,8 @@ class MainWindow(QMainWindow):
             table.setItem(i/MEMORY_COLUMN_COUNT, (i%MEMORY_COLUMN_COUNT)+1, cell)
 
         arrow_grid = create_box_layout(direction=QBoxLayout.TopToBottom,
-            sections=[self.mem_left, self.mem_right])
+            sections=[  create_button("🡡", self.mem_leftclick, (QSizePolicy.Preferred, QSizePolicy.Expanding), maximum_width=25),
+                        create_button("🡣", self.mem_rightclick, (QSizePolicy.Preferred, QSizePolicy.Expanding), maximum_width=25)])
         memory_grid = create_box_layout(direction=QBoxLayout.LeftToRight,
             sections=[table, arrow_grid])
 
@@ -231,7 +226,6 @@ class MainWindow(QMainWindow):
         self.section_dropdown.setCurrentIndex(1)
         self.hdc_dropdown = create_dropdown(MEMORY_REPR.keys(), self.change_rep)
         self.labels = create_table(0, len(LABEL_HEADER), LABEL_HEADER)
-        self.tableHead.append(self.labels)
         self.labels.setSortingEnabled(True)
 
         dropdown_grid = create_box_layout(direction=QBoxLayout.LeftToRight,
@@ -259,11 +253,9 @@ class MainWindow(QMainWindow):
         left_vertical = create_splitter(orientation=Qt.Vertical,
             widgets=[editor_instruction_horizontal, self.mem_grid, self.out_section],
             stretch_factors=[10, 4, 2])
-        all_horizontal = create_splitter(
+        self.all_horizontal = create_splitter(
             widgets=[left_vertical, self.reg_box], stretch_factors=[3, 0])
-        all_horizontal.setContentsMargins(10,20,10,10)
-
-        self.setCentralWidget(all_horizontal)
+        self.all_horizontal.setContentsMargins(10,20,10,10)
 
     def save_file(self, wid: TextEdit=None, ind: int=None):
         if wid is None:
@@ -326,35 +318,11 @@ class MainWindow(QMainWindow):
 
     def change_theme(self):
         if not self.dark:
-            self.high_light = Qt.darkGray
-            self.app.setPalette(self.palette)
-            self.menuBar().setStyleSheet("background-color: rgb(25,25,25)")
-            self.section_dropdown.setStyleSheet("background-color: rgb(53,53,53)")
-            self.hdc_dropdown.setStyleSheet("background-color: rgb(53,53,53)")
-            for head in self.tableHead:
-                head.setStyleSheet("QHeaderView::section {background-color: rgb(53,53,53)} QScrollBar{ background: rgb(53,53,53)}")
-            self.reg_box.setStyleSheet("QTabBar::tab {background-color : rgb(53,53,53)} QTabBar::tab:selected {background-color : rgb(63,63,63)} QScrollBar{background: rgb(53,53,53)}")
-            self.clear_button.setStyleSheet("background-color : rgb(53,53,53)")
-            self.pa.setStyleSheet("background-color : rgb(53,53,53)")
-            self.tabs.setStyleSheet("QTabBar::tab {background-color : rgb(53,53,53)} QWidget {background-color : rgb(53,53,53)} QScrollBar{background: rgb(53,53,53)} QTabWidget::pane{border: 0}")
-            self.mem_grid.setStyleSheet("background-color: rgb(53,53,53)")
-            # for reg in REGS:
-            #     self.regs[reg].setPalette(self.palette)
+            self.load_preferences(theme="dark_theme")
         else:
-            self.high_light = Qt.lightGray
-            self.app.setPalette(self.default_theme)
-            self.menuBar().setStyleSheet("")
-            self.section_dropdown.setStyleSheet("")
-            self.hdc_dropdown.setStyleSheet("")
-            for head in self.tableHead:
-                head.setStyleSheet("")
-            self.reg_box.setStyleSheet("")
-            self.clear_button.setStyleSheet("")
-            self.pa.setStyleSheet("")
-            self.tabs.setStyleSheet("")
-            self.mem_grid.setStyleSheet("")
-            # for reg in REGS:
-            #     self.regs[reg].setPalette(self.default_theme)
+            self.load_preferences()
+        self.app.setPalette(self.palette)
+        self.all_horizontal.setStyleSheet(self.style_sheet)
         self.dark = not self.dark
 
     def start(self):

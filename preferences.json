@@ -1,0 +1,56 @@
+{   
+    "default_theme": {
+        "Instruction_Highlight":"cyan"
+    },
+    "dark_theme": {
+        "QPalette": {
+            "QPalette.Window": "#191919",
+            "QPalette.WindowText": "white",
+            "QPalette.Base": "#353535",
+            "QPalette.AlternateBase": "#3F3F3F",
+            "QPalette.ToolTipBase": "white",
+            "QPalette.ToolTipText": "white",
+            "QPalette.Text": "white",
+            "QPalette.Button": "#353535",
+            "QPalette.ButtonText": "white",
+            "QPalette.BrightText": "red",
+            "QPalette.Link": "#2A82DA",
+            "QPalette.Highlight": "#2A82DA",
+            "QPalette.HighlightedText": "black"
+        },
+        "Instruction_Highlight": "silver",
+        "Stylesheet": {
+            "QMenuBar": {
+                "background-color": "#191919"
+            },
+            "QComboBox": {
+                "background-color": "#353535"
+            },
+            "QHeaderView::section": {
+                "background-color": "#353535"
+            },
+            "QScrollBar": {
+                "background": "#353535"
+            },
+            "QPushButton": {
+                "background-color": "#353535"
+            },
+            "QLineEdit": {
+                "background-color": "#353535"
+            },
+            "QTabBar::tab": {
+                "background-color": "#353535"
+            },
+            "QTabBar::tab:selected": {
+                "background-color": "#3F3F3F"
+            },
+            "QPlainTextEdit": {
+                "background-color": "#353535"
+            },
+            "QTabWidget::pane": {
+                "background-color": "#353535",
+                "border": "0"
+            }
+        }
+    }
+}
