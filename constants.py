@@ -163,6 +163,18 @@ MENU_BAR = {
         }
     },
     'Help': {
-        'Help': {}
+        'Help': {
+            'Action':'self.help',
+            'Shortcut':'F1'
+        }
     }    
 }
+
+# tabs for HELP
+HELP_TABS = {
+    'Instructions': ('help/instructions.csv', []),
+    'Directives': ('help/directives.csv', []),
+    'Syscalls': ('help/syscalls.csv', ['Service', '$v0 Code', 'Arguments', 'Result'])
+}
+
+HELP_TITLE = "Help"

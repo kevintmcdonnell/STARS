@@ -12,6 +12,7 @@ from gui.vt100 import VT100
 from gui.textedit import TextEdit
 from gui.syntaxhighlighter import Highlighter
 from gui.widgetfactory import *
+from help.help import HelpWindow
 
 from PySide2.QtCore import Qt, QSemaphore, QEvent, Signal, QFile, QStringListModel
 from PySide2.QtGui import QTextCursor, QGuiApplication, QPalette, QColor, QKeySequence, QCursor, QBrush
@@ -587,6 +588,9 @@ class MainWindow(QMainWindow):
             cell.setText("")
         for r, cell in self.regs.items(): # reset registers
             cell.setText(WORD_HEX_FORMAT.format(settings.get(f"initial_{r}", 0)))
+
+    def help(self):
+        self.window = HelpWindow(self)
 
 if __name__ == "__main__":
     app = QApplication()

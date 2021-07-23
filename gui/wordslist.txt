@@ -1,17 +1,17 @@
-abs $t1,$t2             ABSolute value : Set $t1 to absolute value of $t2 (algorithm from Hacker's Delight)
+abs $t1,$t2             Absolute value : Set $t1 to absolute value of $t2 (algorithm from Hacker's Delight)
 abs.d $f2,$f4           Floating point absolute value double precision : Set $f2 to absolute value of $f4, double precision
 abs.s $f0,$f1           Floating point absolute value single precision : Set $f0 to absolute value of $f1, single precision
 add $t1,$t2,$t3         Addition with overflow : set $t1 to ($t2 plus $t3)
-add $t1,$t2,-100        ADDition : set $t1 to ($t2 plus 16-bit immediate)
-add $t1,$t2,100000      ADDition : set $t1 to ($t2 plus 32-bit immediate)
+add $t1,$t2,-100        Addition : set $t1 to ($t2 plus 16-bit immediate)
+add $t1,$t2,100000      Addition : set $t1 to ($t2 plus 32-bit immediate)
 add.d $f2,$f4,$f6       Floating point addition double precision : Set $f2 to double-precision floating point value of $f4 plus $f6
 add.s $f0,$f1,$f3       Floating point addition single precision : Set $f0 to single-precision floating point value of $f1 plus $f3
 addi $t1,$t2,-100       Addition immediate with overflow : set $t1 to ($t2 plus signed 16-bit immediate)
-addi $t1,$t2,100000     ADDition Immediate : set $t1 to ($t2 plus 32-bit immediate)
+addi $t1,$t2,100000     Addition Immediate : set $t1 to ($t2 plus 32-bit immediate)
 addiu $t1,$t2,-100      Addition immediate unsigned without overflow : set $t1 to ($t2 plus signed 16-bit immediate), no overflow
-addiu $t1,$t2,100000    ADDition Immediate Unsigned: set $t1 to ($t2 plus 32-bit immediate), no overflow
+addiu $t1,$t2,100000    Addition Immediate Unsigned: set $t1 to ($t2 plus 32-bit immediate), no overflow
 addu $t1,$t2,$t3        Addition unsigned without overflow : set $t1 to ($t2 plus $t3), no overflow
-addu $t1,$t2,100000     ADDition Unsigned : set $t1 to ($t2 plus 32-bit immediate), no overflow
+addu $t1,$t2,100000     Addition Unsigned : set $t1 to ($t2 plus 32-bit immediate), no overflow
 and $t1,$t2,$t3         Bitwise AND : Set $t1 to bitwise AND of $t2 and $t3
 and $t1,$t2,100         AND : set $t1 to ($t2 bitwise-AND 16-bit unsigned immediate)
 and $t1,100             AND : set $t1 to ($t1 bitwise-AND 16-bit unsigned immediate)
@@ -87,15 +87,15 @@ cvt.s.w $f0,$f1         Convert from word to single precision : Set $f0 to singl
 cvt.w.d $f1,$f2         Convert from double precision to word : Set $f1 to 32-bit integer equivalent of double precision value in $f2
 cvt.w.s $f0,$f1         Convert from single precision to word : Set $f0 to 32-bit integer equivalent of single precision value in $f1
 div $t1,$t2             Division with overflow : Divide $t1 by $t2 then set LO to quotient and HI to remainder (use mfhi to access HI, mflo to access LO)
-div $t1,$t2,$t3         DIVision : Set $t1 to ($t2 divided by $t3, integer division)
-div $t1,$t2,-100        DIVision : Set $t1 to ($t2 divided by 16-bit immediate, integer division)
-div $t1,$t2,100000      DIVision : Set $t1 to ($t2 divided by 32-bit immediate, integer division)
+div $t1,$t2,$t3         Division : Set $t1 to ($t2 divided by $t3, integer division)
+div $t1,$t2,-100        Division : Set $t1 to ($t2 divided by 16-bit immediate, integer division)
+div $t1,$t2,100000      Division : Set $t1 to ($t2 divided by 32-bit immediate, integer division)
 div.d $f2,$f4,$f6       Floating point division double precision : Set $f2 to double-precision floating point value of $f4 divided by $f6
 div.s $f0,$f1,$f3       Floating point division single precision : Set $f0 to single-precision floating point value of $f1 divided by $f3
 divu $t1,$t2            Division unsigned without overflow : Divide unsigned $t1 by $t2 then set LO to quotient and HI to remainder (use mfhi to access HI, mflo to access LO)
-divu $t1,$t2,$t3        DIVision Unsigned :  Set $t1 to ($t2 divided by $t3, unsigned integer division)
-divu $t1,$t2,-100       DIVision Unsigned :  Set $t1 to ($t2 divided by 16-bit immediate, unsigned integer division)
-divu $t1,$t2,100000     DIVision Unsigned :  Set $t1 to ($t2 divided by 32-bit immediate, unsigned integer division)
+divu $t1,$t2,$t3        Division Unsigned :  Set $t1 to ($t2 divided by $t3, unsigned integer division)
+divu $t1,$t2,-100       Division Unsigned :  Set $t1 to ($t2 divided by 16-bit immediate, unsigned integer division)
+divu $t1,$t2,100000     Division Unsigned :  Set $t1 to ($t2 divided by 32-bit immediate, unsigned integer division)
 floor.w.d $f1,$f2       Floor double precision to word : Set $f1 to 32-bit integer floor of double-precision float in $f2
 floor.w.s $f0,$f1       Floor single precision to word : Set $f0 to 32-bit integer floor of single-precision float in $f1
 j target                Jump unconditionally : Jump to statement at target address
@@ -250,10 +250,10 @@ mul $t1,$t2,-100        MULtiplication : Set HI to high-order 32 bits, LO and $t
 mul $t1,$t2,100000      MULtiplication : Set HI to high-order 32 bits, LO and $t1 to low-order 32 bits of the product of $t2 and 32-bit immediate (use mfhi to access HI, mflo to access LO)
 mul.d $f2,$f4,$f6       Floating point multiplication double precision : Set $f2 to double-precision floating point value of $f4 times $f6
 mul.s $f0,$f1,$f3       Floating point multiplication single precision : Set $f0 to single-precision floating point value of $f1 times $f3
-neg $t1,$t2             NEGate : Set $t1 to negation of $t2
+neg $t1,$t2             Negate : Set $t1 to negation of $t2
 neg.d $f2,$f4           Floating point negate double precision : Set double precision $f2 to negation of double precision value in $f4
 neg.s $f0,$f1           Floating point negate single precision : Set single precision $f0 to negation of single precision value in $f1
-negu $t1,$t2            NEGate Unsigned : Set $t1 to negation of $t2, no overflow
+negu $t1,$t2            Negate Unsigned : Set $t1 to negation of $t2, no overflow
 nop                     Null operation : machine code is all zeroes
 nor $t1,$t2,$t3         Bitwise NOR : Set $t1 to bitwise NOR of $t2 and $t3
 not $t1,$t2             Bitwise NOT (bit inversion)
@@ -305,9 +305,9 @@ sd $t1,label            Store Doubleword : Store contents of $t1 and the next re
 sd $t1,label($t2)       Store Doubleword : Store contents of $t1 and the next register to the 64 bits starting at effective memory word address
 sd $t1,label+100000     Store Doubleword : Store contents of $t1 and the next register to the 64 bits starting at effective memory word address
 sd $t1,label+100000($t2)Store Doubleword : Store contents of $t1 and the next register to the 64 bits starting at effective memory word address
-seq $t1,$t2,$t3         Set EQual : if $t2 equal to $t3 then set $t1 to 1 else 0
-seq $t1,$t2,-100        Set EQual : if $t2 equal to 16-bit immediate then set $t1 to 1 else 0
-seq $t1,$t2,100000      Set EQual : if $t2 equal to 32-bit immediate then set $t1 to 1 else 0
+seq $t1,$t2,$t3         Set Equal : if $t2 equal to $t3 then set $t1 to 1 else 0
+seq $t1,$t2,-100        Set Equal : if $t2 equal to 16-bit immediate then set $t1 to 1 else 0
+seq $t1,$t2,100000      Set Equal : if $t2 equal to 32-bit immediate then set $t1 to 1 else 0
 sge $t1,$t2,$t3         Set Greater or Equal : if $t2 greater or equal to $t3 then set $t1 to 1 else 0
 sge $t1,$t2,-100        Set Greater or Equal : if $t2 greater or equal to 16-bit immediate then set $t1 to 1 else 0
 sge $t1,$t2,100000      Set Greater or Equal : if $t2 greater or equal to 32-bit immediate then set $t1 to 1 else 0
