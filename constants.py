@@ -156,8 +156,9 @@ MENU_BAR = {
         }
     },
     'Tools': {
-        'Dark Mode': {
-            'Action': "self.change_theme"
+        'Change Theme': {
+            'Action': "self.change_theme",
+            'Shortcut':"F2"
         },
         'MMIO Display': {
             'Action': "self.launch_vt100"

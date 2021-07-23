@@ -66,16 +66,15 @@ class MainWindow(QMainWindow):
 
         self.rep = MEMORY_REPR_DEFAULT
 
-        self.dark = False
         self.default_theme = QGuiApplication.palette()
-        self.load_preferences()
-        self.init_ui()
-
-    def load_preferences(self, theme: str="default_theme"):
-        self.theme = theme
         # load json for user preferences
         with open(PREFERNCES_PATH) as f:
             self.preferences = json.load(f)
+        self.get_theme(theme=self.preferences["on_start_theme"])
+        self.init_ui()        
+
+    def get_theme(self, theme: str="default_theme"):
+        self.theme = theme
         choice = self.preferences[self.theme]
         self.high_light = choice["Instruction_Highlight"]
         if 'QPalette' in choice:
@@ -103,6 +102,8 @@ class MainWindow(QMainWindow):
         self.init_splitters()
         self.setCentralWidget(self.all_horizontal)
         self.showMaximized()
+        self.app.setPalette(self.palette)
+        self.all_horizontal.setStyleSheet(self.style_sheet)
 
     def init_regs(self):
         self.regs = {}
@@ -317,13 +318,14 @@ class MainWindow(QMainWindow):
                 self.update_console(type(e).__name__ + ": " + str(e))
 
     def change_theme(self):
-        if not self.dark:
-            self.load_preferences(theme="dark_theme")
+        if self.theme == "default_theme":
+            self.get_theme(theme="dark_theme")
         else:
-            self.load_preferences()
+            self.get_theme()
         self.app.setPalette(self.palette)
         self.all_horizontal.setStyleSheet(self.style_sheet)
-        self.dark = not self.dark
+        for section in self.prev_instr:
+            section.setBackground(QBrush(QColor(self.high_light)))
 
     def start(self):
         if not self.controller.good():
@@ -447,7 +449,7 @@ class MainWindow(QMainWindow):
             if prev_ind < len(self.instrs):
                 self.prev_instr = self.instrs[prev_ind]
             for section in self.prev_instr:
-                section.setBackground(QBrush(self.high_light))
+                section.setBackground(QBrush(QColor(self.high_light)))
         else:
             mem = self.intr.mem
             self.instr_grid.setRowCount(len([k for k,j in mem.text.items() if type(j) is not str]))
@@ -464,7 +466,7 @@ class MainWindow(QMainWindow):
                     row = create_instruction(values, self.instr_grid, count)
                     self.instrs.append(row)
             for section in self.instrs[0]:
-                section.setBackground(QBrush(self.high_light))
+                section.setBackground(QBrush(QColor(self.high_light)))
             self.prev_instr = self.instrs[0]
 
     def fill_mem(self):
@@ -530,7 +532,7 @@ class MainWindow(QMainWindow):
         if type(i) is bool:
             i = self.tabs.currentIndex()
         if self.tabs.tabText(i)[-1] == "*":
-            choice = create_save_confirmation(self.tabs.widget(i).getFilename(), self.dark).exec_()
+            choice = create_save_confirmation(self.tabs.widget(i).getFilename(), self.theme).exec_()
             if choice == QMessageBox.Save:
                 self.save_file(self.tabs.widget(i), i)
             elif choice == QMessageBox.Cancel:
@@ -572,7 +574,7 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         unsaved_files = [i for i in range(self.file_count) if self.tabs.tabText(i)[-1] == "*"]
         if unsaved_files:
-            choice = create_save_confirmation("", self.dark).exec_()
+            choice = create_save_confirmation("", self.theme).exec_()
             if choice == QMessageBox.Cancel:
                 event.ignore()
             else:
