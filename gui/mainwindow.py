@@ -56,7 +56,7 @@ class MainWindow(QMainWindow):
         self.rep = MEMORY_REPR_DEFAULT
 
         # load json for user preferences
-        with open(PREFERNCES_PATH) as f:
+        with open(PREFERENCES_PATH) as f:
             self.preferences = json.load(f)
         self.get_theme(theme=self.preferences["on_start_theme"])
         self.init_ui()        

@@ -97,7 +97,7 @@ INPUT_LABEL = "Value"
 
 WINDOW_TITLE = "STARS"
 WORDLIST_PATH = r"gui/wordslist.txt"
-PREFERNCES_PATH = "preferences.json"
+PREFERENCES_PATH = "preferences.json"
 
 MENU_BAR = {
     'File': {
