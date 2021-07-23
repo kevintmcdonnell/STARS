@@ -275,7 +275,7 @@ class MainWindow(QMainWindow):
 
     def update_theme(self) -> None:
         self.app.setPalette(self.palette)
-        self.all_horizontal.setStyleSheet(self.style_sheet)
+        self.setStyleSheet(self.style_sheet)
         if hasattr(self, 'prev_instr'):
             for section in self.prev_instr:
                 section.setBackground(QBrush(QColor(self.high_light)))
