@@ -1,4 +1,5 @@
 {   
+    "on_start_theme":"dark_theme",
     "default_theme": {
         "Instruction_Highlight":"cyan"
     },
