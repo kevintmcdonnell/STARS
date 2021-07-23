@@ -175,6 +175,9 @@ MENU_BAR = {
         },
         'MMIO Display': {
             'Action': "self.launch_vt100"
+        },
+        'Edit Theme': {
+            'Action': "self.edit_theme"
         }
     },
     'Help': {
