@@ -2,6 +2,7 @@ import json
 import os
 import sys
 from threading import Thread
+from typing import Dict, Optional, Tuple, Union
 
 sys.path.append(os.getcwd())  # must be ran in sbumips directory (this is bc PYTHONPATH is weird in terminal)
 from constants import *
@@ -11,11 +12,10 @@ from settings import settings
 from controller import Controller
 from gui.vt100 import VT100
 from gui.textedit import TextEdit
-from gui.syntaxhighlighter import Highlighter
 from gui.widgetfactory import *
 
-from PySide2.QtCore import Qt, QSemaphore, QEvent, Signal, QFile, QStringListModel
-from PySide2.QtGui import QTextCursor, QGuiApplication, QPalette, QColor, QKeySequence, QCursor, QBrush
+from PySide2.QtCore import Qt, QSemaphore, Signal, QFile, QStringListModel
+from PySide2.QtGui import QBrush, QCloseEvent, QColor, QCursor, QGuiApplication, QPalette
 from PySide2.QtWidgets import *
 
 '''
@@ -29,26 +29,15 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 '''
 
-
-def to_ascii(c):
-    if c in range(127):
-        if c == 0:  # Null terminator
-            return "\\0"
-        elif c == 9:  # Tab
-            return "\\t"
-        elif c == 10:  # Newline
-            return "\\n"
-        elif c >= 32:  # Regular character
-            return chr(c)
-        else:  # Invalid character
-            return '.'
-    else:  # Invalid character
-        return '.'
+def to_ascii(c: int) -> str:
+    if c in range(32, 127):
+        return chr(c) # Regular character
+    return CHAR_CONVERSION.get(c, '.')
 
 class MainWindow(QMainWindow):
     changed_interp = Signal()
 
-    def __init__(self, app):
+    def __init__(self, app: QApplication) -> None:
         super().__init__()
         self.vt100 = None
         self.app = app
@@ -72,26 +61,7 @@ class MainWindow(QMainWindow):
         self.get_theme(theme=self.preferences["on_start_theme"])
         self.init_ui()        
 
-    def get_theme_attribute(self, choice, field):
-        return choice[field] if field in choice else self.preferences["default_theme"][field]
-
-    def get_theme(self, theme: str="default_theme"):
-        self.theme = theme
-        choice = self.preferences[self.theme]
-        self.high_light = self.get_theme_attribute(choice, "Instruction_Highlight")
-        self.palette = QPalette()
-        for key, val in self.get_theme_attribute(choice, "QPalette").items():
-            self.palette.setColor(eval(key), QColor(val))
-        # create the stylesheet string
-        self.style_sheet = " ".join(
-            [f'{obj}{{{";".join([f"{attr}: {value}" for attr, value in values.items()])}}}'
-                    for obj, values in self.get_theme_attribute(choice, 'Stylesheet').items()])
-        self.textedit_theme = {
-            "Editor": self.get_theme_attribute(choice, "Editor"),
-            "Highlighter": self.get_theme_attribute(choice, "Highlighter")
-        } # for text editor theme
-
-    def init_ui(self):
+    def init_ui(self) -> None:
         self.setWindowTitle(WINDOW_TITLE)
         self.init_menubar()
         self.init_instrs()
@@ -106,71 +76,11 @@ class MainWindow(QMainWindow):
         self.app.setPalette(self.palette)
         self.all_horizontal.setStyleSheet(self.style_sheet)
 
-    def init_regs(self):
-        self.regs = {}
-        self.flags = []
-        self.reg_box = QTabWidget()
-        self.reg_box.tabBar().setDocumentMode(True)
-        for name, register_set in {"Registers": REGS, "Coproc 1": F_REGS}.items():
-            box = create_table(len(register_set), len(REGISTER_HEADER), REGISTER_HEADER, stretch_last=True)
-            box.resizeRowsToContents()
-            for i, r in enumerate(register_set):
-                self.regs[r] = create_cell(WORD_HEX_FORMAT.format(settings.get(f"initial_{r}", 0)))
-                self.regs[r].setTextAlignment(int(Qt.AlignRight))
-                label = create_cell(r)
-                box.setItem(i, 0, label)
-                box.setItem(i, 1, self.regs[r])
-            if name == "Coproc 1": # add coproc flags
-                flags = create_table(4, len(COPROC_FLAGS_HEADER), COPROC_FLAGS_HEADER)
-                for count in range(8):
-                    cell, check = create_breakpoint(f"{count}")
-                    self.flags.append(check)
-                    flags.setCellWidget(count/2, count%2, cell)
-                box = create_splitter(orientation=Qt.Vertical,
-                    widgets=[box, flags], stretch_factors=[20])
-            self.reg_box.addTab(box, name)
+    def update_button_status(self, **button_status: Dict[str, bool]) -> None:
+        for tag, status in button_status.items():
+            self.menu_items[tag].setEnabled(status)
 
-    def init_instrs(self):
-        self.instrs = []
-        self.pcs = []
-        self.instr_grid = create_table(0, len(INSTR_HEADER), INSTR_HEADER, stretch_last=True)
-        self.instr_grid.resizeColumnsToContents()
-
-    def add_edit(self):
-        self.files = {} # filename -> (dirty: bool, path: str)
-        self.file_count = 0 # number of tabs
-
-        self.tabs = QTabWidget()
-        self.tabs.setTabsClosable(True)
-        self.tabs.tabCloseRequested.connect(self.close_tab)
-        self.tabs.setCornerWidget(create_button('+', self.new_tab))
-
-        # initialize autocomplete
-        self.comp = QCompleter()
-        self.comp.setModel(self.modelFromFile(WORDLIST_PATH, self.comp))
-        self.comp.setModelSorting(QCompleter.CaseInsensitivelySortedModel)
-        self.comp.setCaseSensitivity(Qt.CaseInsensitive)
-        self.comp.setWrapAround(False)
-
-    def modelFromFile(self, filename, comp):
-        f = QFile(filename)
-        if not f.open(QFile.ReadOnly):
-            return QStringListModel(comp)
-
-        QGuiApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-
-        words = []
-        while not f.atEnd():
-            line = f.readLine()
-            if len(line) > 0:
-                s = str(line.trimmed(), encoding='ascii')
-                words.append(s)
-
-        QGuiApplication.restoreOverrideCursor()
-
-        return QStringListModel(words, comp)
-
-    def init_menubar(self):
+    def init_menubar(self) -> None:
         bar = self.menuBar()
         self.menu_items = {}
 
@@ -197,15 +107,13 @@ class MainWindow(QMainWindow):
         self.instr_count = QLabel(INSTRUCTION_COUNT.format(0))
         bar.setCornerWidget(self.instr_count)
 
-    def init_out(self):
-        self.out = QTextEdit()
-        self.out.setReadOnly(True)
-        self.clear_button = create_button("Clear", lambda: self.update_console(clear=True), (QSizePolicy.Minimum, QSizePolicy.Expanding))
-        grid = create_box_layout(direction=QBoxLayout.LeftToRight, sections=[self.clear_button, self.out])
-        grid.setSpacing(0)
-        self.out_section = create_widget(layout=grid)
+    def init_instrs(self) -> None:
+        self.instrs = []
+        self.pcs = []
+        self.instr_grid = create_table(0, len(INSTR_HEADER), INSTR_HEADER, stretch_last=True)
+        self.instr_grid.resizeColumnsToContents()
 
-    def init_mem(self):
+    def init_mem(self) -> None:
         # initialize memory table and left/right buttons
         self.base_address = settings['data_min']
         table = create_table(MEMORY_ROW_COUNT, MEMORY_COLUMN_COUNT+1, MEMORY_TABLE_HEADER)
@@ -240,13 +148,79 @@ class MainWindow(QMainWindow):
             widgets=[create_widget(layout=memory_grid), right_area],
             stretch_factors=[2, 1])
 
-    def init_pa(self):
+    def init_out(self) -> None:
+        self.out = QTextEdit()
+        self.out.setReadOnly(True)
+        clear_button = create_button("Clear", lambda: self.update_console(clear=True), (QSizePolicy.Minimum, QSizePolicy.Expanding))
+        grid = create_box_layout(direction=QBoxLayout.LeftToRight, sections=[clear_button, self.out])
+        grid.setSpacing(0)
+        self.out_section = create_widget(layout=grid)
+
+    def init_regs(self) -> None:
+        self.regs = {}
+        self.flags = []
+        self.reg_box = QTabWidget()
+        self.reg_box.tabBar().setDocumentMode(True)
+        for name, register_set in {"Registers": REGS, "Coproc 1": F_REGS}.items():
+            box = create_table(len(register_set), len(REGISTER_HEADER), REGISTER_HEADER, stretch_last=True)
+            box.resizeRowsToContents()
+            for i, r in enumerate(register_set):
+                self.regs[r] = create_cell(WORD_HEX_FORMAT.format(settings.get(f"initial_{r}", 0)))
+                self.regs[r].setTextAlignment(int(Qt.AlignRight))
+                label = create_cell(r)
+                box.setItem(i, 0, label)
+                box.setItem(i, 1, self.regs[r])
+            if name == "Coproc 1": # add coproc flags
+                flags = create_table(4, len(COPROC_FLAGS_HEADER), COPROC_FLAGS_HEADER)
+                for count in range(8):
+                    cell, check = create_breakpoint(f"{count}")
+                    self.flags.append(check)
+                    flags.setCellWidget(count/2, count%2, cell)
+                box = create_splitter(orientation=Qt.Vertical,
+                    widgets=[box, flags], stretch_factors=[20])
+            self.reg_box.addTab(box, name)
+
+    def init_pa(self) -> None:
         self.pa = QLineEdit()
         layout = create_box_layout(direction=QBoxLayout.LeftToRight,
             sections=[QLabel('Program Arguments:'), self.pa])
         self.pa_lay = create_widget(layout=layout)
 
-    def init_splitters(self): 
+    def add_edit(self) -> None:
+        self.files = {} # filename -> (dirty: bool, path: str)
+        self.file_count = 0 # number of tabs
+
+        self.tabs = QTabWidget()
+        self.tabs.setTabsClosable(True)
+        self.tabs.tabCloseRequested.connect(self.close_tab)
+        self.tabs.setCornerWidget(create_button('+', self.new_tab))
+
+        # initialize autocomplete
+        self.comp = QCompleter()
+        self.comp.setModel(self.modelFromFile(WORDLIST_PATH, self.comp))
+        self.comp.setModelSorting(QCompleter.CaseInsensitivelySortedModel)
+        self.comp.setCaseSensitivity(Qt.CaseInsensitive)
+        self.comp.setWrapAround(False)
+
+    def modelFromFile(self, filename: str, comp: QCompleter) -> None:
+        f = QFile(filename)
+        if not f.open(QFile.ReadOnly):
+            return QStringListModel(comp)
+
+        QGuiApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+
+        words = []
+        while not f.atEnd():
+            line = f.readLine()
+            if len(line) > 0:
+                s = str(line.trimmed(), encoding='ascii')
+                words.append(s)
+
+        QGuiApplication.restoreOverrideCursor()
+
+        return QStringListModel(words, comp)
+
+    def init_splitters(self) -> None: 
         largeWidth = QGuiApplication.primaryScreen().size().width()
         instruction_pa = create_splitter(orientation=Qt.Vertical, 
             widgets=[self.pa_lay, self.instr_grid], stretch_factors=[1, 9])
@@ -259,7 +233,53 @@ class MainWindow(QMainWindow):
             widgets=[left_vertical, self.reg_box], stretch_factors=[3, 0])
         self.all_horizontal.setContentsMargins(10,20,10,10)
 
-    def save_file(self, wid: TextEdit=None, ind: int=None):
+    def get_theme(self, theme: Optional[str]="default_theme"):
+        def get_theme_attribute(choice: Dict[str, Union[Dict[str, str], str]], field: str) -> Union[Dict[str, str], str]:
+            """Return the field in choice if defined otherwise return the default theme field."""
+            return choice[field] if field in choice else self.preferences["default_theme"][field]
+        
+        self.theme = theme
+        choice = self.preferences[self.theme]
+        self.high_light = get_theme_attribute(choice, "Instruction_Highlight")
+        self.palette = QPalette()
+        for key, val in get_theme_attribute(choice, "QPalette").items():
+            self.palette.setColor(eval(key), QColor(val))
+        # create the stylesheet string
+        self.style_sheet = " ".join(
+            [f'{obj}{{{";".join([f"{attr}: {value}" for attr, value in values.items()])}}}'
+                    for obj, values in get_theme_attribute(choice, 'Stylesheet').items()])
+        self.textedit_theme = {
+            "Editor": get_theme_attribute(choice, "Editor"),
+            "Highlighter": get_theme_attribute(choice, "Highlighter")
+        } # for text editor theme
+
+    def change_theme(self) -> None:
+        if self.theme == "default_theme":
+            self.get_theme(theme="dark_theme")
+        else:
+            self.get_theme()
+        self.app.setPalette(self.palette)
+        self.all_horizontal.setStyleSheet(self.style_sheet)
+        if hasattr(self, 'prev_instr'):
+            for section in self.prev_instr:
+                section.setBackground(QBrush(QColor(self.high_light)))
+        for i in range(self.file_count):
+            self.tabs.widget(i).set_theme(self.textedit_theme)
+    
+    def open_file(self) -> None:
+        try:
+            filename, _ = QFileDialog.getOpenFileName(self, 'Open', '', options=QFileDialog.DontUseNativeDialog)
+            if not filename:
+                return
+            if filename not in self.files:
+                with open(filename) as f:
+                    wid = TextEdit(name=filename, text=f.read(), completer=self.comp, textChanged=self.update_dirty, theme=self.textedit_theme)
+                self.new_tab(wid=wid)
+        except:
+            self.update_console(OPEN_FILE_FAILED)
+            return
+
+    def save_file(self, wid: Optional[TextEdit]=None, ind: Optional[int]=None) -> None:
         if wid is None:
             wid = self.tabs.currentWidget()
         if ind is None:
@@ -279,20 +299,64 @@ class MainWindow(QMainWindow):
             self.files[wid.name] = False
             self.tabs.setTabText(ind, wid.getFilename())
 
-    def open_file(self):
-        try:
-            filename, _ = QFileDialog.getOpenFileName(self, 'Open', '', options=QFileDialog.DontUseNativeDialog)
-            if not filename:
-                return
-            if filename not in self.files:
-                with open(filename) as f:
-                    wid = TextEdit(name=filename, text=f.read(), completer=self.comp, textChanged=self.update_dirty, theme=self.textedit_theme)
-                self.new_tab(wid=wid)
-        except:
-            self.update_console(OPEN_FILE_FAILED)
-            return
+    def new_tab(self, wid: Optional[TextEdit]=None):
+        self.file_count += 1
+        if not wid:
+            wid = TextEdit(completer=self.comp, textChanged=self.update_dirty, theme=self.textedit_theme)
+        self.tabs.addTab(wid, wid.getFilename())
+        self.tabs.setCurrentWidget(wid)
+        wid.setFocus()
+        self.update_button_status(save=True, close=True, assemble=True)
 
-    def assemble(self):
+    def close_tab(self, i: Union[int, bool]) -> None:
+        if type(i) is bool:
+            i = self.tabs.currentIndex()
+        if self.tabs.tabText(i)[-1] == "*":
+            choice = create_save_confirmation(self.tabs.widget(i).getFilename(), self.theme).exec_()
+            if choice == QMessageBox.Save:
+                self.save_file(self.tabs.widget(i), i)
+            elif choice == QMessageBox.Cancel:
+                return
+        if self.tabs.currentIndex() == i:
+            self.update_button_status(start=False, step=False, backstep=False, pause=False)
+            self.clear_tables()
+        if self.tabs.widget(i).name in self.files:
+            self.files.pop(self.tabs.widget(i).name)
+        self.tabs.removeTab(i)
+        self.file_count -= 1
+        if self.file_count == 0:
+            self.update_button_status(save=False, close=False, assemble=False, start=False, step=False, backstep=False, pause=False)
+
+    def update_dirty(self) -> None:
+        w, i = self.tabs.currentWidget(), self.tabs.currentIndex()
+        if w is not None:
+            if w.is_new() or w.name in self.files:
+                self.files[w.name] = True
+                self.tabs.setTabText(i, f'{w.getFilename()} *')
+            else:
+                self.files[w.name] = False
+
+    def closeEvent(self, event: QCloseEvent) -> None:
+        unsaved_files = [i for i in range(self.file_count) if self.tabs.tabText(i)[-1] == "*"]
+        if unsaved_files:
+            choice = create_save_confirmation("", self.theme).exec_()
+            if choice == QMessageBox.Cancel:
+                event.ignore()
+            else:
+                if choice == QMessageBox.Save:
+                    for i in unsaved_files:
+                        self.save_file(self.tabs.widget(i), i)
+                event.accept()
+
+    def clear_tables(self) -> None:
+        self.instr_grid.setRowCount(0) # remove instructions
+        self.labels.setRowCount(0) # remove labels
+        for cell in self.mem_vals: # clear memory
+            cell.setText("")
+        for r, cell in self.regs.items(): # reset registers
+            cell.setText(WORD_HEX_FORMAT.format(settings.get(f"initial_{r}", 0)))
+
+    def assemble(self) -> None:
         if self.tabs.currentWidget() is None:
             return
         try:
@@ -318,20 +382,16 @@ class MainWindow(QMainWindow):
             else:
                 self.update_console(type(e).__name__ + ": " + str(e))
 
-    def change_theme(self):
-        if self.theme == "default_theme":
-            self.get_theme(theme="dark_theme")
-        else:
-            self.get_theme()
-        self.app.setPalette(self.palette)
-        self.all_horizontal.setStyleSheet(self.style_sheet)
-        if hasattr(self, 'prev_instr'):
-            for section in self.prev_instr:
-                section.setBackground(QBrush(QColor(self.high_light)))
-        for i in range(self.file_count):
-            self.tabs.widget(i).set_theme(self.textedit_theme)
+    def set_running(self, run: bool) -> None:
+        self.run_sem.acquire()
+        self.running = run
+        if not run:
+            self.instrs = []
+            self.update_console(PROGRAM_FINISHED)
+            self.update_button_status(start=False, step=False, pause=False)
+        self.run_sem.release()
 
-    def start(self):
+    def start(self) -> None:
         if not self.controller.good():
             return
         if not self.running:
@@ -344,13 +404,7 @@ class MainWindow(QMainWindow):
         elif not self.controller.cont():
             self.controller.pause(False)
 
-    def pause(self):
-        if not self.controller.good():
-            return
-        if self.controller.cont():
-            self.controller.pause(True)
-
-    def step(self):
+    def step(self) -> None:
         if not self.controller.good():
             return
         if not self.running:
@@ -362,73 +416,31 @@ class MainWindow(QMainWindow):
         else:
             self.controller.set_pause(True)
 
-    def reverse(self):
+    def reverse(self) -> None:
         if not self.controller.good() or not self.running:
             return
         else:
             self.controller.reverse()
 
-    def change_rep(self, t):
+    def pause(self) -> None:
+        if not self.controller.good():
+            return
+        if self.controller.cont():
+            self.controller.pause(True)
+
+    def change_rep(self, t: str) -> None:
         self.rep = t
         if self.controller.good():
             self.update_screen(self.intr.reg['pc'])
 
-    def change_section(self, t):
-        if t == 'Kernel':
-            self.base_address = 0
-        elif t == '.data':
-            self.base_address = settings['data_min']
-        elif t == 'MMIO':
-            self.base_address = settings['mmio_base']
-        else:
-            self.base_address = (settings['initial_$sp'] - 0xc) & ~(MEMORY_SIZE-1) # multiple of MEMORY_SIZE
-        self.fill_mem()
-
-    def set_running(self, run):
-        self.run_sem.acquire()
-        self.running = run
-        if not run:
-            self.instrs = []
-            self.update_console(PROGRAM_FINISHED)
-            self.update_button_status(start=False, step=False, pause=False)
-        self.run_sem.release()
-
-    def update_screen(self, pc):
+    def update_screen(self, pc: int) -> None:
         self.fill_reg()
         self.fill_instrs(pc)
         self.fill_mem()
         self.fill_flags()
         self.instr_count.setText(INSTRUCTION_COUNT.format(self.controller.get_instr_count()))
 
-    def fill_labels(self):
-        labels = self.controller.get_labels()
-        self.labels.setRowCount(len(labels))
-        for i, (l, addr) in enumerate(labels.items()):
-            q = create_button(f'{l}: {WORD_HEX_FORMAT.format(addr)}', 
-                    lambda state=None, addr=addr: self.mem_move_to(addr))
-            self.labels.setCellWidget(i, 0, q)
-            self.labels.setItem(i, 1, QTableWidgetItem(f'{l}'))
-            self.labels.setItem(i, 2, QTableWidgetItem(WORD_HEX_FORMAT.format(addr)))
-
-    def mem_move_to(self, addr):
-        self.mem_sem.acquire()
-        self.base_address = addr & ~(MEMORY_SIZE-1) # 0x100-1 -> 0xff (multiple of MEMORY_SIZE)
-        self.mem_sem.release()
-        self.section_dropdown.setCurrentIndex(0)
-        if addr >= settings['data_min']:
-            self.section_dropdown.setCurrentIndex(1)
-        if addr >= settings['mmio_base']:
-            self.section_dropdown.setCurrentIndex(2)
-        self.fill_mem()
-
-    def fill_flags(self):
-        for i in range(len(self.intr.condition_flags)):
-            if self.intr.condition_flags[i]:
-                self.flags[i].setCheckState(Qt.Checked)
-            else:
-                self.flags[i].setCheckState(Qt.Unchecked)
-
-    def fill_reg(self):
+    def fill_reg(self) -> None:
         for r in self.regs.keys():
             if r in REGS:
                 if self.rep == "Decimal":
@@ -444,8 +456,7 @@ class MainWindow(QMainWindow):
                 else:
                     self.regs[r].setText(WORD_HEX_FORMAT.format(self.controller.get_reg_word(r)))
 
-    def fill_instrs(self, pc):
-        # pc = self.intr.reg['pc']
+    def fill_instrs(self, pc: int) -> None:
         if len(self.instrs) > 0:
             prev_ind = (pc - settings['initial_pc']) // 4
             for section in self.prev_instr:
@@ -460,8 +471,8 @@ class MainWindow(QMainWindow):
             for count, (k, i) in enumerate(mem.text.items()):
                 if type(i) is not str:
                     cell, check = create_breakpoint()
-                    check.stateChanged.connect(lambda state, i=i: self.add_breakpoint(('b', str(i.filetag.file_name)[1:-1], str(i.filetag.line_no))) if state == Qt.Checked else self.remove_breakpoint(
-                        ('b', str(i.filetag.file_name)[1:-1], str(i.filetag.line_no))))
+                    check.stateChanged.connect(lambda state, i=i: self.add_breakpoint(('b', str(i.filetag.file_name)[1:-1], str(i.filetag.line_no))) if state == Qt.Checked 
+                        else self.remove_breakpoint((str(i.filetag.file_name)[1:-1], str(i.filetag.line_no))))
                     self.instr_grid.setCellWidget(count, 0, cell)
                     
                     values = [WORD_HEX_FORMAT.format(int(k)), 
@@ -473,7 +484,7 @@ class MainWindow(QMainWindow):
                 section.setBackground(QBrush(QColor(self.high_light)))
             self.prev_instr = self.instrs[0]
 
-    def fill_mem(self):
+    def fill_mem(self) -> None:
         self.mem_sem.acquire()
         if self.controller.good():
             for q, count in zip(self.mem_vals, range(self.base_address, self.base_address+MEMORY_SIZE, MEMORY_WIDTH)):
@@ -490,21 +501,60 @@ class MainWindow(QMainWindow):
             a.setText(text)
         self.mem_sem.release()
 
-    def mem_rightclick(self):
+    def fill_flags(self) -> None:
+        for i in range(len(self.intr.condition_flags)):
+            if self.intr.condition_flags[i]:
+                self.flags[i].setCheckState(Qt.Checked)
+            else:
+                self.flags[i].setCheckState(Qt.Unchecked)
+
+    def fill_labels(self) -> None:
+        labels = self.controller.get_labels()
+        self.labels.setRowCount(len(labels))
+        for i, (l, addr) in enumerate(labels.items()):
+            q = create_button(f'{l}: {WORD_HEX_FORMAT.format(addr)}', 
+                    lambda state=None, addr=addr: self.mem_move_to(addr))
+            self.labels.setCellWidget(i, 0, q)
+            self.labels.setItem(i, 1, QTableWidgetItem(f'{l}'))
+            self.labels.setItem(i, 2, QTableWidgetItem(WORD_HEX_FORMAT.format(addr)))
+
+    def change_section(self, t: str) -> None:
+        if t == 'Kernel':
+            self.base_address = 0
+        elif t == '.data':
+            self.base_address = settings['data_min']
+        elif t == 'MMIO':
+            self.base_address = settings['mmio_base']
+        else:
+            self.base_address = (settings['initial_$sp'] - 0xc) & ~(MEMORY_SIZE-1) # multiple of MEMORY_SIZE
+        self.fill_mem()
+
+    def mem_move_to(self, addr: int) -> None:
+        self.mem_sem.acquire()
+        self.base_address = addr & ~(MEMORY_SIZE-1) # 0x100-1 -> 0xff (multiple of MEMORY_SIZE)
+        self.mem_sem.release()
+        self.section_dropdown.setCurrentIndex(0)
+        if addr >= settings['data_min']:
+            self.section_dropdown.setCurrentIndex(1)
+        if addr >= settings['mmio_base']:
+            self.section_dropdown.setCurrentIndex(2)
+        self.fill_mem()
+
+    def mem_rightclick(self) -> None:
         self.mem_sem.acquire()
         if self.base_address <= settings['data_max'] - MEMORY_SIZE:
             self.base_address += MEMORY_SIZE
         self.mem_sem.release()
         self.fill_mem()
 
-    def mem_leftclick(self):
+    def mem_leftclick(self) -> None:
         self.mem_sem.acquire()
         if self.base_address >= MEMORY_SIZE:
             self.base_address -= MEMORY_SIZE
         self.mem_sem.release()
         self.fill_mem()
 
-    def update_console(self, s="", clear=False):
+    def update_console(self, s: Optional[str]="", clear: Optional[bool]=False) -> None:
         self.console_sem.acquire()
         if clear:
             self.out.setPlainText(s)
@@ -512,7 +562,7 @@ class MainWindow(QMainWindow):
             self.out.insertPlainText(s)
         self.console_sem.release()
 
-    def get_input(self, input_type):
+    def get_input(self, input_type: str) -> None:
         value, state = QInputDialog.getInt(self, 
                 INPUT_MESSAGE[USER_INPUT_TYPE[input_type]], INPUT_LABEL)
         
@@ -521,78 +571,16 @@ class MainWindow(QMainWindow):
         else:
             self.get_input(input_type)
 
-    def add_breakpoint(self, cmd):
+    def add_breakpoint(self, cmd: Tuple[str, str, str]) -> None:
         self.controller.add_breakpoint(cmd)
 
-    def remove_breakpoint(self, cmd):
+    def remove_breakpoint(self, cmd: Tuple[str, str]) -> None:
         self.controller.remove_breakpoint((f'"{cmd[1]}"', cmd[2]))
 
-    def launch_vt100(self):
+    def launch_vt100(self) -> None:
         if self.vt100:
             self.vt100.close()
         self.vt100 = VT100(self.controller, self.changed_interp)
-
-    def close_tab(self, i):
-        if type(i) is bool:
-            i = self.tabs.currentIndex()
-        if self.tabs.tabText(i)[-1] == "*":
-            choice = create_save_confirmation(self.tabs.widget(i).getFilename(), self.theme).exec_()
-            if choice == QMessageBox.Save:
-                self.save_file(self.tabs.widget(i), i)
-            elif choice == QMessageBox.Cancel:
-                return
-        if self.tabs.currentIndex() == i:
-            self.update_button_status(start=False, step=False, backstep=False, pause=False)
-            self.clear_tables()
-        if self.tabs.widget(i).name in self.files:
-            self.files.pop(self.tabs.widget(i).name)
-        self.tabs.removeTab(i)
-        self.file_count -= 1
-        if self.file_count == 0:
-            self.update_button_status(save=False, close=False, assemble=False, start=False, step=False, backstep=False, pause=False)
-
-    def new_tab(self, wid: TextEdit=None):
-        self.file_count += 1
-        if not wid:
-            wid = TextEdit(completer=self.comp, textChanged=self.update_dirty, theme=self.textedit_theme)
-        self.tabs.addTab(wid, wid.getFilename())
-        self.tabs.setCurrentWidget(wid)
-        wid.setFocus()
-        self.update_button_status(save=True, close=True, assemble=True)
-
-    def update_dirty(self):
-        w = self.tabs.currentWidget()
-        i = self.tabs.currentIndex()
-        if w is not None:
-            if w.is_new() or w.name in self.files:
-                self.files[w.name] = True
-                self.tabs.setTabText(i, f'{w.getFilename()} *')
-            else:
-                self.files[w.name] = False
-
-    def update_button_status(self, **button_status):
-        for tag, status in button_status.items():
-            self.menu_items[tag].setEnabled(status)
-
-    def closeEvent(self, event):
-        unsaved_files = [i for i in range(self.file_count) if self.tabs.tabText(i)[-1] == "*"]
-        if unsaved_files:
-            choice = create_save_confirmation("", self.theme).exec_()
-            if choice == QMessageBox.Cancel:
-                event.ignore()
-            else:
-                if choice == QMessageBox.Save:
-                    for i in unsaved_files:
-                        self.save_file(self.tabs.widget(i), i)
-                event.accept()
-
-    def clear_tables(self):
-        self.instr_grid.setRowCount(0) # remove instructions
-        self.labels.setRowCount(0) # remove labels
-        for cell in self.mem_vals: # clear memory
-            cell.setText("")
-        for r, cell in self.regs.items(): # reset registers
-            cell.setText(WORD_HEX_FORMAT.format(settings.get(f"initial_{r}", 0)))
 
 if __name__ == "__main__":
     app = QApplication()

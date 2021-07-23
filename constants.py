@@ -39,6 +39,12 @@ REGS = ['$zero', '$at', '$v0', '$v1', '$a0', '$a1', '$a2', '$a3',
 
 F_REGS = [f'$f{i}' for i in range(32)]
 
+CHAR_CONVERSION = {
+    0: "\\0", # Null terminator
+    9: "\\t", # Tab
+    10: "\\n", # Newline
+}
+
 # For syscalls that require user input.
 # The index of the type is used to resolve the input type in GUI
 USER_INPUT_TYPE = ["str", "int"] 
