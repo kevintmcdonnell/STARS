@@ -37,7 +37,8 @@ class Highlighter(QSyntaxHighlighter):
                 format.setFontWeight(attributes["font-weight"])
             new_formats[name] = format
         for rule in self.rules: # update formats
-            rule.set_format(new_formats[rule.type])
+            if rule.type in new_formats:
+                rule.set_format(new_formats[rule.type])
 
     def highlightBlock(self, text:str) -> None:
         for rule in self.rules:

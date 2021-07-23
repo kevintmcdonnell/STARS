@@ -66,34 +66,30 @@ class MainWindow(QMainWindow):
 
         self.rep = MEMORY_REPR_DEFAULT
 
-        self.default_theme = QGuiApplication.palette()
         # load json for user preferences
         with open(PREFERNCES_PATH) as f:
             self.preferences = json.load(f)
         self.get_theme(theme=self.preferences["on_start_theme"])
         self.init_ui()        
 
+    def get_theme_attribute(self, choice, field):
+        return choice[field] if field in choice else self.preferences["default_theme"][field]
+
     def get_theme(self, theme: str="default_theme"):
         self.theme = theme
         choice = self.preferences[self.theme]
-        self.high_light = choice["Instruction_Highlight"]
-        if 'QPalette' in choice:
-            self.palette = QPalette()
-            for key, val in choice['QPalette'].items():
-                self.palette.setColor(eval(key), QColor(val))
-        else:
-            self.palette = self.default_theme
-        if 'Stylesheet' in choice:
-            self.style_sheet = " ".join(
-                [f'{obj}{{{";".join([f"{attr}: {value}" for attr, value in values.items()])}}}'
-                        for obj, values in choice['Stylesheet'].items()])
-        else:
-            self.style_sheet = ""
-
+        self.high_light = self.get_theme_attribute(choice, "Instruction_Highlight")
+        self.palette = QPalette()
+        for key, val in self.get_theme_attribute(choice, "QPalette").items():
+            self.palette.setColor(eval(key), QColor(val))
+        # create the stylesheet string
+        self.style_sheet = " ".join(
+            [f'{obj}{{{";".join([f"{attr}: {value}" for attr, value in values.items()])}}}'
+                    for obj, values in self.get_theme_attribute(choice, 'Stylesheet').items()])
         self.textedit_theme = {
-            "Editor": choice["Editor"],
-            "Highlighter": choice["Highlighter"]
-        }
+            "Editor": self.get_theme_attribute(choice, "Editor"),
+            "Highlighter": self.get_theme_attribute(choice, "Highlighter")
+        } # for text editor theme
 
     def init_ui(self):
         self.setWindowTitle(WINDOW_TITLE)
@@ -329,8 +325,9 @@ class MainWindow(QMainWindow):
             self.get_theme()
         self.app.setPalette(self.palette)
         self.all_horizontal.setStyleSheet(self.style_sheet)
-        for section in self.prev_instr:
-            section.setBackground(QBrush(QColor(self.high_light)))
+        if hasattr(self, 'prev_instr'):
+            for section in self.prev_instr:
+                section.setBackground(QBrush(QColor(self.high_light)))
         for i in range(self.file_count):
             self.tabs.widget(i).set_theme(self.textedit_theme)
 

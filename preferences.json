@@ -1,7 +1,22 @@
 {   
-    "on_start_theme": "default_theme",
+    "on_start_theme": "dark_theme",
     "default_theme": {
         "Instruction_Highlight": "cyan",
+        "QPalette": {
+            "QPalette.Window": "#EFEFEF",
+            "QPalette.WindowText": "#000000",
+            "QPalette.Base": "#FFFFFF",
+            "QPalette.AlternateBase": "#F7F7F7",
+            "QPalette.ToolTipBase": "#FFFFDC",
+            "QPalette.ToolTipText": "#000000",
+            "QPalette.Text": "#000000",
+            "QPalette.Button": "#EFEFEF",
+            "QPalette.ButtonText": "#000000",
+            "QPalette.BrightText": "#FFFFFF",
+            "QPalette.Link": "#0000FF",
+            "QPalette.Highlight": "#308CC6",
+            "QPalette.HighlightedText": "#FFFFFF"
+        },
         "Editor": {
             "Line_number": "black",
             "Line_number_box": "silver",
@@ -31,7 +46,8 @@
             "registers": {
                 "color": "#ff0000"
             }
-        }
+        },
+        "Stylesheet": {}
     },
     "dark_theme": {
         "Instruction_Highlight": "gray",
