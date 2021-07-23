@@ -19,7 +19,7 @@
             "QPalette.Highlight": "#2A82DA",
             "QPalette.HighlightedText": "black"
         },
-        "Instruction_Highlight": "silver",
+        "Instruction_Highlight": "gray",
         "Stylesheet": {
             "QMenuBar": {
                 "background-color": "#191919"
