@@ -90,6 +90,8 @@ class MainWindow(QMainWindow):
         else:
             self.style_sheet = ""
 
+        self.textedit_theme = [choice["Line_number"], choice["Line_number_box"], choice["Current_Line_Highlight"]]
+
     def init_ui(self):
         self.setWindowTitle(WINDOW_TITLE)
         self.init_menubar()
@@ -285,7 +287,7 @@ class MainWindow(QMainWindow):
                 return
             if filename not in self.files:
                 with open(filename) as f:
-                    wid = TextEdit(name=filename, text=f.read(), completer=self.comp, textChanged=self.update_dirty)
+                    wid = TextEdit(name=filename, text=f.read(), completer=self.comp, textChanged=self.update_dirty, theme=self.textedit_theme)
                 self.new_tab(wid=wid)
         except:
             self.update_console(OPEN_FILE_FAILED)
@@ -326,6 +328,8 @@ class MainWindow(QMainWindow):
         self.all_horizontal.setStyleSheet(self.style_sheet)
         for section in self.prev_instr:
             section.setBackground(QBrush(QColor(self.high_light)))
+        for i in range(self.file_count):
+            self.tabs.widget(i).set_theme(self.textedit_theme)
 
     def start(self):
         if not self.controller.good():
@@ -550,7 +554,7 @@ class MainWindow(QMainWindow):
     def new_tab(self, wid: TextEdit=None):
         self.file_count += 1
         if not wid:
-            wid = TextEdit(completer=self.comp, textChanged=self.update_dirty)
+            wid = TextEdit(completer=self.comp, textChanged=self.update_dirty, theme=self.textedit_theme)
         self.tabs.addTab(wid, wid.getFilename())
         self.tabs.setCurrentWidget(wid)
         wid.setFocus()

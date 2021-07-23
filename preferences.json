@@ -1,7 +1,10 @@
 {   
     "on_start_theme":"dark_theme",
     "default_theme": {
-        "Instruction_Highlight":"cyan"
+        "Instruction_Highlight":"cyan",
+        "Line_number":"black",
+        "Line_number_box":"silver",
+        "Current_Line_Highlight":"silver"
     },
     "dark_theme": {
         "QPalette": {
@@ -20,6 +23,9 @@
             "QPalette.HighlightedText": "black"
         },
         "Instruction_Highlight": "gray",
+        "Line_number":"white",
+        "Line_number_box":"silver",
+        "Current_Line_Highlight":"silver",
         "Stylesheet": {
             "QMenuBar": {
                 "background-color": "#191919"
