@@ -13,6 +13,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
+from lexer import MipsLexer
 
 LINE_MARKER = '\x81\x82'
 FILE_MARKER = '\x81\x83'
@@ -167,4 +168,24 @@ MENU_BAR = {
     'Help': {
         'Help': {}
     }    
+}
+
+
+# Highlighter Patterns 
+patterns = [MipsLexer.LOADS_F, MipsLexer.R_TYPE3_F, MipsLexer.R_TYPE2_F, MipsLexer.COMPARE_F, MipsLexer.BRANCH_F, MipsLexer.CONVERT_F,
+                MipsLexer.MOVE_BTWN_F, MipsLexer.MOVE_F, MipsLexer.MOVE_COND_F, MipsLexer.R_TYPE3, MipsLexer.R_TYPE2, MipsLexer.MOVE,
+                MipsLexer.MOVE_COND, MipsLexer.J_TYPE, MipsLexer.J_TYPE_R, MipsLexer.I_TYPE, MipsLexer.LOADS_R, MipsLexer.LOADS_I, MipsLexer.SYSCALL,
+                MipsLexer.BREAK, MipsLexer.ZERO_BRANCH, MipsLexer.NOP, MipsLexer.BREAK, MipsLexer.PS_R_TYPE3, MipsLexer.PS_R_TYPE2, MipsLexer.PS_I_TYPE,
+                MipsLexer.PS_LOADS_I, MipsLexer.PS_LOADS_A, MipsLexer.PS_BRANCH, MipsLexer.PS_ZERO_BRANCH]
+d_patterns = [MipsLexer.TEXT, MipsLexer.DATA, MipsLexer.WORD, MipsLexer.BYTE, MipsLexer.HALF, 
+                MipsLexer.FLOAT, MipsLexer.DOUBLE, MipsLexer.ASCII, MipsLexer.ASCIIZ, 
+                MipsLexer.SPACE, MipsLexer.EQV, MipsLexer.ALIGN]
+PATTERN_EXPRESSIONS = {
+    "keyword": patterns,
+    "label": rf'{MipsLexer.LABEL}\s*:',
+    "number": r'\b(\d+|(0x[0-9A-Fa-f]+))\b',
+    "string": f'{MipsLexer.STRING}',
+    "directive": d_patterns,
+    "comment": r'#.*',
+    "registers": r'\$\w+',
 }

@@ -25,7 +25,7 @@ class QLineNumberArea(QWidget):
 
 class TextEdit(QPlainTextEdit):
 
-    def __init__(self, parent=None, name='', text='', completer=None, textChanged=None, theme=[]):
+    def __init__(self, parent=None, name='', text='', completer=None, textChanged=None, theme={}):
         super().__init__(parent)
         self.setPlainText(text)
         self.completer = completer
@@ -39,8 +39,9 @@ class TextEdit(QPlainTextEdit):
         if textChanged:
             self.textChanged.connect(textChanged)
         if theme:
-            self.theme = theme # [Line_number, Line_number_box, Current_Line_Highlight]
-        print(self.theme)
+            self.theme = theme['Editor'] # [Line_number, Line_number_box, Current_Line_Highlight]
+            self.syntax_theme = theme['Highlighter']
+        self.highlighter = Highlighter(self.document(), self.syntax_theme)
         self.lineNumberArea = QLineNumberArea(self)
         self.blockCountChanged.connect(self.updateLineNumberAreaWidth)
         self.updateRequest.connect(self.updateLineNumberArea)
@@ -73,7 +74,7 @@ class TextEdit(QPlainTextEdit):
         extraSelections = []
         if not self.isReadOnly():
             selection = QTextEdit.ExtraSelection()
-            lineColor = QColor(self.theme[2])
+            lineColor = QColor(self.theme["Current_Line_Highlight"])
             selection.format.setBackground(lineColor)
             selection.format.setProperty(QTextFormat.FullWidthSelection, True)
             selection.cursor = self.textCursor()
@@ -83,7 +84,7 @@ class TextEdit(QPlainTextEdit):
 
     def lineNumberAreaPaintEvent(self, event):
         painter = QPainter(self.lineNumberArea)
-        painter.fillRect(event.rect(), QColor(self.theme[1]))
+        painter.fillRect(event.rect(), QColor(self.theme["Line_number_box"]))
         # For line wrapping
         block = self.firstVisibleBlock()
         blockNumber = block.blockNumber()
@@ -93,7 +94,7 @@ class TextEdit(QPlainTextEdit):
         while block.isValid() and (top <= event.rect().bottom()):
             if block.isVisible() and (bottom >= event.rect().top()):
                 number = str(blockNumber + 1)
-                painter.setPen(QColor(self.theme[0]))
+                painter.setPen(QColor(self.theme["Line_number"]))
                 painter.drawText(0, top, self.lineNumberArea.width(), height, Qt.AlignRight, number)
 
             block = block.next()
@@ -180,7 +181,9 @@ class TextEdit(QPlainTextEdit):
         self.new_file = value
 
     def set_theme(self, theme) -> None:
-        self.theme = theme
+        self.theme = theme['Editor'] 
+        self.syntax_theme = theme['Highlighter']
+        self.highlighter.set_theme(self.syntax_theme)
         self.cursorPositionChanged.emit()
 
 class MainWindow(QMainWindow):

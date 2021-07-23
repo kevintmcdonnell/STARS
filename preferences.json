@@ -1,12 +1,40 @@
 {   
-    "on_start_theme":"dark_theme",
+    "on_start_theme": "default_theme",
     "default_theme": {
-        "Instruction_Highlight":"cyan",
-        "Line_number":"black",
-        "Line_number_box":"silver",
-        "Current_Line_Highlight":"silver"
+        "Instruction_Highlight": "cyan",
+        "Editor": {
+            "Line_number": "black",
+            "Line_number_box": "silver",
+            "Current_Line_Highlight": "silver"
+        },
+        "Highlighter": {
+            "keyword": {
+                "color": "#0000ff"
+            },
+            "label": {
+                "color": "#808000",
+                "font-weight": 75
+            },
+            "number": {
+                "color": "#008000"
+            },
+            "string": {
+                "color": "#000080"
+            },
+            "directive": {
+                "color": "#800080",
+                "font-weight": 75
+            },
+            "comment": {
+                "color": "#808080"
+            },
+            "registers": {
+                "color": "#ff0000"
+            }
+        }
     },
     "dark_theme": {
+        "Instruction_Highlight": "gray",
         "QPalette": {
             "QPalette.Window": "#191919",
             "QPalette.WindowText": "white",
@@ -22,10 +50,11 @@
             "QPalette.Highlight": "#2A82DA",
             "QPalette.HighlightedText": "black"
         },
-        "Instruction_Highlight": "gray",
-        "Line_number":"white",
-        "Line_number_box":"silver",
-        "Current_Line_Highlight":"silver",
+        "Editor": {
+            "Line_number": "white",
+            "Line_number_box": "silver",
+            "Current_Line_Highlight": "silver"
+        },
         "Stylesheet": {
             "QMenuBar": {
                 "background-color": "#191919"

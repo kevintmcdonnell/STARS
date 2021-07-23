@@ -90,7 +90,10 @@ class MainWindow(QMainWindow):
         else:
             self.style_sheet = ""
 
-        self.textedit_theme = [choice["Line_number"], choice["Line_number_box"], choice["Current_Line_Highlight"]]
+        self.textedit_theme = {
+            "Editor": choice["Editor"],
+            "Highlighter": choice["Highlighter"]
+        }
 
     def init_ui(self):
         self.setWindowTitle(WINDOW_TITLE)
@@ -559,7 +562,6 @@ class MainWindow(QMainWindow):
         self.tabs.setCurrentWidget(wid)
         wid.setFocus()
         self.update_button_status(save=True, close=True, assemble=True)
-        Highlighter(wid.document())
 
     def update_dirty(self):
         w = self.tabs.currentWidget()
