@@ -132,7 +132,7 @@ class MainWindow(QMainWindow):
             sections=[table, arrow_grid])
 
         # Initialize dropdowns and labels table
-        self.section_dropdown = create_dropdown(MEMORY_SECTION, self.change_section)
+        self.section_dropdown = create_dropdown(MEMORY_SECTION.keys(), self.change_section)
         self.section_dropdown.setCurrentIndex(1)
         self.hdc_dropdown = create_dropdown(MEMORY_REPR.keys(), self.change_rep)
         self.labels = create_table(0, len(LABEL_HEADER), LABEL_HEADER)
@@ -417,15 +417,11 @@ class MainWindow(QMainWindow):
             self.controller.set_pause(True)
 
     def reverse(self) -> None:
-        if not self.controller.good() or not self.running:
-            return
-        else:
+        if self.controller.good() and self.running:
             self.controller.reverse()
 
     def pause(self) -> None:
-        if not self.controller.good():
-            return
-        if self.controller.cont():
+        if self.controller.good() and self.controller.cont():
             self.controller.pause(True)
 
     def change_rep(self, t: str) -> None:
@@ -519,14 +515,7 @@ class MainWindow(QMainWindow):
             self.labels.setItem(i, 2, QTableWidgetItem(WORD_HEX_FORMAT.format(addr)))
 
     def change_section(self, t: str) -> None:
-        if t == 'Kernel':
-            self.base_address = 0
-        elif t == '.data':
-            self.base_address = settings['data_min']
-        elif t == 'MMIO':
-            self.base_address = settings['mmio_base']
-        else:
-            self.base_address = (settings['initial_$sp'] - 0xc) & ~(MEMORY_SIZE-1) # multiple of MEMORY_SIZE
+        self.base_address = MEMORY_SECTION[t]
         self.fill_mem()
 
     def mem_move_to(self, addr: int) -> None:
@@ -557,15 +546,13 @@ class MainWindow(QMainWindow):
     def update_console(self, s: Optional[str]="", clear: Optional[bool]=False) -> None:
         self.console_sem.acquire()
         if clear:
-            self.out.setPlainText(s)
-        else:
-            self.out.insertPlainText(s)
+            self.out.clear()
+        self.out.insertPlainText(s)
         self.console_sem.release()
 
     def get_input(self, input_type: str) -> None:
         value, state = QInputDialog.getInt(self, 
                 INPUT_MESSAGE[USER_INPUT_TYPE[input_type]], INPUT_LABEL)
-        
         if state:
             self.intr.set_input(value)
         else:

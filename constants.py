@@ -14,6 +14,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 from lexer import MipsLexer
+from settings import settings
 
 LINE_MARKER = '\x81\x82'
 FILE_MARKER = '\x81\x83'
@@ -67,7 +68,12 @@ MEMORY_ROW_COUNT = 16
 MEMORY_COLUMN_COUNT = 4
 MEMORY_SIZE = MEMORY_ROW_COUNT * MEMORY_COLUMN_COUNT * 4 # 256
 MEMORY_TABLE_HEADER = ["Address"] + [f"+{MEMORY_WIDTH*i:x}" for i in range(MEMORY_COLUMN_COUNT)]
-MEMORY_SECTION = ['Kernel', '.data', 'stack', 'MMIO'] # Memory Section Dropdown
+MEMORY_SECTION = {
+    'Kernel': 0,
+    '.data': settings['data_min'],
+    'stack': (settings['initial_$sp'] - 0xc) & ~(MEMORY_SIZE-1),
+    'MMIO': settings['mmio_base']
+} # Memory Section Dropdown
 
 WORD_HEX_FORMAT = "0x{:08x}"
 
