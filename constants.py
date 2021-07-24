@@ -181,10 +181,12 @@ MENU_BAR = {
         }
     },
     'Help': {
-        'Help': {}
+        'Help': {
+            'Action':'self.help',
+            'Shortcut':'F1'
+        }
     }    
 }
-
 
 # Highlighter Patterns 
 patterns = [MipsLexer.LOADS_F, MipsLexer.R_TYPE3_F, MipsLexer.R_TYPE2_F, MipsLexer.COMPARE_F, MipsLexer.BRANCH_F, MipsLexer.CONVERT_F,
@@ -204,3 +206,12 @@ PATTERN_EXPRESSIONS = {
     "comment": r'#.*',
     "registers": r'\$\w+',
 }
+
+# tabs for HELP
+HELP_TABS = {
+    'Instructions': ('help/instructions.csv', []),
+    'Directives': ('help/directives.csv', []),
+    'Syscalls': ('help/syscalls.csv', ['Service', '$v0 Code', 'Arguments', 'Result'])
+}
+
+HELP_TITLE = "Help"

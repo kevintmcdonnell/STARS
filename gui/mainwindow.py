@@ -13,6 +13,7 @@ from controller import Controller
 from gui.vt100 import VT100
 from gui.textedit import TextEdit
 from gui.widgetfactory import *
+from help.help import HelpWindow
 
 from PySide2.QtCore import Qt, QSemaphore, Signal, QFile, QStringListModel
 from PySide2.QtGui import QBrush, QCloseEvent, QColor, QCursor, QGuiApplication, QPalette
@@ -584,6 +585,9 @@ class MainWindow(QMainWindow):
         if self.vt100:
             self.vt100.close()
         self.vt100 = VT100(self.controller, self.changed_interp)
+
+    def help(self):
+        self.window = HelpWindow(self)
 
 if __name__ == "__main__":
     app = QApplication()
