@@ -1,5 +1,5 @@
 {   
-    "on_start_theme": "dark_theme",
+    "on_start_theme": "default_theme",
     "default_theme": {
         "Instruction_Highlight": "cyan",
         "QPalette": {
@@ -47,7 +47,11 @@
                 "color": "#ff0000"
             }
         },
-        "Stylesheet": {}
+        "Stylesheet": {
+            "QMenu::item:disabled": {
+                "color": "silver"
+            }
+        }
     },
     "dark_theme": {
         "Instruction_Highlight": "gray",
