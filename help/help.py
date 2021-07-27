@@ -9,7 +9,7 @@ from PySide2.QtGui import QTextDocument
 from PySide2.QtWidgets import *
 
 from constants import HELP_TABS, HELP_TITLE
-from gui.widgetfactory import create_cell, create_table
+from gui.widgetfactory import create_box_layout, create_cell, create_table, create_widget
 
 def create_tab(rows: List[str], header: List[str]) -> QTableWidget:
     '''Returns a table with csv row values inserted.'''
@@ -24,6 +24,17 @@ def create_tab(rows: List[str], header: List[str]) -> QTableWidget:
 
     return table
 
+def create_search(table: QTableWidget) -> QWidget:
+    def search_function(text: str) -> None:
+        for row in range(table.rowCount()):
+            column = table.item(row, 0)
+            table.setRowHidden(row, not column.text().startswith(text))
+    text_entry = QLineEdit()
+    text_entry.textChanged.connect(search_function)
+
+    return create_widget(create_box_layout(direction=QBoxLayout.TopToBottom, 
+                    sections=[text_entry, table]))
+
 class HelpWindow(QMainWindow):
     
     def __init__(self, app):
@@ -34,7 +45,7 @@ class HelpWindow(QMainWindow):
             with open(filename) as f:
                 rows = [row for row in csv.reader(f)]
                 table = create_tab(rows, header)
-                window.addTab(table, name)
+                window.addTab(create_search(table), name)
         self.setCentralWidget(window)
         
         self.show()
