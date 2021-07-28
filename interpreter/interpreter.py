@@ -487,17 +487,7 @@ class Interpreter(QWidget):
 
         # Mfhi, mflo, mthi, mtlo
         elif type(instr) is Move:
-            op = instr.operation
-
-            if 'f' in op:
-                src = op[2:]
-                dest = instr.reg
-
-            else:
-                src = instr.reg
-                dest = op[2:]
-
-            self.set_register(dest, self.get_register(src))
+            self.set_register(instr.rd, self.get_register(instr.rs))
 
         # Floating point move instructions
         elif type(instr) is MoveFloat:

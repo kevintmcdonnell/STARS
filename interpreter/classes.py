@@ -67,13 +67,16 @@ class RType(Instruction):
     def __str__(self) -> str:
         return f"{super().__str__()} {f'{self.rd}, ' if hasattr(self, 'rd') else ''}{self.rs}, {self.rt}"
 
-class Move:
+class Move(Instruction):
     def __init__(self, op: str, reg: str):
-        self.operation = op
-        self.reg = reg
+        super().__init__(op)
+        if 'f' in op:
+            self.rs, self.rd = op[2:], reg
+        else:
+            self.rs, self.rd = reg, op[2:]
 
-    def basic_instr(self) -> str:
-        return f'{self.operation} {self.reg}'
+    def __str__(self) -> str:
+        return f"{super().__str__()} {self.rd if 'f' in self.operation else self.rs}"
 
 class MoveFloat:
     def __init__(self, op: str, rs: str, rt: str, rd: str = ''):
