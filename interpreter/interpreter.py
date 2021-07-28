@@ -93,8 +93,8 @@ class Interpreter(QWidget):
                 data_type = line.type[1:]
 
                 # If a label is specified, add the label to memory
-                if line.label:
-                    self.mem.addLabel(line.label.name, self.mem.dataPtr)
+                if line.name:
+                    self.mem.addLabel(line.name, self.mem.dataPtr)
 
                 if data_type == 'asciiz':
                     # A null-terminated string

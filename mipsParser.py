@@ -408,14 +408,14 @@ class MipsParser(Parser):
 
         return result
 
-    @_('label ASCIIZ STRING', 'label WORD nums', 'label BYTE chars', 'label ASCII STRING', 'label SPACE nums',
-       'label HALF nums',
-       'label FLOAT floats', 'label DOUBLE floats',
+    @_('LABEL COLON ASCIIZ STRING', 'LABEL COLON WORD nums', 'LABEL COLON BYTE chars', 'LABEL COLON ASCII STRING', 'LABEL SPACE nums',
+       'LABEL COLON HALF nums',
+       'LABEL COLON FLOAT floats', 'LABEL COLON DOUBLE floats',
        'ASCIIZ STRING', 'WORD nums', 'BYTE chars', 'ASCII STRING', 'SPACE nums', 'HALF nums',
        'FLOAT floats', 'DOUBLE floats', 'EQV', 'ALIGN NUMBER')
     def declaration(self, p):
-        if 'label' in p._namemap:
-            return [Declaration(p.label, p[1], p[2])]
+        if 'LABEL' in p._namemap:
+            return [Declaration(p.LABEL, p[2], p[3])]
 
         elif len(p) > 1:  # Not eqv
             return [Declaration(None, p[0], p[1])]

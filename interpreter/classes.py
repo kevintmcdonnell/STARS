@@ -23,6 +23,11 @@ class Label:
     def __init__(self, name: str):
         self.name = name
 
+class Declaration(Label):
+    def __init__(self, name: str, type: str, data: Union[int, List[int], str, List[str]]):
+        super().__init__(name)
+        self.type = type
+        self.data = data
 
 class RType:
     # Two or Three registers
@@ -172,14 +177,6 @@ class Nop:
 class Breakpoint:
     def __init__(self, code: int = 0):
         self.code = code
-
-
-class Declaration:
-    def __init__(self, label: Union[Label, None], type: str, data: Union[int, List[int], str, List[str]]):
-        self.label = label
-        self.type = type
-        self.data = data
-
 
 class PseudoInstr:
     def __init__(self, op: str, instrs: List):
