@@ -340,25 +340,25 @@ class Interpreter(QWidget):
             return struct.unpack('>i', x_bytes)[0]
 
         # Instruction with 3 registers
-        if type(instr) is RType and len(instr.regs) == 3:
+        if type(instr) is RType and hasattr(instr, "rd"):
             op = instr.operation
-            rd = instr.regs[0]
+            rd = instr.rd
 
             if is_float_single(op):
-                rs = self.get_reg_float(instr.regs[1])
-                rt = self.get_reg_float(instr.regs[2])
+                rs = self.get_reg_float(instr.rs)
+                rt = self.get_reg_float(instr.rt)
                 result = instrs.table[op[:-2] + '_f'](rs, rt)
                 self.set_reg_float(rd, result)
 
             elif is_float_double(op):
-                rs = self.get_reg_double(instr.regs[1])
-                rt = self.get_reg_double(instr.regs[2])
+                rs = self.get_reg_double(instr.rs)
+                rt = self.get_reg_double(instr.rt)
                 result = instrs.table[op[:-2] + '_f'](rs, rt)
                 self.set_reg_double(rd, result)
 
             else:
-                rs = self.get_register(instr.regs[1])
-                rt = self.get_register(instr.regs[2])
+                rs = self.get_register(instr.rs)
+                rt = self.get_register(instr.rt)
                 result = instrs.table[op](rs, rt)
 
                 if op == 'movz':
@@ -373,10 +373,10 @@ class Interpreter(QWidget):
                     self.set_register(rd, result)
 
         # Instruction with 2 registers
-        elif type(instr) is RType and len(instr.regs) == 2:
+        elif type(instr) is RType:
             op = instr.operation
-            r1 = instr.regs[0]
-            r2 = instr.regs[1]
+            r1 = instr.rs
+            r2 = instr.rt
 
             if is_conversion_to_int(op):
                 if is_float_single(op):

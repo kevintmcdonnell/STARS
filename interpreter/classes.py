@@ -34,6 +34,13 @@ class FileTag:
         self.file_name = file_name
         self.line_no = line_no
 
+class Instruction:
+    def __init__(self, op):
+        self.operation = op
+
+    def __str__(self):
+        return f"{self.operation}"
+
 class Breakpoint:
     def __init__(self, code: int = 0):
         self.code = code
@@ -53,18 +60,17 @@ class Syscall:
         return 'syscall'
 
 # RType Instructions
-class RType:
+class RType(Instruction):
     # Two or Three registers
     def __init__(self, op: str, regs: List[str]):
-        self.operation = op
-        self.regs = regs
-
-    def basic_instr(self) -> str:
-        if len(self.regs) == 2:
-            return f'{self.operation} {self.regs[0]} {self.regs[1]}'
-
+        super().__init__(op)
+        if len(regs) == 2:
+            self.rs, self.rt = regs
         else:
-            return f'{self.operation} {self.regs[0]} {self.regs[1]} {self.regs[2]}'
+            self.rd, self.rs, self.rt = regs
+
+    def __str__(self) -> str:
+        return f"{super().__str__()} {f'{self.rd}, ' if hasattr(self, 'rd') else ''}{self.rs}, {self.rt}"
 
 class Move:
     def __init__(self, op: str, reg: str):
