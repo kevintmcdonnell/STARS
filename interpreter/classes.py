@@ -41,23 +41,18 @@ class Instruction:
     def __str__(self):
         return f"{self.operation}"
 
-class Breakpoint:
+class Breakpoint(Instruction):
     def __init__(self, code: int = 0):
+        super().__init__("breakpoint")
         self.code = code
 
-class Nop:
+class Nop(Instruction):
     def __init__(self):
-        pass
+        super().__init__("nop")
 
-    def basic_instr(self) -> str:
-        return 'nop'
-
-class Syscall:
+class Syscall(Instruction):
     def __init__(self):
-        pass
-
-    def basic_instr(self) -> str:
-        return 'syscall'
+        super().__init__("syscall")
 
 # RType Instructions
 class RType(Instruction):
