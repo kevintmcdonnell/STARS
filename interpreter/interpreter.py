@@ -41,6 +41,7 @@ class Interpreter(QWidget):
     end = Signal(bool)
     start = Signal()
     mem_access = Signal()
+    user_input = Signal(int)
 
     def out(self, s: str, end='') -> None:
         if settings['gui']:
@@ -48,9 +49,10 @@ class Interpreter(QWidget):
         else:
             print(s, end=end)
 
-    def input(self):
+    def input(self, input_type: str):
         if settings['gui']:
             self.input_lock.clear()
+            self.user_input.emit(const.USER_INPUT_TYPE.index(input_type))
             self.input_lock.wait()
             return self.input_str
         else:
@@ -655,6 +657,16 @@ class Interpreter(QWidget):
                     raise ex.InstrCountExceed(f'Exceeded maximum instruction count: {settings["max_instructions"]}')
 
                 self.instr = self.mem.text[str(pc)]
+                if self.instr == 'TERMINATE_EXECUTION':
+                    if settings['debug']:
+                        print()
+                        self.debug.listen(self)
+
+                    if settings['gui']:
+                        self.end.emit(False)
+
+                    break
+
                 self.reg['pc'] += 4
                 self.instruction_count += 1
 
@@ -667,17 +679,7 @@ class Interpreter(QWidget):
                 except AttributeError:
                     self.line_info = ''
 
-                if self.instr == 'TERMINATE_EXECUTION':
-                    if settings['debug']:
-                        print()
-                        self.debug.listen(self)
-
-                    if settings['gui']:
-                        self.end.emit(False)
-
-                    break
-
-                elif self.debug.debug(self.instr):
+                if self.debug.debug(self.instr):
                     if not self.debug.continueFlag:
                         self.pause_lock.clear()
                     if settings['gui']:
