@@ -29,6 +29,30 @@ class Declaration(Label):
         self.type = type
         self.data = data
 
+class FileTag:
+    def __init__(self, file_name: str, line_no: int):
+        self.file_name = file_name
+        self.line_no = line_no
+
+class Breakpoint:
+    def __init__(self, code: int = 0):
+        self.code = code
+
+class Nop:
+    def __init__(self):
+        pass
+
+    def basic_instr(self) -> str:
+        return 'nop'
+
+class Syscall:
+    def __init__(self):
+        pass
+
+    def basic_instr(self) -> str:
+        return 'syscall'
+
+# RType Instructions
 class RType:
     # Two or Three registers
     def __init__(self, op: str, regs: List[str]):
@@ -41,99 +65,6 @@ class RType:
 
         else:
             return f'{self.operation} {self.regs[0]} {self.regs[1]} {self.regs[2]}'
-
-
-class IType:
-    # Two registers and an immediate
-    def __init__(self, op: str, regs: List[str], imm: int):
-        self.operation = op
-        self.regs = regs
-        self.imm = imm
-
-    def basic_instr(self) -> str:
-        if self.operation in ['or', 'ori', 'and', 'andi', 'xor', 'xori']:
-            imm = utility.format_hex(self.imm)
-        else:
-            imm = self.imm
-
-        return f'{self.operation} {self.regs[0]} {self.regs[1]} {imm}'
-
-
-class JType:
-    # A label or a register as a target
-    def __init__(self, op: str, target: Union[str, Label]):
-        self.operation = op
-        self.target = target
-
-    def basic_instr(self) -> str:
-        if type(self.target) is Label:
-            return f'{self.operation} {self.target.name}'
-        return f'{self.operation} {self.target}'
-
-
-class Convert:
-    def __init__(self, format_from: str, format_to: str, rs: str, rt: str):
-        self.format_from = format_from
-        self.format_to = format_to
-        self.rs = rs
-        self.rt = rt
-
-    def basic_instr(self) -> str:
-        return f'cvt.{self.format_from}.{self.format_to} {self.rs} {self.rt}'
-
-class Compare:
-    def __init__(self, op: str, rs: str, rt: str, flag: int):
-        self.operation = op
-        self.rs = rs
-        self.rt = rt
-        self.flag = flag
-
-    def basic_instr(self) -> str:
-        return f'{self.operation} {self.rs} {self.rt} {self.flag}'
-
-
-class Branch:
-    def __init__(self, op: str, rs: str, rt: str, label: Label):
-        self.operation = op
-        self.rs = rs
-        self.rt = rt
-        self.label = label
-
-    def basic_instr(self) -> str:
-        return f'{self.operation} {self.rs} {self.rt} {self.label.name}'
-
-
-class BranchFloat:
-    def __init__(self, op: str, label: Label, flag: int):
-        self.operation = op
-        self.label = label
-        self.flag = flag
-
-    def basic_instr(self) -> str:
-        return f'{self.operation} {self.flag} {self.label.name}'
-
-class LoadImm:
-    def __init__(self, op: str, reg: str, imm: int):
-        self.operation = op
-        self.reg = reg
-        self.imm = imm
-
-    def basic_instr(self) -> str:
-        imm_hex = utility.format_hex(self.imm)
-        return f'{self.operation} {self.reg}, {imm_hex}'
-
-
-class LoadMem:
-    def __init__(self, op: str, reg: str, addr: str, imm: int):
-        self.operation = op
-        self.reg = reg
-        self.addr = addr
-        self.imm = imm
-
-    def basic_instr(self) -> str:
-        imm_hex = utility.format_hex(self.imm)
-        return f'{self.operation} {self.reg}, {imm_hex}({self.addr})'
-
 
 class Move:
     def __init__(self, op: str, reg: str):
@@ -166,17 +97,93 @@ class MoveCond:
     def basic_instr(self) -> str:
         return f'{self.operation} {self.rs} {self.rt} {self.flag}'
 
-class Nop:
-    def __init__(self):
-        pass
+# IType Instructions
+class IType:
+    # Two registers and an immediate
+    def __init__(self, op: str, regs: List[str], imm: int):
+        self.operation = op
+        self.regs = regs
+        self.imm = imm
 
     def basic_instr(self) -> str:
-        return 'nop'
+        if self.operation in ['or', 'ori', 'and', 'andi', 'xor', 'xori']:
+            imm = utility.format_hex(self.imm)
+        else:
+            imm = self.imm
 
+        return f'{self.operation} {self.regs[0]} {self.regs[1]} {imm}'
 
-class Breakpoint:
-    def __init__(self, code: int = 0):
-        self.code = code
+class Compare:
+    def __init__(self, op: str, rs: str, rt: str, flag: int):
+        self.operation = op
+        self.rs = rs
+        self.rt = rt
+        self.flag = flag
+
+    def basic_instr(self) -> str:
+        return f'{self.operation} {self.rs} {self.rt} {self.flag}'
+
+class Convert:
+    def __init__(self, format_from: str, format_to: str, rs: str, rt: str):
+        self.format_from = format_from
+        self.format_to = format_to
+        self.rs = rs
+        self.rt = rt
+
+    def basic_instr(self) -> str:
+        return f'cvt.{self.format_from}.{self.format_to} {self.rs} {self.rt}'
+
+class Branch:
+    def __init__(self, op: str, rs: str, rt: str, label: Label):
+        self.operation = op
+        self.rs = rs
+        self.rt = rt
+        self.label = label
+
+    def basic_instr(self) -> str:
+        return f'{self.operation} {self.rs} {self.rt} {self.label.name}'
+
+class BranchFloat:
+    def __init__(self, op: str, label: Label, flag: int):
+        self.operation = op
+        self.label = label
+        self.flag = flag
+
+    def basic_instr(self) -> str:
+        return f'{self.operation} {self.flag} {self.label.name}'
+
+class LoadImm:
+    def __init__(self, op: str, reg: str, imm: int):
+        self.operation = op
+        self.reg = reg
+        self.imm = imm
+
+    def basic_instr(self) -> str:
+        imm_hex = utility.format_hex(self.imm)
+        return f'{self.operation} {self.reg}, {imm_hex}'
+
+class LoadMem:
+    def __init__(self, op: str, reg: str, addr: str, imm: int):
+        self.operation = op
+        self.reg = reg
+        self.addr = addr
+        self.imm = imm
+
+    def basic_instr(self) -> str:
+        imm_hex = utility.format_hex(self.imm)
+        return f'{self.operation} {self.reg}, {imm_hex}({self.addr})'
+
+# JType Instructions
+class JType:
+    # A label or a register as a target
+    def __init__(self, op: str, target: Union[str, Label]):
+        self.operation = op
+        self.target = target
+
+    def basic_instr(self) -> str:
+        if type(self.target) is Label:
+            return f'{self.operation} {self.target.name}'
+        return f'{self.operation} {self.target}'
 
 class PseudoInstr:
     def __init__(self, op: str, instrs: List):
@@ -186,32 +193,22 @@ class PseudoInstr:
     def original(self) -> str:
         return self.operation
 
-
-
-
-class FileTag:
-    def __init__(self, file_name: str, line_no: int):
-        self.file_name = file_name
-        self.line_no = line_no
-
-
-class Syscall:
-    def __init__(self):
-        pass
-
-    def basic_instr(self) -> str:
-        return 'syscall'
-
-
 # Change classes for putting instructions on the stack
-
-class RegChange:
-    def __init__(self, reg: str, val: int, pc: int, is_double: bool = False):
-        self.reg = reg
-        self.val = val
+class Change:
+    def __init__(self, pc: int):
         self.pc = pc
-        self.is_double = is_double
 
+class FlagChange:
+    def __init__(self, flag: int, value: bool, pc: int):
+        self.flag = flag
+        self.value = value
+        self.pc = pc
+
+class MChange:
+    def __init__(self, hi: int, lo: int, pc: int):
+        self.pc = pc
+        self.hi = hi
+        self.lo = lo
 
 # type can be 'w', 'h', or 'b' to indicate word, halfword, and byte respectively
 class MemChange:
@@ -221,21 +218,9 @@ class MemChange:
         self.pc = pc
         self.type = type
 
-
-class FlagChange:
-    def __init__(self, flag: int, value: bool, pc: int):
-        self.flag = flag
-        self.value = value
+class RegChange:
+    def __init__(self, reg: str, val: int, pc: int, is_double: bool = False):
+        self.reg = reg
+        self.val = val
         self.pc = pc
-
-
-class Change:
-    def __init__(self, pc: int):
-        self.pc = pc
-
-
-class MChange:
-    def __init__(self, hi: int, lo: int, pc: int):
-        self.pc = pc
-        self.hi = hi
-        self.lo = lo
+        self.is_double = is_double
