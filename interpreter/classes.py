@@ -29,7 +29,7 @@ class Label:
 class Declaration(Label):
     def __init__(self, name: str, type: str, data: Union[int, List[int], str, List[str]]):
         super().__init__(name)
-        self.type = type
+        self.type = type[1:]
         self.data = data
     
     def __str__(self):
@@ -39,6 +39,9 @@ class FileTag:
     def __init__(self, file_name: str, line_no: int):
         self.file_name = file_name
         self.line_no = line_no
+
+    def __str__(self):
+        return f"{self.file_name}, {self.line_no}"
 
 class Instruction:
     def __init__(self, op):

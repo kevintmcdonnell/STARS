@@ -77,7 +77,7 @@ class Interpreter(QWidget):
         for line in code:  # Go through the source code line by line, adding declarations first
             if type(line) is Declaration:
                 # Data declaration
-                data_type = line.type[1:]
+                data_type = line.type
 
                 # If a label is specified, add the label to memory
                 if line.name:
