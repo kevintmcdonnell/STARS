@@ -167,10 +167,8 @@ class Interpreter(QWidget):
         for r in const.REGS:
             if f'initial_{r}' in settings.keys():
                 self.reg[r] = settings[f'initial_{r}']
-
             elif randomize and r not in const.CONST_REGS:
                 self.reg[r] = random.randint(0, 2 ** 32 - 1)
-
             else:
                 self.reg[r] = 0
 
@@ -178,17 +176,11 @@ class Interpreter(QWidget):
             if randomize:
                 random_bytes = os.urandom(4)
                 self.f_reg[r] = float32(struct.unpack('>f', random_bytes)[0])
-
             else:
                 self.f_reg[r] = float32(0.0)
 
     def get_register(self, reg: str) -> int:
-        key = reg
-
-        if reg[1:].isnumeric():
-            x = int(reg[1:])
-            key = list(self.reg.keys())[x]
-
+        key = reg if reg != '$0' else '$zero'
         if settings['warnings'] and key[1] in {'s', 't', 'a', 'v'} and key not in {'$at', '$sp'} and key not in self.reg_initialized:
             print(f'Reading from uninitialized register {key}!', file=sys.stderr)
 
@@ -197,15 +189,8 @@ class Interpreter(QWidget):
     def set_register(self, reg: str, data: int) -> None:
         if reg == '$0' or reg == '$zero':
             raise ex.WritingToZeroRegister(f' {self.line_info}')
-
-        key = reg
-
-        if reg[1:].isnumeric():
-            x = int(reg[1:])
-            key = list(self.reg.keys())[x]
-
-        self.reg_initialized.add(key)
-        self.reg[key] = instrs.overflow_detect(data)
+        self.reg_initialized.add(reg)
+        self.reg[reg] = instrs.overflow_detect(data)
 
     def get_reg_float(self, reg: str) -> float32:
         return self.f_reg[reg]
@@ -215,34 +200,23 @@ class Interpreter(QWidget):
 
     def get_reg_double(self, reg: str) -> float:
         reg_number = int(reg[2:])
-
         if reg_number & 1:
             raise ex.InvalidRegister('Double-precision instructions can only be done'
                                      ' with even numbered registers')
-
         next_reg = f'$f{reg_number + 1}'
-
-        lower_bytes = struct.pack('>f', self.f_reg[reg])
-        upper_bytes = struct.pack('>f', self.f_reg[next_reg])
-        double_bytes = upper_bytes + lower_bytes
+        double_bytes = struct.pack('>f', self.f_reg[next_reg]) + struct.pack('>f', self.f_reg[reg])
 
         return struct.unpack('>d', double_bytes)[0]
 
     def set_reg_double(self, reg: str, data: float) -> None:
         reg_number = int(reg[2:])
-
         if reg_number & 1:
             raise ex.InvalidRegister('Double-precision instructions can only be done'
                                      ' with even numbered registers')
-
         next_reg = f'$f{reg_number + 1}'
-
         double_bytes = struct.pack('>d', data)
-        upper = struct.unpack('>f', double_bytes[:4])[0]
-        lower = struct.unpack('>f', double_bytes[4:])[0]
-
-        self.f_reg[reg] = lower
-        self.f_reg[next_reg] = upper
+        self.f_reg[reg] = struct.unpack('>f', double_bytes[4:])[0]
+        self.f_reg[next_reg] = struct.unpack('>f', double_bytes[:4])[0]
 
     def get_reg_word(self, reg: str) -> int:
         bytes = struct.pack('>f', self.f_reg[reg])
