@@ -126,24 +126,22 @@ class Convert(IType):
         self.format_from = op[-1]
         self.format_to = op[-3]
 
-class Branch:
+class Branch(IType):
     def __init__(self, op: str, rs: str, rt: str, label: Label):
-        self.operation = op
-        self.rs = rs
-        self.rt = rt
+        super().__init__(op, [rt, rs], None)
         self.label = label
 
-    def basic_instr(self) -> str:
-        return f'{self.operation} {self.rs} {self.rt} {self.label.name}'
+    def __str__(self) -> str:
+        return f"{super(IType, self).__str__()} {self.rs}, {self.rt}, {self.label.name}"
 
-class BranchFloat:
+class BranchFloat(Instruction):
     def __init__(self, op: str, label: Label, flag: int):
-        self.operation = op
+        super().__init__(op)
         self.label = label
         self.flag = flag
 
-    def basic_instr(self) -> str:
-        return f'{self.operation} {self.flag} {self.label.name}'
+    def __str__(self) -> str:
+        return f"{super().__str__()} {self.flag} {self.label.name}"
 
 class LoadImm:
     def __init__(self, op: str, reg: str, imm: int):
