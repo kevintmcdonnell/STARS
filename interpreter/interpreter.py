@@ -65,13 +65,15 @@ class Interpreter(QWidget):
         self.debug = Debug()
         self.instr = None
 
-        self.has_main = False
-        self.initialize_memory(code, args)
+        self.handleArgs(args)
+        self.initialize_memory(code)
 
-    def initialize_memory(self, code: List, args: List[str]):
-        if len(args) > 0:
-            self.handleArgs(args)
-
+    def initialize_memory(self, code: List):
+        '''Initialize memory by adding instructions the data/text section 
+        and then replacing the labels with the correct address'''
+        # Function control variables
+        has_main = False
+        comp = re.compile(r'(lb[u]?|lh[u]?|lw[lr]|lw|la|s[bhw]|sw[lr])')
         for line in code:  # Go through the source code line by line, adding declarations first
             if type(line) is Declaration:
                 # Data declaration
@@ -170,7 +172,7 @@ class Interpreter(QWidget):
 
             elif type(line) is Label:
                 if line.name == 'main':
-                    self.has_main = True
+                    has_main = True
                     self.reg['pc'] = self.mem.textPtr
 
                 self.mem.addLabel(line.name, self.mem.textPtr)
@@ -182,10 +184,8 @@ class Interpreter(QWidget):
             else:
                 self.mem.addText(line)
 
-        if not self.has_main:
+        if not has_main:
             raise ex.NoMainLabel('Could not find main label')
-
-        comp = re.compile(r'(lb[u]?|lh[u]?|lw[lr]|lw|la|s[bhw]|sw[lr])')
 
         for line in code:  # Replace the labels in load/store instructions by the actual address
             if type(line) is PseudoInstr and comp.match(line.operation):
@@ -201,21 +201,23 @@ class Interpreter(QWidget):
         self.mem.addText('TERMINATE_EXECUTION')
 
     def handleArgs(self, args: List[str]) -> None:
-        saveAddr = settings['data_max'] - 3
-        temp = settings['initial_$sp'] - 4 - (4 * len(args))
-        # args.reverse()
-        stack = temp
-        self.mem.addWord(len(args), stack)
-        stack += 4
-        for arg in args:
-            saveAddr -= (len(arg) + 1)
-            self.mem.addAsciiz(arg, saveAddr)
-            self.mem.addWord(saveAddr, stack)
+        '''Add program arguments to the run time stack.'''
+        if len(args) > 0:
+            saveAddr = settings['data_max'] - 3
+            temp = settings['initial_$sp'] - 4 - (4 * len(args))
+            # args.reverse()
+            stack = temp
+            self.mem.addWord(len(args), stack)
             stack += 4
+            for arg in args:
+                saveAddr -= (len(arg) + 1)
+                self.mem.addAsciiz(arg, saveAddr)
+                self.mem.addWord(saveAddr, stack)
+                stack += 4
 
-        self.reg['$sp'] = temp
-        self.reg['$a0'] = len(args)
-        self.reg['$a1'] = temp + 4
+            self.reg['$sp'] = temp
+            self.reg['$a0'] = len(args)
+            self.reg['$a1'] = temp + 4
 
     def init_registers(self, randomize: bool) -> None:
         for r in const.REGS:
