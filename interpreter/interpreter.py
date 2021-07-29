@@ -36,27 +36,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 
 class Interpreter(QWidget):
-    step = Signal(int)
-    console_out = Signal(str)
-    end = Signal(bool)
     start = Signal()
+    step = Signal(int)
+    end = Signal(bool)
+    console_out = Signal(str) # use by out for printing to console
+    user_input = Signal(int) # use by input/set_input for user input syscalls
     mem_access = Signal()
-    user_input = Signal(int)
-
-    def out(self, s: str, end='') -> None:
-        if settings['gui']:
-            self.console_out.emit(f'{s}{end}')
-        else:
-            print(s, end=end)
-
-    def input(self, input_type: str):
-        if settings['gui']:
-            self.input_lock.clear()
-            self.user_input.emit(const.USER_INPUT_TYPE.index(input_type))
-            self.input_lock.wait()
-            return self.input_str
-        else:
-            return input()
 
     def __init__(self, code: List, args: List[str]):
         if settings['gui']:
@@ -693,7 +678,7 @@ class Interpreter(QWidget):
             raise e
 
     def dump(self) -> None:
-        # Dump the contents in registers and memory
+        '''Dump the contents in registers and memory.'''
         print('Registers:')
 
         for name, val in self.reg.items():
@@ -702,7 +687,25 @@ class Interpreter(QWidget):
         print('Memory:')
         self.mem.dump()
 
-    def set_input(self, string: str):
+    def out(self, s: str, end='') -> None:
+        '''Prints to terminal or the console in the GUI'''
+        if settings['gui']:
+            self.console_out.emit(f'{s}{end}')
+        else:
+            print(s, end=end)
+
+    def get_input(self, input_type: str) -> str:
+        '''Prompts the user for an input value.'''
+        if settings['gui']:
+            self.input_lock.clear()
+            self.user_input.emit(const.USER_INPUT_TYPE.index(input_type))
+            self.input_lock.wait()
+            return self.input_str
+        else:
+            return input()
+
+    def set_input(self, string: str) -> None:
+        '''Set input string to the provided string'''
         self.lock_input.acquire()
         if not self.input_lock.isSet():
             self.input_str = string
