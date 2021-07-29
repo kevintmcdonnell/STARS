@@ -23,11 +23,17 @@ class Label:
     def __init__(self, name: str):
         self.name = name
 
+    def __str__(self):
+        return self.name
+
 class Declaration(Label):
     def __init__(self, name: str, type: str, data: Union[int, List[int], str, List[str]]):
         super().__init__(name)
         self.type = type
         self.data = data
+    
+    def __str__(self):
+        return f"{super().__str__()}: .{self.type}"
 
 class FileTag:
     def __init__(self, file_name: str, line_no: int):
@@ -159,24 +165,19 @@ class LoadMem(LoadImm):
         return f"{super().__str__()}({self.rs})"
 
 # JType Instructions
-class JType:
+class JType(Instruction):
     # A label or a register as a target
     def __init__(self, op: str, target: Union[str, Label]):
-        self.operation = op
+        super().__init__(op)
         self.target = target
 
-    def basic_instr(self) -> str:
-        if type(self.target) is Label:
-            return f'{self.operation} {self.target.name}'
-        return f'{self.operation} {self.target}'
+    def __str__(self):
+        return f"{super().__str__()} {self.target}"
 
-class PseudoInstr:
+class PseudoInstr(Instruction):
     def __init__(self, op: str, instrs: List):
-        self.operation = op
+        super().__init__(op)
         self.instrs = instrs
-
-    def original(self) -> str:
-        return self.operation
 
 # Change classes for putting instructions on the stack
 class Change:

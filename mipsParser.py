@@ -78,7 +78,7 @@ class MipsParser(Parser):
         if type(p.instr) is PseudoInstr:
             for i in range(len(p.instr.instrs)):
                 p.instr.instrs[i].filetag = p.filetag
-                p.instr.instrs[i].original_text = p.instr.original()
+                p.instr.instrs[i].original_text = p.instr.operation
                 p.instr.instrs[i].is_from_pseudoinstr = True
 
         else:
