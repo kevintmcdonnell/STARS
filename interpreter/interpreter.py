@@ -243,145 +243,101 @@ class Interpreter(QWidget):
         def interpret_as_int(x: float32) -> int:
             x_bytes = struct.pack('>f', x)
             return struct.unpack('>i', x_bytes)[0]
-
+        # Function control variables
+        op = instr.operation
         # Instruction with 3 registers
         if type(instr) is RType and hasattr(instr, "rd"):
-            op = instr.operation
-            rd = instr.rd
-
             if is_float_single(op):
-                rs = self.get_reg_float(instr.rs)
-                rt = self.get_reg_float(instr.rt)
-                result = instrs.table[op[:-2] + '_f'](rs, rt)
-                self.set_reg_float(rd, result)
-
+                result = instrs.table[op[:-2] + '_f'](self.get_reg_float(instr.rs), self.get_reg_float(instr.rt))
+                self.set_reg_float(instr.rd, result)
             elif is_float_double(op):
-                rs = self.get_reg_double(instr.rs)
-                rt = self.get_reg_double(instr.rt)
-                result = instrs.table[op[:-2] + '_f'](rs, rt)
-                self.set_reg_double(rd, result)
-
+                result = instrs.table[op[:-2] + '_f'](self.get_reg_double(instr.rs), self.get_reg_double(instr.rt))
+                self.set_reg_double(instr.rd, result)
             else:
-                rs = self.get_register(instr.rs)
-                rt = self.get_register(instr.rt)
-                result = instrs.table[op](rs, rt)
-
-                if op == 'movz':
-                    if rt == 0:
-                        self.set_register(rd, result)
-
-                elif op == 'movn':
-                    if rt != 0:
-                        self.set_register(rd, result)
-
+                result = instrs.table[op](self.get_register(instr.rs), self.get_register(instr.rt))
+                if (op == 'movz' and rt == 0) or (op == 'movn' and rt != 0):
+                    self.set_register(instr.rd, result)
                 else:
-                    self.set_register(rd, result)
+                    self.set_register(instr.rd, result)
 
         # Instruction with 2 registers
-        elif type(instr) is RType:
-            op = instr.operation
-            r1 = instr.rs
-            r2 = instr.rt
-
+        elif type(instr) is RType: # Note: rs and rt are flipped for certain conditionals
             if is_conversion_to_int(op):
                 if is_float_single(op):
-                    result = instrs.table[op[:-4]](self.get_reg_float(r2))
+                    result = instrs.table[op[:-4]](self.get_reg_float(instr.rt))
                 else:
-                    result = instrs.table[op[:-4]](self.get_reg_double(r2))
-
-                self.set_reg_float(r1, interpret_as_float(result))
+                    result = instrs.table[op[:-4]](self.get_reg_double(instr.rt))
+                self.set_reg_float(instr.rs, interpret_as_float(result))
 
             elif is_float_single(op):
-                result = instrs.table[op[:-2]](self.get_reg_float(r2))
-                self.set_reg_float(r1, result)
+                result = instrs.table[op[:-2]](self.get_reg_float(instr.rt))
+                self.set_reg_float(instr.rs, result)
 
             elif is_float_double(op):
-                result = instrs.table[op[:-2]](self.get_reg_double(r2))
-                self.set_reg_double(r1, result)
+                result = instrs.table[op[:-2]](self.get_reg_double(instr.rt))
+                self.set_reg_double(instr.rs, result)
 
             elif op in {'mult', 'multu', 'madd', 'maddu', 'msub', 'msubu'}:
                 signed = op[-1] != 'u'
-                r1_data = self.get_register(r1)
-                r2_data = self.get_register(r2)
-
-                low, high = instrs.mul(r1_data, r2_data, thirty_two_bits=False, signed=signed)  # A 64 bit integer
-
+                low, high = instrs.mul(self.get_register(instr.rs), self.get_register(instr.rt), 
+                        thirty_two_bits=False, signed=signed)  # A 64 bit integer
                 if 'mult' not in op:
-                    lo_reg = self.get_register('lo')
-                    hi_reg = self.get_register('hi')
-
+                    lo_reg, hi_reg = self.get_register('lo'), self.get_register('hi')
                     if 'add' in op:
-                        low = instrs.addu(lo_reg, low)
-                        high = instrs.addu(hi_reg, high)
+                        low, high = instrs.addu(lo_reg, low), instrs.addu(hi_reg, high)
                     else:
-                        low = instrs.subu(lo_reg, low)
-                        high = instrs.subu(hi_reg, high)
-
+                        low, high = instrs.subu(lo_reg, low), instrs.subu(hi_reg, high)
                 # Set lo to lower 32 bits, and hi to upper 32 bits
                 self.set_register('lo', low)
                 self.set_register('hi', high)
 
             elif op == 'div' or op == 'divu':
                 signed = op[-1] != 'u'
-                result, remainder = instrs.div(self.get_register(r1), self.get_register(r2), signed=signed)
-
+                result, remainder = instrs.div(self.get_register(instr.rs),
+                                    self.get_register(instr.rt), signed=signed)
                 # Set lo to quotient, and hi to remainder
                 self.set_register('lo', result)
                 self.set_register('hi', remainder)
-
             else:
-                result = instrs.table[op](self.get_register(r2))
-                self.set_register(r1, result)
+                result = instrs.table[op](self.get_register(instr.rt))
+                self.set_register(instr.rs, result)
 
         # j type instructions (Label)
         elif type(instr) is JType and type(instr.target) is Label:
-            instrs.table[instr.operation](self.reg, self.mem, instr.target.name)
+            instrs.table[op](self.reg, self.mem, instr.target.name)
 
         # j type instructions (Return)
         elif type(instr) is JType:
-            instrs.table[instr.operation](self.reg, instr.target)
+            instrs.table[op](self.reg, instr.target)
 
         # i-type isntructions
         elif type(instr) is IType:
-            result = instrs.table[instr.operation](self.get_register(instr.rs), instr.imm)
+            result = instrs.table[op](self.get_register(instr.rs), instr.imm)
             self.set_register(instr.rt, result)
 
         # Load immediate
-        elif type(instr) is LoadImm:
-            if instr.operation == 'lui':
-                upper = instrs.lui(instr.imm)
-                self.set_register(instr.rt, upper)
+        elif type(instr) is LoadImm: # always 'lui'
+            self.set_register(instr.rt, instrs.lui(instr.imm))
 
         # Load or store from memory
         elif type(instr) is LoadMem:
-            op = instr.operation
-            reg = instr.rt
             addr = self.get_register(instr.rs) + instr.imm
-
             if op in {'lwr', 'lwl'}:
-                result = instrs.table[op](addr, self.mem, self.get_register(reg))
-                self.set_register(reg, result)
-
+                result = instrs.table[op](addr, self.mem, self.get_register(instr.rt))
+                self.set_register(instr.rt, result)
             elif op in {'lw', 'lh', 'lb', 'lhu', 'lbu'}:
-                result = instrs.table[op](addr, self.mem)
-                self.set_register(reg, result)
-
+                self.set_register(instr.rt, instrs.table[op](addr, self.mem))
             elif op == 'l.s':
-                result = self.mem.getFloat(addr)
-                self.set_reg_float(reg, result)
-
+                self.set_reg_float(instr.rt, self.mem.getFloat(addr))
             elif op == 'l.d':
-                result = self.mem.getDouble(addr)
-                self.set_reg_double(reg, result)
-
+                self.set_reg_double(instr.rt, self.mem.getDouble(addr))
             elif op == 's.s':
-                self.mem.addFloat(self.get_reg_float(reg), addr)
-
+                self.mem.addFloat(self.get_reg_float(instr.rt), addr)
             elif op == 's.d':
-                self.mem.addDouble(self.get_reg_double(reg), addr)
-
+                self.mem.addDouble(self.get_reg_double(instr.rt), addr)
             else:  # Other store instructions
-                instrs.table[op](addr, self.mem, self.get_register(reg))
+                instrs.table[op](addr, self.mem, self.get_register(instr.rt))
+
             if settings['gui']:
                 self.mem_access.emit()
 
@@ -391,7 +347,6 @@ class Interpreter(QWidget):
 
         # Floating point move instructions
         elif type(instr) is MoveFloat:
-            op = instr.operation
             rs = instr.rs
             rt = instr.rt
 
@@ -417,7 +372,6 @@ class Interpreter(QWidget):
                         self.set_reg_double(rs, rt_data)
 
         elif type(instr) is MoveCond:
-            op = instr.operation
             flag = self.condition_flags[instr.flag]
 
             rs = instr.rs
@@ -439,7 +393,6 @@ class Interpreter(QWidget):
         # syscall
         elif type(instr) is Syscall:
             code = self.get_register('$v0')
-
             if code in syscalls and code in settings['enabled_syscalls']:
                 syscalls[code](self)
             else:
@@ -447,17 +400,11 @@ class Interpreter(QWidget):
 
         # Compare float
         elif type(instr) is Compare:
-            op = instr.operation
-
             if is_float_single(op):
-                rs = self.get_reg_float(instr.rs)
-                rt = self.get_reg_float(instr.rt)
+                rs, rt = self.get_reg_float(instr.rs), self.get_reg_float(instr.rt)
             else:
-                rs = self.get_reg_double(instr.rs)
-                rt = self.get_reg_double(instr.rt)
-
-            compare_op = op[2:4]
-            flag = instr.imm
+                rs, rt = self.get_reg_double(instr.rs), self.get_reg_double(instr.rt)
+            compare_op, flag = op[2:4], instr.imm
 
             if not 0 <= flag <= 7:
                 raise ex.InvalidArgument('Condition flag number must be between 0 - 7')
@@ -471,41 +418,31 @@ class Interpreter(QWidget):
 
         # Convert float
         elif type(instr) is Convert:
-            format_from = instr.format_from
-            format_to = instr.format_to
-
-            if format_from == 'w':
+            if instr.format_from == 'w':
                 data = self.get_reg_word(instr.rs)
-            elif format_from == 's':
+            elif instr.format_from == 's':
                 data = self.get_reg_float(instr.rs)
             else:
                 data = self.get_reg_double(instr.rs)
 
-            if format_to == 'w':
+            if instr.format_to == 'w':
                 self.set_reg_word(instr.rt, int(data))
-            elif format_to == 's':
+            elif instr.format_to == 's':
                 self.set_reg_float(instr.rt, float32(data))
             else:
                 self.set_reg_double(instr.rt, float(data))
 
         # Branches
         elif type(instr) is Branch:
-            op = instr.operation
-            rs = self.get_register(instr.rs)
-            rt = self.get_register(instr.rt)
-
             if 'z' in op:
-                result = instrs.table[op](rs)
+                result = instrs.table[op](self.get_register(instr.rs))
             else:
-                result = instrs.table[op](rs, rt)
-
+                result = instrs.table[op](self.get_register(instr.rs), self.get_register(instr.rt))
             if result:
                 label = instr.label.name
                 addr = self.mem.getLabel(label)
-
                 if addr is None:
                     raise ex.InvalidLabel(f'{label} is not a valid label.')
-
                 if 'al' in op:
                     instrs.jal(self.reg, self.mem, label)
                 else:
@@ -513,20 +450,15 @@ class Interpreter(QWidget):
 
         # Branches (float)
         elif type(instr) is BranchFloat:
-            op = instr.operation
             flag = instr.flag
-
+            if not 0 <= flag <= 7:
+                raise ex.InvalidArgument('Condition flag number must be between 0 - 7')
             if (self.condition_flags[flag] and op == 'bc1t') or (not self.condition_flags[flag] and op == 'bc1f'):
                 label = instr.label.name
                 addr = self.mem.getLabel(label)
-
                 if addr is None:
                     raise ex.InvalidLabel(f'{label} is not a valid label.')
-
                 self.set_register('pc', addr)
-
-        elif type(instr) is Nop:
-            pass
 
         elif type(instr) is Breakpoint:
             raise ex.BreakpointException(f'code = {instr.code}')
