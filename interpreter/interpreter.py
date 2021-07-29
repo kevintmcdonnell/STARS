@@ -445,13 +445,13 @@ class Interpreter(QWidget):
         elif type(instr) is LoadImm:
             if instr.operation == 'lui':
                 upper = instrs.lui(instr.imm)
-                self.set_register(instr.reg, upper)
+                self.set_register(instr.rt, upper)
 
         # Load or store from memory
         elif type(instr) is LoadMem:
             op = instr.operation
-            reg = instr.reg
-            addr = self.get_register(instr.addr) + instr.imm
+            reg = instr.rt
+            addr = self.get_register(instr.rs) + instr.imm
 
             if op in {'lwr', 'lwl'}:
                 result = instrs.table[op](addr, self.mem, self.get_register(reg))

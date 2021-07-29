@@ -143,26 +143,20 @@ class BranchFloat(Instruction):
     def __str__(self) -> str:
         return f"{super().__str__()} {self.flag} {self.label.name}"
 
-class LoadImm:
+class LoadImm(IType):
     def __init__(self, op: str, reg: str, imm: int):
-        self.operation = op
-        self.reg = reg
-        self.imm = imm
+        super().__init__(op, [reg, None], imm)
 
-    def basic_instr(self) -> str:
+    def __str__(self)-> str:
         imm_hex = utility.format_hex(self.imm)
-        return f'{self.operation} {self.reg}, {imm_hex}'
+        return f"{super(IType, self).__str__()} {self.rt}, {imm_hex}"
 
-class LoadMem:
+class LoadMem(LoadImm):
     def __init__(self, op: str, reg: str, addr: str, imm: int):
-        self.operation = op
-        self.reg = reg
-        self.addr = addr
-        self.imm = imm
+        super(LoadImm, self).__init__(op, [reg, addr], imm)
 
-    def basic_instr(self) -> str:
-        imm_hex = utility.format_hex(self.imm)
-        return f'{self.operation} {self.reg}, {imm_hex}({self.addr})'
+    def __str__(self) -> str:
+        return f"{super().__str__()}({self.rs})"
 
 # JType Instructions
 class JType:
