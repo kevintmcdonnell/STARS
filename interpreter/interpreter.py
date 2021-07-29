@@ -43,7 +43,7 @@ class Interpreter(QWidget):
     user_input = Signal(int) # use by input/set_input for user input syscalls
     mem_access = Signal()
 
-    def __init__(self, code: List, args: List[str]):
+    def __init__(self, code: List[Instruction], args: List[str]) -> None:
         if settings['gui']:
             super().__init__()
 
@@ -68,7 +68,7 @@ class Interpreter(QWidget):
         self.handleArgs(args)
         self.initialize_memory(code)
 
-    def initialize_memory(self, code: List):
+    def initialize_memory(self, code: List[Instruction]) -> None:
         '''Initialize memory by adding instructions the data/text section 
         and then replacing the labels with the correct address'''
         # Function control variables
@@ -227,6 +227,7 @@ class Interpreter(QWidget):
         self.f_reg[reg] = struct.unpack('>f', bytes)[0]
 
     def execute_instr(self, instr) -> None:
+        '''Execute the given MIPS instruction object.'''
         def is_float_single(op: str) -> bool:
             return op[-2:] == '.s'
 
@@ -464,17 +465,15 @@ class Interpreter(QWidget):
             raise ex.BreakpointException(f'code = {instr.code}')
 
     def interpret(self) -> None:
+        '''Goes through the text segment and executes each instruction.'''
         first = True
         if settings['gui']:
             self.start.emit()
         try:
-            while True:
-                # Get the next instruction and increment pc
+            while True: # Get the next instruction and increment pc
                 pc = self.reg['pc']
-
                 if str(pc) not in self.mem.text:
                     raise ex.MemoryOutOfBounds(f'{pc} is not a valid address')
-
                 if self.instruction_count > settings['max_instructions']:
                     raise ex.InstrCountExceed(f'Exceeded maximum instruction count: {settings["max_instructions"]}')
 
@@ -483,23 +482,14 @@ class Interpreter(QWidget):
                     if settings['debug']:
                         print()
                         self.debug.listen(self)
-
                     if settings['gui']:
                         self.end.emit(False)
-
                     break
-
                 self.reg['pc'] += 4
                 self.instruction_count += 1
-
+                self.line_info = str(self.instr.filetag)
                 if settings['gui']:
                     self.step.emit(pc)
-
-
-                try:
-                    self.line_info = f' ({self.instr.filetag.file_name}, {self.instr.filetag.line_no})'
-                except AttributeError:
-                    self.line_info = ''
 
                 if self.debug.debug(self.instr):
                     if not self.debug.continueFlag:
@@ -510,8 +500,7 @@ class Interpreter(QWidget):
                         self.debug.listen(self)
                     else:
                         first = False
-
-                elif settings['gui'] and type(self.instr) is Syscall and (self.reg['$v0'] == 10 or self.reg['$v0'] == 17):
+                elif settings['gui'] and type(self.instr) is Syscall and self.reg['$v0'] in [10, 17]:
                     if settings['disp_instr_count']:
                         self.out(f'\nInstruction count: {self.instruction_count}')
                     self.end.emit(False)
@@ -519,9 +508,7 @@ class Interpreter(QWidget):
 
                 if settings['gui']:
                     self.debug.push(self)
-
-                self.execute_instr(self.instr)
-
+                self.execute_instr(self.instr) # execute
         except Exception as e:
             if hasattr(e, 'message'):
                 e.message += ' ' + self.line_info

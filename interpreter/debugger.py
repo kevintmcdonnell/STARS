@@ -317,10 +317,9 @@ class Debug:
     def debug(self, instr) -> bool:
         # Returns whether to break execution and ask for input to debugger.
         # If continueFlag is true, then don't break execution.
-        filename = instr.filetag.file_name
-        lineno = str(instr.filetag.line_no)
-
-        if settings['debug'] and (filename, lineno) in self.breakpoints:
+        current = instr.filetag.file_name, str(instr.filetag.line_no)
+        
+        if settings['debug'] and current in self.breakpoints:
             self.continueFlag = False
             return True
 
