@@ -29,6 +29,14 @@ WORD_MIN = -(1 << 31)
 FLOAT_MIN = 1.175494351E-38
 FLOAT_MAX = 3.402823466E38
 
+# Alignments
+ALIGNMENT_CONVERSION = {
+    'half': 2,
+    'word': 4,
+    'float': 4,
+    'double': 8,
+}
+
 # Registers
 CONST_REGS = ['$zero', '$at', '$k0', '$k1', '$gp', '$sp', '$fp', '$ra',
               'pc', 'hi', 'lo']

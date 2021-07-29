@@ -83,6 +83,10 @@ class Interpreter(QWidget):
                 if line.name:
                     self.mem.addLabel(line.name, self.mem.dataPtr)
 
+                # Align the dataPtr to the proper alignment
+                if data_type in const.ALIGNMENT_CONVERSION:
+                    self.mem.dataPtr = utility.align_address(self.mem.dataPtr, const.ALIGNMENT_CONVERSION[data_type])
+
                 if data_type == 'asciiz':
                     # A null-terminated string
                     # There could be multiple strings separated by commas
@@ -107,25 +111,16 @@ class Interpreter(QWidget):
                         self.mem.dataPtr += 1
 
                 elif data_type == 'word':
-                    mod = self.mem.dataPtr % 4
-                    if mod != 0:
-                        self.mem.dataPtr += (4 - mod)
                     for data in line.data:
                         self.mem.addWord(data, self.mem.dataPtr)
                         self.mem.dataPtr += 4
 
                 elif data_type == 'half':
-                    mod = self.mem.dataPtr % 2
-                    if mod != 0:
-                        self.mem.dataPtr += (2 - mod)
                     for data in line.data:
                         self.mem.addHWord(data, self.mem.dataPtr)
                         self.mem.dataPtr += 2
 
                 elif data_type == 'float':
-                    mod = self.mem.dataPtr % 4
-                    if mod != 0:
-                        self.mem.dataPtr += (4 - mod)
                     for data in line.data:
                         data_f32 = 0.0
 
@@ -142,9 +137,6 @@ class Interpreter(QWidget):
                         self.mem.dataPtr += 4
 
                 elif data_type == 'double':
-                    mod = self.mem.dataPtr % 8
-                    if mod != 0:
-                        self.mem.dataPtr += (8 - mod)
                     for data in line.data:
                         self.mem.addDouble(data, self.mem.dataPtr)
                         self.mem.dataPtr += 8
@@ -162,13 +154,7 @@ class Interpreter(QWidget):
                 elif data_type == 'align':
                     if not 0 <= line.data <= 3:
                         raise ex.InvalidImmediate('Value for .align is invalid')
-
-                    align = 2 ** line.data
-
-                    mod = self.mem.dataPtr % align
-
-                    if mod != 0:
-                        self.mem.dataPtr += (align - mod)
+                    self.mem.dataPtr = utility.align_address(self.mem.dataPtr, 2 ** line.data)
 
             elif type(line) is Label:
                 if line.name == 'main':

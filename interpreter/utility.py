@@ -47,3 +47,11 @@ def handle_escapes(s: str) -> str:
     s = re.sub(r'\\\\', r'\\', s)
 
     return s
+
+
+def align_address(address: int, alignment: int):
+    '''Return the address padded to fit the alignment given.'''
+    mod = address % alignment
+    if mod != 0:
+        address += (alignment - mod)
+    return address
