@@ -1,5 +1,7 @@
 import re
 
+from numpy import float32
+
 from constants import WORD_MASK
 
 '''
@@ -55,3 +57,15 @@ def align_address(address: int, alignment: int):
     if mod != 0:
         address += (alignment - mod)
     return address
+
+
+def create_float32(data: float) -> float32:
+    '''Convert double precision float to single precision float.'''
+    if abs(data) < const.FLOAT_MIN:
+        return float32(0)
+    elif data > const.FLOAT_MAX:
+        return float32('inf')
+    elif data < -const.FLOAT_MAX:
+        return float32('-inf')
+    else:
+        return float32(data)

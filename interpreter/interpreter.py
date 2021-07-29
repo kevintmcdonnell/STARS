@@ -73,16 +73,29 @@ class Interpreter(QWidget):
         and then replacing the labels with the correct address'''
         # Function control variables
         has_main = False
+        INSERT_MEMORY_FUNCTIONS = {
+            'byte': self.mem.addByte,
+            'half': self.mem.addHWord,
+            'word': self.mem.addWord,
+            'float': self.mem.addFloat,
+            'double': self.mem.addDouble,
+            'space': self.mem.addByte
+        }
         comp = re.compile(r'(lb[u]?|lh[u]?|lw[lr]|lw|la|s[bhw]|sw[lr])')
         for line in code:  # Go through the source code line by line, adding declarations first
             if type(line) is Declaration:
                 # Data declaration
-                data_type = line.type
+                data_type, data = line.type, line.data
 
+                # Special formatting for data
+                if data_type == 'float':
+                    data = [utility.create_float32(d) for d in data]
+                elif data_type == 'space':
+                    data = [random.randint(0, 0xFF) if settings['garbage_memory'] else 0
+                            for i in range(data)]
                 # If a label is specified, add the label to memory
                 if line.name:
                     self.mem.addLabel(line.name, self.mem.dataPtr)
-
                 # Align the dataPtr to the proper alignment
                 if data_type in const.ALIGNMENT_CONVERSION:
                     self.mem.dataPtr = utility.align_address(self.mem.dataPtr, const.ALIGNMENT_CONVERSION[data_type])
@@ -95,63 +108,20 @@ class Interpreter(QWidget):
                     null_terminate = 'z' in data_type
                     self.mem.addAscii(s, self.mem.dataPtr, null_terminate=null_terminate)
                     self.mem.dataPtr += len(s) + int(null_terminate) # T/F -> 1/0
-
-                elif data_type == 'byte':
-                    for data in line.data:
-                        self.mem.addByte(data, self.mem.dataPtr)
-                        self.mem.dataPtr += 1
-
-                elif data_type == 'word':
-                    for data in line.data:
-                        self.mem.addWord(data, self.mem.dataPtr)
-                        self.mem.dataPtr += 4
-
-                elif data_type == 'half':
-                    for data in line.data:
-                        self.mem.addHWord(data, self.mem.dataPtr)
-                        self.mem.dataPtr += 2
-
-                elif data_type == 'float':
-                    for data in line.data:
-                        data_f32 = 0.0
-
-                        if abs(data) < const.FLOAT_MIN:
-                            data_f32 = float32(0)
-                        elif data > const.FLOAT_MAX:
-                            data_f32 = float32('inf')
-                        elif data < -const.FLOAT_MAX:
-                            data_f32 = float32('-inf')
-                        else:
-                            data_f32 = float32(data)
-
-                        self.mem.addFloat(data_f32, self.mem.dataPtr)
-                        self.mem.dataPtr += 4
-
-                elif data_type == 'double':
-                    for data in line.data:
-                        self.mem.addDouble(data, self.mem.dataPtr)
-                        self.mem.dataPtr += 8
-
-                elif data_type == 'space':
-                    for data in line.data:
-                        for j in range(data):
-                            if settings['garbage_memory']:
-                                self.mem.addByte(random.randint(0, 0xFF), self.mem.dataPtr)
-                            else:
-                                self.mem.addByte(0, self.mem.dataPtr)
-
-                            self.mem.dataPtr += 1
+                
+                elif data_type in INSERT_MEMORY_FUNCTIONS:
+                    for info in data:
+                        INSERT_MEMORY_FUNCTIONS[data_type](info, self.mem.dataPtr)
+                        self.mem.dataPtr += const.ALIGNMENT_CONVERSION.get(data_type, 1)
 
                 elif data_type == 'align':
                     if not 0 <= line.data <= 3:
-                        raise ex.InvalidImmediate('Value for .align is invalid')
+                        raise ex.InvalidImmediate(f'Value({line.data}) for .align is invalid')
                     self.mem.dataPtr = utility.align_address(self.mem.dataPtr, 2 ** line.data)
 
             elif type(line) is Label:
                 if line.name == 'main':
-                    has_main = True
-                    self.reg['pc'] = self.mem.textPtr
-
+                    has_main, self.reg['pc'] = True, self.mem.textPtr
                 self.mem.addLabel(line.name, self.mem.textPtr)
 
             elif type(line) is PseudoInstr:
@@ -160,10 +130,8 @@ class Interpreter(QWidget):
 
             else:
                 self.mem.addText(line)
-
         if not has_main:
             raise ex.NoMainLabel('Could not find main label')
-
         for line in code:  # Replace the labels in load/store instructions by the actual address
             if type(line) is PseudoInstr and comp.match(line.operation):
                 addr = self.mem.getLabel(line.label.name)
@@ -173,7 +141,6 @@ class Interpreter(QWidget):
                     line.instrs[1].imm = addr & 0xFFFF
                 else:
                     raise ex.InvalidLabel(f'{line.label.name} is not a valid label. {self.line_info}')
-
         # Special instruction to terminate execution after every instruction has been executed
         self.mem.addText('TERMINATE_EXECUTION')
 
