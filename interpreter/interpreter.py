@@ -87,23 +87,14 @@ class Interpreter(QWidget):
                 if data_type in const.ALIGNMENT_CONVERSION:
                     self.mem.dataPtr = utility.align_address(self.mem.dataPtr, const.ALIGNMENT_CONVERSION[data_type])
 
-                if data_type == 'asciiz':
-                    # A null-terminated string
+                if 'ascii' in data_type: # ascii/asciiz
                     # There could be multiple strings separated by commas
                     # Add the string to memory and increment address in memory
-                    s = line.data[1: -1]  # Remove quotation marks
+                    s = line.data[1: -1] # Remove quotation marks
                     s = utility.handle_escapes(s)
-
-                    self.mem.addAsciiz(s, self.mem.dataPtr)
-                    self.mem.dataPtr += len(s) + 1
-
-                elif data_type == 'ascii':
-                    # A regular string
-                    s = line.data[1: -1]
-                    s = utility.handle_escapes(s)
-
-                    self.mem.addAscii(s, self.mem.dataPtr)
-                    self.mem.dataPtr += len(s)
+                    null_terminate = 'z' in data_type
+                    self.mem.addAscii(s, self.mem.dataPtr, null_terminate=null_terminate)
+                    self.mem.dataPtr += len(s) + int(null_terminate) # T/F -> 1/0
 
                 elif data_type == 'byte':
                     for data in line.data:
