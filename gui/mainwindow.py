@@ -489,7 +489,7 @@ class MainWindow(QMainWindow):
                     self.instr_grid.setCellWidget(count, 0, cell)
                     
                     values = [WORD_HEX_FORMAT.format(int(k)), 
-                                f"{i.basic_instr()}", 
+                                f"{i}", 
                                 f"{i.filetag.line_no}: {i.original_text}"]
                     row = create_instruction(values, self.instr_grid, count)
                     self.instrs.append(row)

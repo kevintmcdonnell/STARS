@@ -346,7 +346,7 @@ class Debug:
                 prev = MChange(interp.reg['hi'], interp.reg['lo'], prev_pc)
 
             else:
-                dest_reg = instr.regs[0]
+                dest_reg = instr.rd if type(instr) is RType else instr.rt
 
                 if is_float_single(op):
                     prev = RegChange(dest_reg, interp.f_reg[dest_reg], prev_pc)
@@ -355,8 +355,12 @@ class Debug:
                 else:
                     prev = RegChange(dest_reg, interp.reg[dest_reg], prev_pc)
 
-        elif type(instr) in {LoadImm, Move}:
-            prev = RegChange(instr.reg, interp.reg[instr.reg], prev_pc)
+        elif type(instr) is Move:
+            reg = instr.rd if 'f' in instr.operation else instr.rs
+            prev = RegChange(reg, interp.reg[reg], prev_pc)
+
+        elif type(instr) is LoadImm:
+            prev = RegChange(instr.rt, interp.reg[instr.rt], prev_pc)
 
         elif type(instr) is JType:
             op = instr.operation
@@ -374,15 +378,15 @@ class Debug:
             # Loads
             if op[0] == 'l':
                 if is_float_single(op):
-                    prev = RegChange(instr.reg, interp.f_reg[instr.reg], prev_pc)
+                    prev = RegChange(instr.rt, interp.f_reg[instr.rt], prev_pc)
                 elif is_float_double(op):
-                    prev = RegChange(instr.reg, interp.f_reg[instr.reg], prev_pc, is_double=True)
+                    prev = RegChange(instr.rt, interp.f_reg[instr.rt], prev_pc, is_double=True)
                 else:
-                    prev = RegChange(instr.reg, interp.reg[instr.reg], prev_pc)
+                    prev = RegChange(instr.rt, interp.reg[instr.rt], prev_pc)
 
             # Stores
             else:
-                addr = interp.reg[instr.addr] + instr.imm
+                addr = interp.reg[instr.rs] + instr.imm
 
                 if is_float_single(op):
                     prev = MemChange(addr, interp.mem.getFloat(addr), prev_pc, 'f')
@@ -396,7 +400,7 @@ class Debug:
                     prev = MemChange(addr, interp.mem.getByte(addr), prev_pc, 'b')
 
         elif type(instr) is Compare:
-            flag = instr.flag
+            flag = instr.imm
             prev = FlagChange(flag, interp.condition_flags[flag], prev_pc)
 
         elif type(instr) is Convert:
