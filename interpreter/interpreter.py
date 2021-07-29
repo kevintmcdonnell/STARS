@@ -36,12 +36,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 
 class Interpreter(QWidget):
-    start = Signal()
-    step = Signal(int)
-    end = Signal(bool)
+    step = Signal(int) # use to signal program counter increment
+    end = Signal(bool) # use to signal program termination
     console_out = Signal(str) # use by out for printing to console
     user_input = Signal(int) # use by input/set_input for user input syscalls
-    mem_access = Signal()
 
     def __init__(self, code: List[Instruction], args: List[str]) -> None:
         if settings['gui']:
@@ -339,9 +337,6 @@ class Interpreter(QWidget):
             else:  # Other store instructions
                 instrs.table[op](addr, self.mem, self.get_register(instr.rt))
 
-            if settings['gui']:
-                self.mem_access.emit()
-
         # Mfhi, mflo, mthi, mtlo
         elif type(instr) is Move:
             self.set_register(instr.rd, self.get_register(instr.rs))
@@ -467,8 +462,6 @@ class Interpreter(QWidget):
     def interpret(self) -> None:
         '''Goes through the text segment and executes each instruction.'''
         first = True
-        if settings['gui']:
-            self.start.emit()
         try:
             while True: # Get the next instruction and increment pc
                 pc = self.reg['pc']
