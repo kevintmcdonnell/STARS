@@ -102,40 +102,29 @@ class MoveCond:
         return f'{self.operation} {self.rs} {self.rt} {self.flag}'
 
 # IType Instructions
-class IType:
+class IType(Instruction):
     # Two registers and an immediate
     def __init__(self, op: str, regs: List[str], imm: int):
-        self.operation = op
-        self.regs = regs
+        super().__init__(op)
+        self.rt, self.rs = regs
         self.imm = imm
 
-    def basic_instr(self) -> str:
+    def __str__(self) -> str:
         if self.operation in ['or', 'ori', 'and', 'andi', 'xor', 'xori']:
             imm = utility.format_hex(self.imm)
         else:
-            imm = self.imm
+            imm = "" if self.imm is None else self.imm
+        return f"{super().__str__()} {self.rt}, {self.rs}, {imm}"
 
-        return f'{self.operation} {self.regs[0]} {self.regs[1]} {imm}'
+class Compare(IType):
+    def __init__(self, op: str, rt: str, rs: str, flag: int):
+        super().__init__(op, [rt, rs], flag)
 
-class Compare:
-    def __init__(self, op: str, rs: str, rt: str, flag: int):
-        self.operation = op
-        self.rs = rs
-        self.rt = rt
-        self.flag = flag
-
-    def basic_instr(self) -> str:
-        return f'{self.operation} {self.rs} {self.rt} {self.flag}'
-
-class Convert:
-    def __init__(self, format_from: str, format_to: str, rs: str, rt: str):
-        self.format_from = format_from
-        self.format_to = format_to
-        self.rs = rs
-        self.rt = rt
-
-    def basic_instr(self) -> str:
-        return f'cvt.{self.format_from}.{self.format_to} {self.rs} {self.rt}'
+class Convert(IType):
+    def __init__(self, op: str, rt: str, rs: str):
+        super().__init__(op, [rt, rs], None)
+        self.format_from = op[-1]
+        self.format_to = op[-3]
 
 class Branch:
     def __init__(self, op: str, rs: str, rt: str, label: Label):

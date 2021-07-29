@@ -182,7 +182,7 @@ class MipsParser(Parser):
 
     @_('CONVERT_F F_REG F_REG')
     def iType(self, p):
-        return Convert(p.CONVERT_F[-1], p.CONVERT_F[-3], p.F_REG0, p.F_REG1)
+        return Convert(p.CONVERT_F, p.F_REG0, p.F_REG1)
 
     @_('BRANCH_F LABEL', 'BRANCH_F NUMBER LABEL', 'BRANCH_F NUMBER COMMA LABEL')
     def branch(self, p):

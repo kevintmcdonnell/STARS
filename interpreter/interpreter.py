@@ -438,13 +438,8 @@ class Interpreter(QWidget):
 
         # i-type isntructions
         elif type(instr) is IType:
-            op = instr.operation
-            rd = instr.regs[0]
-            rs = self.get_register(instr.regs[1])
-            imm = instr.imm
-
-            result = instrs.table[op](rs, imm)
-            self.set_register(rd, result)
+            result = instrs.table[instr.operation](self.get_register(instr.rs), instr.imm)
+            self.set_register(instr.rt, result)
 
         # Load immediate
         elif type(instr) is LoadImm:
@@ -554,10 +549,10 @@ class Interpreter(QWidget):
                 rt = self.get_reg_float(instr.rt)
             else:
                 rs = self.get_reg_double(instr.rs)
-                rt = self.get_reg_double(instr.rs)
+                rt = self.get_reg_double(instr.rt)
 
             compare_op = op[2:4]
-            flag = instr.flag
+            flag = instr.imm
 
             if not 0 <= flag <= 7:
                 raise ex.InvalidArgument('Condition flag number must be between 0 - 7')
@@ -575,18 +570,18 @@ class Interpreter(QWidget):
             format_to = instr.format_to
 
             if format_from == 'w':
-                data = self.get_reg_word(instr.rt)
+                data = self.get_reg_word(instr.rs)
             elif format_from == 's':
-                data = self.get_reg_float(instr.rt)
+                data = self.get_reg_float(instr.rs)
             else:
-                data = self.get_reg_double(instr.rt)
+                data = self.get_reg_double(instr.rs)
 
             if format_to == 'w':
-                self.set_reg_word(instr.rs, int(data))
+                self.set_reg_word(instr.rt, int(data))
             elif format_to == 's':
-                self.set_reg_float(instr.rs, float32(data))
+                self.set_reg_float(instr.rt, float32(data))
             else:
-                self.set_reg_double(instr.rs, float(data))
+                self.set_reg_double(instr.rt, float(data))
 
         # Branches
         elif type(instr) is Branch:
