@@ -70,6 +70,7 @@ class MainWindow(QMainWindow):
         self.init_out()
         self.init_regs()
         self.init_pa()
+        self.init_search()
         self.add_edit()
         self.init_splitters()
         self.setCentralWidget(self.all_horizontal)
@@ -186,14 +187,23 @@ class MainWindow(QMainWindow):
             sections=[QLabel('Program Arguments:'), self.pa])
         self.pa_lay = create_widget(layout=layout)
 
+    def init_search(self) -> None:
+        self.find = QLineEdit()
+        self.find.textChanged.connect(self.search)
+        self.find.returnPressed.connect(self.select_next)
+        self.search_box = create_widget(layout=create_box_layout(direction=QBoxLayout.LeftToRight, 
+                                                sections= [QLabel("Search"), self.find]))
+
     def add_edit(self) -> None:
         self.files = {} # filename -> (dirty: bool, path: str)
         self.file_count = 0 # number of tabs
 
         self.tabs = QTabWidget()
+        self.tabs.setMovable(True)
         self.tabs.setTabsClosable(True)
         self.tabs.tabCloseRequested.connect(self.close_tab)
         self.tabs.setCornerWidget(create_button('+', self.new_tab))
+        self.tabs.currentChanged.connect(lambda: self.search(self.find.text()))
 
         # initialize autocomplete
         self.comp = QCompleter()
@@ -222,8 +232,9 @@ class MainWindow(QMainWindow):
 
     def init_splitters(self) -> None: 
         largeWidth = QGuiApplication.primaryScreen().size().width()
+        search_pa = create_splitter(widgets=[self.search_box, self.pa_lay])
         instruction_pa = create_splitter(orientation=Qt.Vertical, 
-            widgets=[self.pa_lay, self.instr_grid], stretch_factors=[1, 9])
+            widgets=[search_pa, self.instr_grid], stretch_factors=[1, 9])
         editor_instruction_horizontal = create_splitter(
             widgets=[self.tabs, instruction_pa], sizes=[largeWidth, largeWidth])
         left_vertical = create_splitter(orientation=Qt.Vertical,
@@ -577,6 +588,16 @@ class MainWindow(QMainWindow):
 
     def remove_breakpoint(self, cmd: Tuple[str, str]) -> None:
         self.controller.remove_breakpoint((f'"{cmd[1]}"', cmd[2]))
+
+    def search(self, text: str) -> None:
+        '''Highlight text that matches the provided text in the current widget.'''
+        if self.tabs.currentWidget() is not None:
+            self.tabs.currentWidget().search(text)
+
+    def select_next(self) -> None:
+        '''Move cursor to next highlighted text.'''
+        if self.tabs.currentWidget() is not None:
+            self.tabs.currentWidget().select_next()
 
     def launch_vt100(self) -> None:
         if self.vt100:

@@ -190,6 +190,29 @@ class TextEdit(QPlainTextEdit):
         self.textChanged.connect(self.textChangedFunction)
         self.cursorPositionChanged.emit()
 
+    def search(self, text: str) -> None:
+        self.selections = []
+        self.index = -1
+        current = self.textCursor()
+        self.moveCursor(QTextCursor.Start)
+        while self.find(text):
+            selection = QTextEdit.ExtraSelection()
+            selection.format.setBackground(QColor(Qt.yellow))
+            selection.cursor = self.textCursor()
+            self.selections.append(selection)
+
+        if self.selections:
+            current = self.selections[0].cursor
+            self.index = 0
+        self.setTextCursor(current)
+        self.setExtraSelections(self.selections)
+
+    def select_next(self) -> None:
+        if self.index >= 0:
+            self.index = (self.index + 1) % len(self.selections)
+            self.setTextCursor(self.selections[self.index].cursor)
+            self.setExtraSelections(self.selections)
+
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super().__init__()
