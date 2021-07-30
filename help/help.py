@@ -5,7 +5,6 @@ import sys
 
 sys.path.append(os.getcwd())  # must be ran in sbumips directory (this is bc PYTHONPATH is weird in terminal)
 from PySide2.QtCore import Qt
-from PySide2.QtGui import QTextDocument
 from PySide2.QtWidgets import *
 
 from constants import HELP_TABS, HELP_TITLE
@@ -41,11 +40,22 @@ class HelpWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle(HELP_TITLE)
         window = QTabWidget()
-        for name, (filename, header) in HELP_TABS.items():
-            with open(filename) as f:
-                rows = [row for row in csv.reader(f)]
-                table = create_tab(rows, header)
-                window.addTab(create_search(table), name)
+        for name, properties in HELP_TABS.items():
+            with open(properties['filename']) as f:
+                if properties['type'] == 'table':
+                    rows = [row for row in csv.reader(f)]
+                    table = create_tab(rows, properties.get('header', []))
+                    window.addTab(create_search(table), name)
+                elif properties['type'] == 'text':
+                    text = QTextEdit()
+                    text.setReadOnly(True)
+                    text.setPlainText(f.read())
+                    window.addTab(text, name)
+                elif properties['type'] == 'markdown':
+                    text = QTextEdit()
+                    text.setReadOnly(True)
+                    text.setMarkdown(f.read())
+                    window.addTab(text, name)
         self.setCentralWidget(window)
         
         self.show()
