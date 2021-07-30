@@ -394,10 +394,7 @@ class MainWindow(QMainWindow):
             self.update_button_status(start=True, step=True, backstep=True, pause=True)
 
         except Exception as e:
-            if hasattr(e, 'message'):
-                self.update_console(type(e).__name__ + ": " + e.message)
-            else:
-                self.update_console(type(e).__name__ + ": " + str(e))
+            self.update_console(f"{type(e).__name__}: {str(e)}")
 
     def set_running(self, run: bool) -> None:
         self.run_sem.acquire()

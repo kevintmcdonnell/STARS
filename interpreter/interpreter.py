@@ -485,7 +485,7 @@ class Interpreter(QWidget):
                 self.execute_instr(instr) # execute
         except Exception as e:
             if hasattr(e, 'message'):
-                e.message += ' ' + self.line_info
+                e.message += f' {self.line_info}' 
                 if settings['gui']:
                     self.end.emit(False)
             raise e
