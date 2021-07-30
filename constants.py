@@ -217,9 +217,35 @@ PATTERN_EXPRESSIONS = {
 
 # tabs for HELP
 HELP_TABS = {
-    'Instructions': ('help/instructions.csv', []),
-    'Directives': ('help/directives.csv', []),
-    'Syscalls': ('help/syscalls.csv', ['Service', '$v0 Code', 'Arguments', 'Result'])
+    'README': {
+        'type': 'markdown',
+        'filename': 'README.md'
+    },
+    'License': {
+        'type': 'text',
+        'filename': 'LICENSE'
+    },
+    'Bugs': {
+        'type': 'markdown',
+        'filename': 'help/bugs.md'
+    },
+    'Instructions': {
+        'type': 'table',
+        'filename': 'help/instructions.csv',
+    },
+    'Directives': {
+        'type': 'table',
+        'filename': 'help/directives.csv',
+    },
+    'Syscalls': {
+        'type': 'table',
+        'filename': 'help/syscalls.csv', 
+        'header': ['Service', '$v0 Code', 'Arguments', 'Result']
+    },
+    'Operand Key': {
+        'type': 'table',
+        'filename': 'help/operand.csv'
+    }
 }
 
 HELP_TITLE = "Help"
