@@ -44,27 +44,23 @@ class Interpreter(QWidget):
     def __init__(self, code: List[Instruction], args: List[str]) -> None:
         if settings['gui']:
             super().__init__()
-
-        self.reg_initialized = set()
-        self.reg = OrderedDict()
-        self.f_reg = dict()
-        self.condition_flags = [False] * 8
-
+        # For user input syscalls
         self.pause_lock = Event()
         self.input_lock = Event()
         self.lock_input = Lock()
         self.input_str = None
-
+        # Registers
+        self.reg_initialized = set()
+        self.reg = OrderedDict()
+        self.f_reg = dict()
+        self.condition_flags = [False] * 8
         self.init_registers(settings['garbage_registers'])
+        # Memory and program arguments
         self.mem = Memory(settings['garbage_memory'])
-
-        self.instruction_count = 0
-        self.line_info = ''
-        self.debug = Debug()
-        self.instr = None
-
         self.handleArgs(args)
         self.initialize_memory(code)
+        # For error messages
+        self.line_info = ''
 
     def initialize_memory(self, code: List[Instruction]) -> None:
         '''Initialize memory by adding instructions the data/text section 
@@ -462,46 +458,49 @@ class Interpreter(QWidget):
     def interpret(self) -> None:
         '''Goes through the text segment and executes each instruction.'''
         first = True
+        debug = Debug()
+        instruction_count = 0
+        instr = None
         try:
             while True: # Get the next instruction and increment pc
                 pc = self.reg['pc']
                 if str(pc) not in self.mem.text:
                     raise ex.MemoryOutOfBounds(f'{pc} is not a valid address')
-                if self.instruction_count > settings['max_instructions']:
+                if instruction_count > settings['max_instructions']:
                     raise ex.InstrCountExceed(f'Exceeded maximum instruction count: {settings["max_instructions"]}')
 
-                self.instr = self.mem.text[str(pc)]
-                if self.instr == 'TERMINATE_EXECUTION':
+                instr = self.mem.text[str(pc)]
+                if instr == 'TERMINATE_EXECUTION':
                     if settings['debug']:
                         print()
-                        self.debug.listen(self)
+                        debug.listen(self)
                     if settings['gui']:
                         self.end.emit(False)
                     break
                 self.reg['pc'] += 4
-                self.instruction_count += 1
-                self.line_info = str(self.instr.filetag)
+                instruction_count += 1
+                self.line_info = str(instr.filetag)
                 if settings['gui']:
                     self.step.emit(pc)
 
-                if self.debug.debug(self.instr):
-                    if not self.debug.continueFlag:
+                if debug.debug(instr):
+                    if not debug.continueFlag:
                         self.pause_lock.clear()
                     if settings['gui']:
-                        self.debug.listen(self)
+                        debug.listen(self)
                     elif not settings['gui'] and settings['debug']:
-                        self.debug.listen(self)
+                        debug.listen(self)
                     else:
                         first = False
-                elif settings['gui'] and type(self.instr) is Syscall and self.reg['$v0'] in [10, 17]:
+                elif settings['gui'] and type(instr) is Syscall and self.reg['$v0'] in [10, 17]:
                     if settings['disp_instr_count']:
-                        self.out(f'\nInstruction count: {self.instruction_count}')
+                        self.out(f'\nInstruction count: {instruction_count}')
                     self.end.emit(False)
                     break
 
                 if settings['gui']:
-                    self.debug.push(self)
-                self.execute_instr(self.instr) # execute
+                    debug.push(self)
+                self.execute_instr(instr) # execute
         except Exception as e:
             if hasattr(e, 'message'):
                 e.message += ' ' + self.line_info
