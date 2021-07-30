@@ -443,6 +443,12 @@ class TestSBUMips(unittest.TestCase):
         instructions.sb(0x10010005, mem, 0x12345678)
         self.assertEqual(0x78, mem.data[str(0x10010005)])
 
+    # Negative address
+    def test_sb_4(self):
+        mem = Memory(False)
+        instructions.sb(0xffff0000, mem, 0xF4)
+        self.assertEqual(0xF4, mem.data[str(0xffff0000)])
+
     # sh
     # General case
     def test_sh_1(self):
