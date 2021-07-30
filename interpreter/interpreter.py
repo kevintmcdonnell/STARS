@@ -339,48 +339,30 @@ class Interpreter(QWidget):
 
         # Floating point move instructions
         elif type(instr) is MoveFloat:
-            rs = instr.rs
-            rt = instr.rt
-
-            if op == 'mfc1':
-                rt_float = self.get_reg_float(rt)
-                rt_int = interpret_as_int(rt_float)
-                self.set_register(rs, rt_int)
-
-            elif op == 'mtc1':
-                rs_int = self.get_register(rs)
-                rs_float = interpret_as_float(rs_int)
-                self.set_reg_float(rt, rs_float)
+            if op == 'mfc1': # rs and rt are intentionally swapped here
+                self.set_register(instr.rs, interpret_as_int(self.get_reg_float(instr.rt)))
+            elif op == 'mtc1': 
+                self.set_reg_float(instr.rt, interpret_as_float(self.get_register(instr.rs)))
 
             elif op[:4] in ['movn', 'movz']:
-                rd_data = self.get_register(instr.rd)
-
-                if (op[3] == 'z' and rd_data == 0) or (op[3] == 'n' and rd_data != 0):
+                conditional = self.get_register(instr.rt)
+                if (op[3] == 'z' and conditional == 0) or (op[3] == 'n' and conditional != 0):
                     if is_float_single(op):
-                        rt_data = self.get_reg_float(rt)
-                        self.set_reg_float(rs, rt_data)
+                        self.set_reg_float(instr.rd, self.get_reg_float(instr.rs))
                     else:
-                        rt_data = self.get_reg_double(rt)
-                        self.set_reg_double(rs, rt_data)
+                        self.set_reg_double(instr.rd, self.get_reg_double(instr.rs))
 
         elif type(instr) is MoveCond:
-            flag = self.condition_flags[instr.flag]
-
-            rs = instr.rs
-            rt = instr.rt
-
+            flag = self.condition_flags[instr.imm]
+            if not 0 <= flag <= 7:
+                raise ex.InvalidArgument('Condition flag number must be between 0 - 7')
             if (op[3] == 't' and flag) or (op[3] == 'f' and not flag):
                 if is_float_single(op):
-                    rt_data = self.get_reg_float(rt)
-                    self.set_reg_float(rs, rt_data)
-
+                    self.set_reg_float(instr.rt, self.get_reg_float(instr.rs))
                 elif is_float_double(op):
-                    rt_data = self.get_reg_double(rt)
-                    self.set_reg_double(rs, rt_data)
-
+                    self.set_reg_double(instr.rt, self.get_reg_double(instr.rs))
                 else:
-                    rt_data = self.get_register(rt)
-                    self.set_register(rs, rt_data)
+                    self.set_register(instr.rt, self.get_register(instr.rs))
 
         # syscall
         elif type(instr) is Syscall:

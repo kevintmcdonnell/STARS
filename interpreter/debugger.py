@@ -410,17 +410,24 @@ class Debug:
             else:
                 prev = RegChange(dest_reg, interp.f_reg[dest_reg], prev_pc)
 
-        elif type(instr) is MoveFloat or type(instr) is MoveCond:
+        elif type(instr) is MoveFloat:
             op = instr.operation
-
             if op == 'mtc1':
                 prev = RegChange(instr.rt, interp.f_reg[instr.rt], prev_pc)
             elif op == 'mfc1':
                 prev = RegChange(instr.rs, interp.reg[instr.rs], prev_pc)
             elif is_float_single(op):
-                prev = RegChange(instr.rs, interp.f_reg[instr.rs], prev_pc)
+                prev = RegChange(instr.rd, interp.f_reg[instr.rd], prev_pc)
             else:
-                prev = RegChange(instr.rs, interp.f_reg[instr.rs], prev_pc, is_double=True)
+                prev = RegChange(instr.rd, interp.f_reg[instr.rd], prev_pc, is_double=True)
+
+        elif type(instr) is MoveCond:
+            if is_float_single(op):
+                prev = RegChange(instr.rt, interp.f_reg[instr.rt], prev_pc)
+            elif is_float_double(op):
+                prev = RegChange(instr.rt, interp.f_reg[instr.rt], prev_pc, is_double=True)
+            else:
+                prev = RegChange(instr.rt, interp.reg[instr.rt], prev_pc)
 
         else:  # branches, nops, jr, j
             prev = Change(prev_pc)

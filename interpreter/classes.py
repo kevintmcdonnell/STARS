@@ -87,28 +87,9 @@ class Move(Instruction):
     def __str__(self) -> str:
         return f"{super().__str__()} {self.rd if 'f' in self.operation else self.rs}"
 
-class MoveFloat:
-    def __init__(self, op: str, rs: str, rt: str, rd: str = ''):
-        self.operation = op
-        self.rs = rs
-        self.rt = rt
-        self.rd = rd
-
-    def basic_instr(self) -> str:
-        if len(self.rd) > 0:
-            return f'{self.operation} {self.rs} {self.rt}'
-        else:
-            return f'{self.operation} {self.rs} {self.rt} {self.rd}'
-
-class MoveCond:
-    def __init__(self, op: str, rs: str, rt: str, flag: int):
-        self.operation = op
-        self.rs = rs
-        self.rt = rt
-        self.flag = flag
-
-    def basic_instr(self) -> str:
-        return f'{self.operation} {self.rs} {self.rt} {self.flag}'
+class MoveFloat(RType):
+    def __init__(self, op: str, regs: List[str]):
+        super().__init__(op, regs)
 
 # IType Instructions
 class IType(Instruction):
@@ -166,6 +147,9 @@ class LoadMem(LoadImm):
 
     def __str__(self) -> str:
         return f"{super().__str__()}({self.rs})"
+
+class MoveCond(Compare):
+    pass
 
 # JType Instructions
 class JType(Instruction):
