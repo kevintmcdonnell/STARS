@@ -66,65 +66,21 @@ class Interpreter(QWidget):
         self.instr = None
 
     def initialize_memory(self, code: List[Instruction]) -> None:
-        '''Initialize memory by adding instructions the data/text section 
+        '''Initialize memory by adding instructions to the data/text section 
         and then replacing the labels with the correct address'''
         # Function control variables
         has_main = False
-        INSERT_MEMORY_FUNCTIONS = {
-            'byte': self.mem.addByte,
-            'half': self.mem.addHWord,
-            'word': self.mem.addWord,
-            'float': self.mem.addFloat,
-            'double': self.mem.addDouble,
-            'space': self.mem.addByte
-        }
         comp = re.compile(r'(lb[u]?|lh[u]?|lw[lr]|lw|la|s[bhw]|sw[lr])')
         for line in code:  # Go through the source code line by line, adding declarations first
             if type(line) is Declaration:
-                # Data declaration
-                data_type, data = line.type, line.data
-
-                # Special formatting for data
-                if data_type == 'float':
-                    data = [utility.create_float32(d) for d in data]
-                elif data_type == 'space':
-                    data = [random.randint(0, 0xFF) if settings['garbage_memory'] else 0
-                            for i in range(data)]
-                # If a label is specified, add the label to memory
-                if line.name:
-                    self.mem.addLabel(line.name, self.mem.dataPtr)
-                # Align the dataPtr to the proper alignment
-                if data_type in const.ALIGNMENT_CONVERSION:
-                    self.mem.dataPtr = utility.align_address(self.mem.dataPtr, const.ALIGNMENT_CONVERSION[data_type])
-
-                if 'ascii' in data_type: # ascii/asciiz
-                    # There could be multiple strings separated by commas
-                    # Add the string to memory and increment address in memory
-                    s = line.data[1: -1] # Remove quotation marks
-                    s = utility.handle_escapes(s)
-                    null_terminate = 'z' in data_type
-                    self.mem.addAscii(s, self.mem.dataPtr, null_terminate=null_terminate)
-                    self.mem.dataPtr += len(s) + int(null_terminate) # T/F -> 1/0
-                
-                elif data_type in INSERT_MEMORY_FUNCTIONS:
-                    for info in data:
-                        INSERT_MEMORY_FUNCTIONS[data_type](info, self.mem.dataPtr)
-                        self.mem.dataPtr += const.ALIGNMENT_CONVERSION.get(data_type, 1)
-
-                elif data_type == 'align':
-                    if not 0 <= line.data <= 3:
-                        raise ex.InvalidImmediate(f'Value({line.data}) for .align is invalid')
-                    self.mem.dataPtr = utility.align_address(self.mem.dataPtr, 2 ** line.data)
-
+                self.set_data(line)
             elif type(line) is Label:
                 if line.name == 'main':
                     has_main, self.reg['pc'] = True, self.mem.textPtr
                 self.mem.addLabel(line.name, self.mem.textPtr)
-
             elif type(line) is PseudoInstr:
                 for instr in line.instrs:
                     self.mem.addText(instr)
-
             else:
                 self.mem.addText(line)
         if not has_main:
@@ -188,6 +144,50 @@ class Interpreter(QWidget):
             raise ex.WritingToZeroRegister(f' {self.line_info}')
         self.reg_initialized.add(reg)
         self.reg[reg] = instrs.overflow_detect(data)
+
+    def set_data(self, line: Declaration) -> None:
+        '''Add the declaration into the data section.'''
+        INSERT_MEMORY_FUNCTIONS = {
+            'byte': self.mem.addByte,
+            'half': self.mem.addHWord,
+            'word': self.mem.addWord,
+            'float': self.mem.addFloat,
+            'double': self.mem.addDouble,
+            'space': self.mem.addByte
+        }
+        # Data declaration
+        data_type, data = line.type, line.data
+        # Special formatting for data
+        if data_type == 'float':
+            data = [utility.create_float32(d) for d in data]
+        elif data_type == 'space':
+            data = [random.randint(0, 0xFF) if settings['garbage_memory'] else 0
+                    for i in range(data)]
+        # If a label is specified, add the label to memory
+        if line.name:
+            self.mem.addLabel(line.name, self.mem.dataPtr)
+        # Align the dataPtr to the proper alignment
+        if data_type in const.ALIGNMENT_CONVERSION:
+            self.mem.dataPtr = utility.align_address(self.mem.dataPtr, const.ALIGNMENT_CONVERSION[data_type])
+
+        if 'ascii' in data_type: # ascii/asciiz
+            # There could be multiple strings separated by commas
+            # Add the string to memory and increment address in memory
+            s = line.data[1: -1] # Remove quotation marks
+            s = utility.handle_escapes(s)
+            null_terminate = 'z' in data_type
+            self.mem.addAscii(s, self.mem.dataPtr, null_terminate=null_terminate)
+            self.mem.dataPtr += len(s) + int(null_terminate) # T/F -> 1/0
+        
+        elif data_type in INSERT_MEMORY_FUNCTIONS:
+            for info in data:
+                INSERT_MEMORY_FUNCTIONS[data_type](info, self.mem.dataPtr)
+                self.mem.dataPtr += const.ALIGNMENT_CONVERSION.get(data_type, 1)
+
+        elif data_type == 'align':
+            if not 0 <= line.data <= 3:
+                raise ex.InvalidImmediate(f'Value({line.data}) for .align is invalid')
+            self.mem.dataPtr = utility.align_address(self.mem.dataPtr, 2 ** line.data)
 
     def get_reg_float(self, reg: str) -> float32:
         return self.f_reg[reg]
