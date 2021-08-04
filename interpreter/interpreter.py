@@ -387,11 +387,11 @@ class Interpreter(QWidget):
                 raise ex.InvalidArgument('Condition flag number must be between 0 - 7')
 
             if compare_op == 'eq':
-                self.condition_flags[flag] = rs == rt
+                self.condition_flags[flag] = rt == rs
             elif compare_op == 'le':
-                self.condition_flags[flag] = rs <= rt
+                self.condition_flags[flag] = rt <= rs
             elif compare_op == 'lt':
-                self.condition_flags[flag] = rs < rt
+                self.condition_flags[flag] = rt < rs
 
         # Convert float
         elif type(instr) is Convert:
