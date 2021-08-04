@@ -132,7 +132,7 @@ def atoi(inter) -> None:
 
 
 def readInteger(inter) -> None:
-    read = int(inter.get_input("int"))
+    read = inter.get_input("int")
 
     try:
         inter.set_register('$v0', int(read))

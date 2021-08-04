@@ -2,7 +2,7 @@ import re
 
 from numpy import float32
 
-from constants import WORD_MASK
+from constants import WORD_MASK, FLOAT_MIN, FLOAT_MAX
 
 '''
 https://github.com/sbustars/STARS
@@ -61,11 +61,11 @@ def align_address(address: int, alignment: int):
 
 def create_float32(data: float) -> float32:
     '''Convert double precision float to single precision float.'''
-    if abs(data) < const.FLOAT_MIN:
+    if abs(data) < FLOAT_MIN:
         return float32(0)
-    elif data > const.FLOAT_MAX:
+    elif data > FLOAT_MAX:
         return float32('inf')
-    elif data < -const.FLOAT_MAX:
+    elif data < -FLOAT_MAX:
         return float32('-inf')
     else:
         return float32(data)
