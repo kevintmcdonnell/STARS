@@ -193,11 +193,11 @@ class MipsParser(Parser):
 
     @_('MOVE_BTWN_F REG F_REG')
     def iType(self, p):
-        return MoveFloat(p.MOVE_BTWN_F, p.REG, p.F_REG)
+        return MoveFloat(p.MOVE_BTWN_F, [p.REG, p.F_REG])
 
     @_('MOVE_F F_REG F_REG REG')
     def rType(self, p):
-        return MoveFloat(p.MOVE_F, p.F_REG0, p.F_REG1, p.REG)
+        return MoveFloat(p.MOVE_F, [p.F_REG0, p.F_REG1, p.REG])
 
     @_('MOVE_COND_F F_REG F_REG', 'MOVE_COND_F F_REG F_REG NUMBER')
     def iType(self, p):
