@@ -97,7 +97,6 @@ INPUT_LABEL = "Value"
 
 WINDOW_TITLE = "STARS"
 WORDLIST_PATH = r"gui/wordslist.txt"
-PREFERENCES_PATH = "preferences.json"
 
 TOOLBAR_ICON_SIZE = 24
 MENU_BAR = {
@@ -225,3 +224,22 @@ HELP_TABS = {
 }
 
 HELP_TITLE = "Help"
+
+# tabs for PREFERENCES
+PREFERENCES_TABS = ['QPalette', 'Editor', 'Highlighter']
+PREFERENCES_PATH = "preferences.json"
+DEFAULT_THEME = "default_theme"
+ON_START_THEME = "on_start_theme"
+THEME_SELECTOR_LABEL = "Current Theme"
+APPLY_PREFERENCES = "Apply"
+RESET_PREFERENCES = "Reset"
+SAVE_PREFERENCES = "Save"
+NEW_BUTTON = "New"
+NEW_THEME = "New Theme"
+NEW_THEME_LABEL = "Name of Theme"
+DELETE_BUTTON = "Delete"
+DELETE_CONFIRMATION = "Are you sure you want to delete the current theme({})?"
+DIALOG_MARGINS = 10
+DIALOG_BUTTON_HEIGHT = 40
+DIALOG_WIDTH = 720
+DIALOG_HEIGHT = 500

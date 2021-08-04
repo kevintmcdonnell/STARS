@@ -12,6 +12,7 @@ from settings import settings
 from controller import Controller
 from gui.vt100 import VT100
 from gui.textedit import TextEdit
+from gui.theme import ThemePicker
 from gui.widgetfactory import *
 from help.help import HelpWindow
 
@@ -279,18 +280,7 @@ class MainWindow(QMainWindow):
         self.update_theme()
     
     def edit_theme(self) -> None:
-        theme, _ = QInputDialog.getItem(self, "Pick a theme", "Themes", self.preferences, 2)
-        section, _ = QInputDialog.getItem(self, "Pick a section", "Sections", self.preferences[theme], 0)
-
-        if type(self.preferences[theme][section]) is str:
-            new_value = QColorDialog.getColor()
-            self.preferences[theme][section] = new_value.name()
-        else:
-            attr, _ = QInputDialog.getItem(self, "Pick an attribute", "Attributes", self.preferences[theme][section], 0)
-            new_value = QColorDialog.getColor()
-            self.preferences[theme][section][attr] = new_value.name()
-        self.get_theme(self.theme)
-        self.update_theme()
+        ThemePicker(self, self.preferences).show()
 
     def update_theme(self) -> None:
         self.app.setPalette(self.palette)
