@@ -15,8 +15,8 @@ from gui.textedit import TextEdit
 from gui.widgetfactory import *
 from help.help import HelpWindow
 
-from PySide2.QtCore import Qt, QSemaphore, Signal, QFile, QStringListModel
-from PySide2.QtGui import QBrush, QCloseEvent, QColor, QCursor, QGuiApplication, QPalette
+from PySide2.QtCore import Qt, QSemaphore, Signal, QFile, QSize, QStringListModel
+from PySide2.QtGui import QBrush, QCloseEvent, QColor, QCursor, QGuiApplication, QIcon, QPalette
 from PySide2.QtWidgets import *
 
 '''
@@ -85,6 +85,8 @@ class MainWindow(QMainWindow):
         bar = self.menuBar()
         self.menu_items = {}
 
+        toolbar = self.addToolBar("ToolBar")
+        toolbar.setIconSize(QSize(TOOLBAR_ICON_SIZE, TOOLBAR_ICON_SIZE))
         for tabs, values in MENU_BAR.items():
             tab = bar.addMenu(tabs)
             if tabs == 'Settings':
@@ -103,7 +105,12 @@ class MainWindow(QMainWindow):
                     self.menu_items[controls['Tag']] = action
                 if 'Start' in controls:
                     action.setEnabled(controls['Start'])
+                if 'Icon' in controls:
+                    action.setIcon(QIcon(controls['Icon']))
+                    toolbar.addAction(action)
                 tab.addAction(action)
+            if 'Icon' in controls:
+                toolbar.addSeparator()
 
         self.instr_count = QLabel(INSTRUCTION_COUNT.format(0))
         bar.setCornerWidget(self.instr_count)
@@ -242,7 +249,7 @@ class MainWindow(QMainWindow):
             stretch_factors=[10, 4, 2])
         self.all_horizontal = create_splitter(
             widgets=[left_vertical, self.reg_box], stretch_factors=[3, 0])
-        self.all_horizontal.setContentsMargins(10,20,10,10)
+        self.all_horizontal.setContentsMargins(10,10,10,10)
 
     def get_theme(self, theme: Optional[str]="default_theme"):
         def get_theme_attribute(choice: Dict[str, Union[Dict[str, str], str]], field: str) -> Union[Dict[str, str], str]:
