@@ -75,7 +75,7 @@ def _print(cmd, interp):  # cmd = ['p', value, opts...]
         return True
 
     # Integer register
-    elif (cmd[1] in interp.reg or cmd[1] in interp.f_reg) and cmd[2] in ['i', 'u', 'x', 'b']:
+    elif (cmd[1] in interp.reg) and cmd[2] in ['i', 'u', 'x', 'b']:
         # Print contents of a register
         reg = cmd[1]
         base = cmd[2]
@@ -89,13 +89,13 @@ def _print(cmd, interp):  # cmd = ['p', value, opts...]
         return True
 
     # Floating point register
-    elif cmd[1] in interp.f_reg and cmd[2] in ['f', 'd']:
+    elif cmd[1] in interp.reg and cmd[2] in ['f', 'd']:
         # Print contents of a floating point register
         reg = cmd[1]
         base = cmd[2]
 
         if base == 'f':
-            print(f'{reg} {interp.get_reg_float(reg)}')
+            print(f'{reg} {interp.get_register(reg)}')
         else:
             try:
                 print(f'{reg} {interp.get_reg_double(reg)}')
@@ -348,9 +348,9 @@ class Debug:
                 dest_reg = instr.rd if type(instr) is RType else instr.rt
 
                 if is_float_single(op):
-                    prev = RegChange(dest_reg, interp.f_reg[dest_reg], prev_pc)
+                    prev = RegChange(dest_reg, interp.reg[dest_reg], prev_pc)
                 elif is_float_double(op):
-                    prev = RegChange(dest_reg, interp.f_reg[dest_reg], prev_pc, is_double=True)
+                    prev = RegChange(dest_reg, interp.reg[dest_reg], prev_pc, is_double=True)
                 else:
                     prev = RegChange(dest_reg, interp.reg[dest_reg], prev_pc)
 
@@ -377,9 +377,9 @@ class Debug:
             # Loads
             if op[0] == 'l':
                 if is_float_single(op):
-                    prev = RegChange(instr.rt, interp.f_reg[instr.rt], prev_pc)
+                    prev = RegChange(instr.rt, interp.reg[instr.rt], prev_pc)
                 elif is_float_double(op):
-                    prev = RegChange(instr.rt, interp.f_reg[instr.rt], prev_pc, is_double=True)
+                    prev = RegChange(instr.rt, interp.reg[instr.rt], prev_pc, is_double=True)
                 else:
                     prev = RegChange(instr.rt, interp.reg[instr.rt], prev_pc)
 
@@ -406,26 +406,26 @@ class Debug:
             dest_reg = instr.rs
 
             if instr.format_to == 'd':
-                prev = RegChange(dest_reg, interp.f_reg[dest_reg], prev_pc, is_double=True)
+                prev = RegChange(dest_reg, interp.reg[dest_reg], prev_pc, is_double=True)
             else:
-                prev = RegChange(dest_reg, interp.f_reg[dest_reg], prev_pc)
+                prev = RegChange(dest_reg, interp.reg[dest_reg], prev_pc)
 
         elif type(instr) is MoveFloat:
             op = instr.operation
             if op == 'mtc1':
-                prev = RegChange(instr.rt, interp.f_reg[instr.rt], prev_pc)
+                prev = RegChange(instr.rt, interp.reg[instr.rt], prev_pc)
             elif op == 'mfc1':
                 prev = RegChange(instr.rs, interp.reg[instr.rs], prev_pc)
             elif is_float_single(op):
-                prev = RegChange(instr.rd, interp.f_reg[instr.rd], prev_pc)
+                prev = RegChange(instr.rd, interp.reg[instr.rd], prev_pc)
             else:
-                prev = RegChange(instr.rd, interp.f_reg[instr.rd], prev_pc, is_double=True)
+                prev = RegChange(instr.rd, interp.reg[instr.rd], prev_pc, is_double=True)
 
         elif type(instr) is MoveCond:
             if is_float_single(op):
-                prev = RegChange(instr.rt, interp.f_reg[instr.rt], prev_pc)
+                prev = RegChange(instr.rt, interp.reg[instr.rt], prev_pc)
             elif is_float_double(op):
-                prev = RegChange(instr.rt, interp.f_reg[instr.rt], prev_pc, is_double=True)
+                prev = RegChange(instr.rt, interp.reg[instr.rt], prev_pc, is_double=True)
             else:
                 prev = RegChange(instr.rt, interp.reg[instr.rt], prev_pc)
 
@@ -447,7 +447,7 @@ class Debug:
                     if prev.is_double:
                         interp.set_reg_double(prev.reg, prev.val)
                     else:
-                        interp.set_reg_float(prev.reg, prev.val)
+                        interp.set_register(prev.reg, prev.val)
 
                 else:
                     interp.reg[prev.reg] = prev.val

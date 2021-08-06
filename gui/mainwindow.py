@@ -462,7 +462,7 @@ class MainWindow(QMainWindow):
                     self.regs[r].setText(WORD_HEX_FORMAT.format(a))
             else:
                 if self.rep == "Decimal":
-                    self.regs[r].setText(f'{self.intr.f_reg[r]:8f}')
+                    self.regs[r].setText(f'{self.intr.reg[r]:8f}')
                 else:
                     self.regs[r].setText(WORD_HEX_FORMAT.format(self.controller.get_reg_word(r)))
 

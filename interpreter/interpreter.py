@@ -52,7 +52,6 @@ class Interpreter(QWidget):
         # Registers
         self.reg_initialized = set()
         self.reg = OrderedDict()
-        self.f_reg = dict()
         self.condition_flags = [False] * 8
         self.init_registers(settings['garbage_registers'])
         # Memory and program arguments
@@ -128,22 +127,23 @@ class Interpreter(QWidget):
         for r in const.F_REGS:
             if randomize:
                 random_bytes = os.urandom(4)
-                self.f_reg[r] = float32(struct.unpack('>f', random_bytes)[0])
+                self.reg[r] = float32(struct.unpack('>f', random_bytes)[0])
             else:
-                self.f_reg[r] = float32(0.0)
+                self.reg[r] = float32(0.0)
 
-    def get_register(self, reg: str) -> int:
+    def get_register(self, reg: str) -> Union[int, float32]:
         key = reg if reg != '$0' else '$zero'
         if settings['warnings'] and key[1] in {'s', 't', 'a', 'v'} and key not in {'$at', '$sp'} and key not in self.reg_initialized:
             print(f'Reading from uninitialized register {key}!', file=sys.stderr)
-
+        if key[1] == 'f':
+            return self.reg[key]
         return instrs.overflow_detect(self.reg[key])
 
-    def set_register(self, reg: str, data: int) -> None:
+    def set_register(self, reg: str, data: Union[int, float32]) -> None:
         if reg == '$0' or reg == '$zero':
             raise ex.WritingToZeroRegister(f' {self.line_info}')
         self.reg_initialized.add(reg)
-        self.reg[reg] = instrs.overflow_detect(data)
+        self.reg[reg] = data if reg[1] == 'f' else instrs.overflow_detect(data)
 
     def set_data(self, line: Declaration) -> None:
         '''Add the declaration into the data section.'''
@@ -189,19 +189,13 @@ class Interpreter(QWidget):
                 raise ex.InvalidImmediate(f'Value({line.data}) for .align is invalid')
             self.mem.dataPtr = utility.align_address(self.mem.dataPtr, 2 ** line.data)
 
-    def get_reg_float(self, reg: str) -> float32:
-        return self.f_reg[reg]
-
-    def set_reg_float(self, reg: str, data: float32) -> None:
-        self.f_reg[reg] = data
-
     def get_reg_double(self, reg: str) -> float:
         reg_number = int(reg[2:])
         if reg_number & 1:
             raise ex.InvalidRegister('Double-precision instructions can only be done'
                                      ' with even numbered registers')
         next_reg = f'$f{reg_number + 1}'
-        double_bytes = struct.pack('>f', self.f_reg[next_reg]) + struct.pack('>f', self.f_reg[reg])
+        double_bytes = struct.pack('>f', self.reg[next_reg]) + struct.pack('>f', self.reg[reg])
 
         return struct.unpack('>d', double_bytes)[0]
 
@@ -212,16 +206,16 @@ class Interpreter(QWidget):
                                      ' with even numbered registers')
         next_reg = f'$f{reg_number + 1}'
         double_bytes = struct.pack('>d', data)
-        self.f_reg[reg] = struct.unpack('>f', double_bytes[4:])[0]
-        self.f_reg[next_reg] = struct.unpack('>f', double_bytes[:4])[0]
+        self.reg[reg] = struct.unpack('>f', double_bytes[4:])[0]
+        self.reg[next_reg] = struct.unpack('>f', double_bytes[:4])[0]
 
     def get_reg_word(self, reg: str) -> int:
-        bytes = struct.pack('>f', self.f_reg[reg])
+        bytes = struct.pack('>f', self.reg[reg])
         return struct.unpack('>i', bytes)[0]
 
     def set_reg_word(self, reg: str, data: int) -> None:
         bytes = struct.pack('>i', data)
-        self.f_reg[reg] = struct.unpack('>f', bytes)[0]
+        self.reg[reg] = struct.unpack('>f', bytes)[0]
 
     def execute_instr(self, instr) -> None:
         '''Execute the given MIPS instruction object.'''
@@ -246,8 +240,8 @@ class Interpreter(QWidget):
         # Instruction with 3 registers
         if type(instr) is RType and hasattr(instr, "rd"):
             if is_float_single(op):
-                result = instrs.table[op[:-2] + '_f'](self.get_reg_float(instr.rs), self.get_reg_float(instr.rt))
-                self.set_reg_float(instr.rd, result)
+                result = instrs.table[op[:-2] + '_f'](self.get_register(instr.rs), self.get_register(instr.rt))
+                self.set_register(instr.rd, result)
             elif is_float_double(op):
                 result = instrs.table[op[:-2] + '_f'](self.get_reg_double(instr.rs), self.get_reg_double(instr.rt))
                 self.set_reg_double(instr.rd, result)
@@ -262,14 +256,14 @@ class Interpreter(QWidget):
         elif type(instr) is RType: # Note: rs and rt are flipped for certain conditionals
             if is_conversion_to_int(op):
                 if is_float_single(op):
-                    result = instrs.table[op[:-4]](self.get_reg_float(instr.rt))
+                    result = instrs.table[op[:-4]](self.get_register(instr.rt))
                 else:
                     result = instrs.table[op[:-4]](self.get_reg_double(instr.rt))
-                self.set_reg_float(instr.rs, interpret_as_float(result))
+                self.set_register(instr.rs, interpret_as_float(result))
 
             elif is_float_single(op):
-                result = instrs.table[op[:-2]](self.get_reg_float(instr.rt))
-                self.set_reg_float(instr.rs, result)
+                result = instrs.table[op[:-2]](self.get_register(instr.rt))
+                self.set_register(instr.rs, result)
 
             elif is_float_double(op):
                 result = instrs.table[op[:-2]](self.get_reg_double(instr.rt))
@@ -326,11 +320,11 @@ class Interpreter(QWidget):
             elif op in {'lw', 'lh', 'lb', 'lhu', 'lbu'}:
                 self.set_register(instr.rt, instrs.table[op](addr, self.mem))
             elif op == 'l.s':
-                self.set_reg_float(instr.rt, self.mem.getFloat(addr))
+                self.set_register(instr.rt, self.mem.getFloat(addr))
             elif op == 'l.d':
                 self.set_reg_double(instr.rt, self.mem.getDouble(addr))
             elif op == 's.s':
-                self.mem.addFloat(self.get_reg_float(instr.rt), addr)
+                self.mem.addFloat(self.get_register(instr.rt), addr)
             elif op == 's.d':
                 self.mem.addDouble(self.get_reg_double(instr.rt), addr)
             else:  # Other store instructions
@@ -343,15 +337,15 @@ class Interpreter(QWidget):
         # Floating point move instructions
         elif type(instr) is MoveFloat:
             if op == 'mfc1': # rs and rt are intentionally swapped here
-                self.set_register(instr.rs, interpret_as_int(self.get_reg_float(instr.rt)))
+                self.set_register(instr.rs, interpret_as_int(self.get_register(instr.rt)))
             elif op == 'mtc1': 
-                self.set_reg_float(instr.rt, interpret_as_float(self.get_register(instr.rs)))
+                self.set_register(instr.rt, interpret_as_float(self.get_register(instr.rs)))
 
             elif op[:4] in ['movn', 'movz']:
                 conditional = self.get_register(instr.rt)
                 if (op[3] == 'z' and conditional == 0) or (op[3] == 'n' and conditional != 0):
                     if is_float_single(op):
-                        self.set_reg_float(instr.rd, self.get_reg_float(instr.rs))
+                        self.set_register(instr.rd, self.get_register(instr.rs))
                     else:
                         self.set_reg_double(instr.rd, self.get_reg_double(instr.rs))
 
@@ -361,7 +355,7 @@ class Interpreter(QWidget):
                 raise ex.InvalidArgument('Condition flag number must be between 0 - 7')
             if (op[3] == 't' and flag) or (op[3] == 'f' and not flag):
                 if is_float_single(op):
-                    self.set_reg_float(instr.rt, self.get_reg_float(instr.rs))
+                    self.set_register(instr.rt, self.get_register(instr.rs))
                 elif is_float_double(op):
                     self.set_reg_double(instr.rt, self.get_reg_double(instr.rs))
                 else:
@@ -378,7 +372,7 @@ class Interpreter(QWidget):
         # Compare float
         elif type(instr) is Compare:
             if is_float_single(op):
-                rs, rt = self.get_reg_float(instr.rs), self.get_reg_float(instr.rt)
+                rs, rt = self.get_register(instr.rs), self.get_register(instr.rt)
             else:
                 rs, rt = self.get_reg_double(instr.rs), self.get_reg_double(instr.rt)
             compare_op, flag = op[2:4], instr.imm
@@ -398,14 +392,14 @@ class Interpreter(QWidget):
             if instr.format_from == 'w':
                 data = self.get_reg_word(instr.rs)
             elif instr.format_from == 's':
-                data = self.get_reg_float(instr.rs)
+                data = self.get_register(instr.rs)
             else:
                 data = self.get_reg_double(instr.rs)
 
             if instr.format_to == 'w':
                 self.set_reg_word(instr.rt, int(data))
             elif instr.format_to == 's':
-                self.set_reg_float(instr.rt, float32(data))
+                self.set_register(instr.rt, float32(data))
             else:
                 self.set_reg_double(instr.rt, float(data))
 
