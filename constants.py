@@ -105,61 +105,69 @@ INPUT_LABEL = "Value"
 
 WINDOW_TITLE = "STARS"
 WORDLIST_PATH = r"gui/wordslist.txt"
-PREFERENCES_PATH = "preferences.json"
 
+TOOLBAR_ICON_SIZE = 24
 MENU_BAR = {
     'File': {
         'New': {
             'Shortcut':'Ctrl+N',
-            'Action':'self.new_tab'
+            'Action':'self.new_tab',
+            'Icon':'gui/resources/new.svg',
         },
         'Open': {
             'Shortcut':'Ctrl+O',
-            'Action':'self.open_file'
+            'Action':'self.open_file',
+            'Icon':'gui/resources/open.svg',
         },
         'Close': {
             'Shortcut':'Ctrl+W',
             'Action':'self.close_tab',
             'Tag':'close',
-            'Start':False
+            'Start':False,
         },
         'Save': {
             'Shortcut':'Ctrl+S',
             'Action':'self.save_file',
+            'Icon':'gui/resources/save.svg',
             'Tag':'save',
-            'Start':False
+            'Start':False,
         }
     },
     'Run': {
         'Assemble': {
             'Shortcut':'F3',
             'Action':'self.assemble',
+            'Icon':'gui/resources/assemble.svg',
             'Tag':'assemble',
-            'Start':False
+            'Start':False,
         },
         'Start': {
             'Shortcut':'F5',
             'Action':'self.start',
+            'Icon':'gui/resources/start.svg',
             'Tag':'start',
-            'Start':False
+            'Start':False,
         },
         'Step': {
             'Shortcut':'F7',
             'Action':'self.step',
+            'Icon':'gui/resources/step.svg',
             'Tag':'step',
-            'Start':False
+            'Start':False,
         },
         'Backstep': {
             'Shortcut':'F8',
             'Action':'self.reverse',
+            'Icon':'gui/resources/backstep.svg',
             'Tag':'backstep',
-            'Start':False
+            'Start':False,
         },
         'Pause': {
             'Shortcut':'F9',
             'Action':'self.pause',
+            'Icon':'gui/resources/pause.svg',
             'Tag':'pause',
-            'Start':False
+            'Start':False,
         }
     },
     'Settings': {
@@ -191,7 +199,8 @@ MENU_BAR = {
     'Help': {
         'Help': {
             'Action':'self.help',
-            'Shortcut':'F1'
+            'Shortcut':'F1',
+            'Icon':'gui/resources/help.svg',
         }
     }    
 }
@@ -249,3 +258,22 @@ HELP_TABS = {
 }
 
 HELP_TITLE = "Help"
+
+# tabs for PREFERENCES
+PREFERENCES_TABS = ['QPalette', 'Editor', 'Highlighter']
+PREFERENCES_PATH = "preferences.json"
+DEFAULT_THEME = "default_theme"
+ON_START_THEME = "on_start_theme"
+THEME_SELECTOR_LABEL = "Current Theme"
+APPLY_PREFERENCES = "Apply"
+RESET_PREFERENCES = "Reset"
+SAVE_PREFERENCES = "Save"
+NEW_BUTTON = "New"
+NEW_THEME = "New Theme"
+NEW_THEME_LABEL = "Name of Theme"
+DELETE_BUTTON = "Delete"
+DELETE_CONFIRMATION = "Are you sure you want to delete the current theme({})?"
+DIALOG_MARGINS = 10
+DIALOG_BUTTON_HEIGHT = 40
+DIALOG_WIDTH = 720
+DIALOG_HEIGHT = 500

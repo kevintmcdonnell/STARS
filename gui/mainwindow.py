@@ -12,11 +12,12 @@ from settings import settings
 from controller import Controller
 from gui.vt100 import VT100
 from gui.textedit import TextEdit
+from gui.theme import ThemePicker
 from gui.widgetfactory import *
 from help.help import HelpWindow
 
-from PySide2.QtCore import Qt, QSemaphore, Signal, QFile, QStringListModel
-from PySide2.QtGui import QBrush, QCloseEvent, QColor, QCursor, QGuiApplication, QPalette
+from PySide2.QtCore import Qt, QSemaphore, Signal, QFile, QSize, QStringListModel
+from PySide2.QtGui import QBrush, QCloseEvent, QColor, QCursor, QGuiApplication, QIcon, QPalette
 from PySide2.QtWidgets import *
 
 '''
@@ -85,6 +86,8 @@ class MainWindow(QMainWindow):
         bar = self.menuBar()
         self.menu_items = {}
 
+        toolbar = self.addToolBar("ToolBar")
+        toolbar.setIconSize(QSize(TOOLBAR_ICON_SIZE, TOOLBAR_ICON_SIZE))
         for tabs, values in MENU_BAR.items():
             tab = bar.addMenu(tabs)
             if tabs == 'Settings':
@@ -103,7 +106,12 @@ class MainWindow(QMainWindow):
                     self.menu_items[controls['Tag']] = action
                 if 'Start' in controls:
                     action.setEnabled(controls['Start'])
+                if 'Icon' in controls:
+                    action.setIcon(QIcon(controls['Icon']))
+                    toolbar.addAction(action)
                 tab.addAction(action)
+            if 'Icon' in controls:
+                toolbar.addSeparator()
 
         self.instr_count = QLabel(INSTRUCTION_COUNT.format(0))
         bar.setCornerWidget(self.instr_count)
@@ -242,7 +250,7 @@ class MainWindow(QMainWindow):
             stretch_factors=[10, 4, 2])
         self.all_horizontal = create_splitter(
             widgets=[left_vertical, self.reg_box], stretch_factors=[3, 0])
-        self.all_horizontal.setContentsMargins(10,20,10,10)
+        self.all_horizontal.setContentsMargins(10,10,10,10)
 
     def get_theme(self, theme: Optional[str]="default_theme"):
         def get_theme_attribute(choice: Dict[str, Union[Dict[str, str], str]], field: str) -> Union[Dict[str, str], str]:
@@ -272,18 +280,7 @@ class MainWindow(QMainWindow):
         self.update_theme()
     
     def edit_theme(self) -> None:
-        theme, _ = QInputDialog.getItem(self, "Pick a theme", "Themes", self.preferences, 2)
-        section, _ = QInputDialog.getItem(self, "Pick a section", "Sections", self.preferences[theme], 0)
-
-        if type(self.preferences[theme][section]) is str:
-            new_value = QColorDialog.getColor()
-            self.preferences[theme][section] = new_value.name()
-        else:
-            attr, _ = QInputDialog.getItem(self, "Pick an attribute", "Attributes", self.preferences[theme][section], 0)
-            new_value = QColorDialog.getColor()
-            self.preferences[theme][section][attr] = new_value.name()
-        self.get_theme(self.theme)
-        self.update_theme()
+        ThemePicker(self, self.preferences).show()
 
     def update_theme(self) -> None:
         self.app.setPalette(self.palette)
