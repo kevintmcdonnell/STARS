@@ -72,7 +72,7 @@ def printUnsignedInt(inter) -> None:
 
 
 def printFloat(inter) -> None:
-    value = inter.get_reg_float('$f12')
+    value = inter.get_register('$f12')
     inter.out(value, end='')
 
 

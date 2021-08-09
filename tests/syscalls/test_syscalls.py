@@ -71,7 +71,7 @@ class TestSyscalls(unittest.TestCase):
     def test_printFloat(self, mock_stdout):
         inter = Interpreter([Label('main')], [])
         inter.mem = memory.Memory()
-        inter.f_reg = {'$f12': float32(420.42)}
+        inter.reg = {'$f12': float32(420.42)}
         syscalls.printFloat(inter)
         self.assertEqual(mock_stdout.getvalue(), '420.42')
 
@@ -79,7 +79,7 @@ class TestSyscalls(unittest.TestCase):
     def test_printFloatBig(self, mock_stdout):
         inter = Interpreter([Label('main')], [])
         inter.mem = memory.Memory()
-        inter.f_reg = {'$f12': float32(42.0E17)}
+        inter.reg = {'$f12': float32(42.0E17)}
         syscalls.printFloat(inter)
         self.assertEqual(mock_stdout.getvalue(), '4.2e+18')
 
@@ -87,7 +87,7 @@ class TestSyscalls(unittest.TestCase):
     def test_printFloatInf(self, mock_stdout):
         inter = Interpreter([Label('main')], [])
         inter.mem = memory.Memory()
-        inter.f_reg = {'$f12': float32('inf')}
+        inter.reg = {'$f12': float32('inf')}
         syscalls.printFloat(inter)
         self.assertEqual(mock_stdout.getvalue(), 'inf')
 
@@ -96,7 +96,7 @@ class TestSyscalls(unittest.TestCase):
     def test_printDouble(self, mock_stdout):
         inter = Interpreter([Label('main')], [])
         inter.mem = memory.Memory()
-        inter.f_reg = {'$f12': float32(1.26443839488E11), '$f13': float32(3.9105663299560546875E0)}
+        inter.reg = {'$f12': float32(1.26443839488E11), '$f13': float32(3.9105663299560546875E0)}
         syscalls.printDouble(inter)
         self.assertEqual(mock_stdout.getvalue(), '420.42')
 
@@ -104,7 +104,7 @@ class TestSyscalls(unittest.TestCase):
     def test_printDoubleBig(self, mock_stdout):
         inter = Interpreter([Label('main')], [])
         inter.mem = memory.Memory()
-        inter.f_reg = {'$f12': float32(-2.4833974245227757568E19), '$f13': float32(4.1028668212890625E2)}
+        inter.reg = {'$f12': float32(-2.4833974245227757568E19), '$f13': float32(4.1028668212890625E2)}
         syscalls.printDouble(inter)
         self.assertEqual(mock_stdout.getvalue(), '4.2e+18')
 
@@ -117,7 +117,7 @@ class TestSyscalls(unittest.TestCase):
         inf_bytes = struct.pack('>i', inf_int)
         inf_float = struct.unpack('>f', inf_bytes)[0]
 
-        inter.f_reg = {'$f12': float32(0), '$f13': inf_float}
+        inter.reg = {'$f12': float32(0), '$f13': inf_float}
         syscalls.printDouble(inter)
         self.assertEqual(mock_stdout.getvalue(), 'inf')
 
