@@ -12,11 +12,12 @@ from settings import settings
 from controller import Controller
 from gui.vt100 import VT100
 from gui.textedit import TextEdit
+from gui.theme import ThemePicker
 from gui.widgetfactory import *
 from help.help import HelpWindow
 
-from PySide2.QtCore import Qt, QSemaphore, Signal, QFile, QStringListModel
-from PySide2.QtGui import QBrush, QCloseEvent, QColor, QCursor, QGuiApplication, QPalette
+from PySide2.QtCore import Qt, QSemaphore, Signal, QFile, QSize, QStringListModel
+from PySide2.QtGui import QBrush, QCloseEvent, QColor, QCursor, QGuiApplication, QIcon, QPalette
 from PySide2.QtWidgets import *
 
 '''
@@ -70,6 +71,7 @@ class MainWindow(QMainWindow):
         self.init_out()
         self.init_regs()
         self.init_pa()
+        self.init_search()
         self.add_edit()
         self.init_splitters()
         self.setCentralWidget(self.all_horizontal)
@@ -84,6 +86,8 @@ class MainWindow(QMainWindow):
         bar = self.menuBar()
         self.menu_items = {}
 
+        toolbar = self.addToolBar("ToolBar")
+        toolbar.setIconSize(QSize(TOOLBAR_ICON_SIZE, TOOLBAR_ICON_SIZE))
         for tabs, values in MENU_BAR.items():
             tab = bar.addMenu(tabs)
             if tabs == 'Settings':
@@ -102,7 +106,12 @@ class MainWindow(QMainWindow):
                     self.menu_items[controls['Tag']] = action
                 if 'Start' in controls:
                     action.setEnabled(controls['Start'])
+                if 'Icon' in controls:
+                    action.setIcon(QIcon(controls['Icon']))
+                    toolbar.addAction(action)
                 tab.addAction(action)
+            if 'Icon' in controls:
+                toolbar.addSeparator()
 
         self.instr_count = QLabel(INSTRUCTION_COUNT.format(0))
         bar.setCornerWidget(self.instr_count)
@@ -186,14 +195,23 @@ class MainWindow(QMainWindow):
             sections=[QLabel('Program Arguments:'), self.pa])
         self.pa_lay = create_widget(layout=layout)
 
+    def init_search(self) -> None:
+        self.find = QLineEdit()
+        self.find.textChanged.connect(self.search)
+        self.find.returnPressed.connect(self.select_next)
+        self.search_box = create_widget(layout=create_box_layout(direction=QBoxLayout.LeftToRight, 
+                                                sections= [QLabel("Search"), self.find]))
+
     def add_edit(self) -> None:
         self.files = {} # filename -> (dirty: bool, path: str)
         self.file_count = 0 # number of tabs
 
         self.tabs = QTabWidget()
+        self.tabs.setMovable(True)
         self.tabs.setTabsClosable(True)
         self.tabs.tabCloseRequested.connect(self.close_tab)
         self.tabs.setCornerWidget(create_button('+', self.new_tab))
+        self.tabs.currentChanged.connect(lambda: self.search(self.find.text()))
 
         # initialize autocomplete
         self.comp = QCompleter()
@@ -222,8 +240,9 @@ class MainWindow(QMainWindow):
 
     def init_splitters(self) -> None: 
         largeWidth = QGuiApplication.primaryScreen().size().width()
+        search_pa = create_splitter(widgets=[self.search_box, self.pa_lay])
         instruction_pa = create_splitter(orientation=Qt.Vertical, 
-            widgets=[self.pa_lay, self.instr_grid], stretch_factors=[1, 9])
+            widgets=[search_pa, self.instr_grid], stretch_factors=[1, 9])
         editor_instruction_horizontal = create_splitter(
             widgets=[self.tabs, instruction_pa], sizes=[largeWidth, largeWidth])
         left_vertical = create_splitter(orientation=Qt.Vertical,
@@ -231,7 +250,7 @@ class MainWindow(QMainWindow):
             stretch_factors=[10, 4, 2])
         self.all_horizontal = create_splitter(
             widgets=[left_vertical, self.reg_box], stretch_factors=[3, 0])
-        self.all_horizontal.setContentsMargins(10,20,10,10)
+        self.all_horizontal.setContentsMargins(10,10,10,10)
 
     def get_theme(self, theme: Optional[str]="default_theme"):
         def get_theme_attribute(choice: Dict[str, Union[Dict[str, str], str]], field: str) -> Union[Dict[str, str], str]:
@@ -261,18 +280,7 @@ class MainWindow(QMainWindow):
         self.update_theme()
     
     def edit_theme(self) -> None:
-        theme, _ = QInputDialog.getItem(self, "Pick a theme", "Themes", self.preferences, 2)
-        section, _ = QInputDialog.getItem(self, "Pick a section", "Sections", self.preferences[theme], 0)
-
-        if type(self.preferences[theme][section]) is str:
-            new_value = QColorDialog.getColor()
-            self.preferences[theme][section] = new_value.name()
-        else:
-            attr, _ = QInputDialog.getItem(self, "Pick an attribute", "Attributes", self.preferences[theme][section], 0)
-            new_value = QColorDialog.getColor()
-            self.preferences[theme][section][attr] = new_value.name()
-        self.get_theme(self.theme)
-        self.update_theme()
+        ThemePicker(self, self.preferences).show()
 
     def update_theme(self) -> None:
         self.app.setPalette(self.palette)
@@ -394,10 +402,7 @@ class MainWindow(QMainWindow):
             self.update_button_status(start=True, step=True, backstep=True, pause=True)
 
         except Exception as e:
-            if hasattr(e, 'message'):
-                self.update_console(type(e).__name__ + ": " + e.message)
-            else:
-                self.update_console(type(e).__name__ + ": " + str(e))
+            self.update_console(f"{type(e).__name__}: {str(e)}")
 
     def set_running(self, run: bool) -> None:
         self.run_sem.acquire()
@@ -465,7 +470,7 @@ class MainWindow(QMainWindow):
                     self.regs[r].setText(WORD_HEX_FORMAT.format(a))
             else:
                 if self.rep == "Decimal":
-                    self.regs[r].setText(f'{self.intr.f_reg[r]:8f}')
+                    self.regs[r].setText(f'{self.intr.reg[r]:8f}')
                 else:
                     self.regs[r].setText(WORD_HEX_FORMAT.format(self.controller.get_reg_word(r)))
 
@@ -489,7 +494,7 @@ class MainWindow(QMainWindow):
                     self.instr_grid.setCellWidget(count, 0, cell)
                     
                     values = [WORD_HEX_FORMAT.format(int(k)), 
-                                f"{i.basic_instr()}", 
+                                f"{i}", 
                                 f"{i.filetag.line_no}: {i.original_text}"]
                     row = create_instruction(values, self.instr_grid, count)
                     self.instrs.append(row)
@@ -580,6 +585,16 @@ class MainWindow(QMainWindow):
 
     def remove_breakpoint(self, cmd: Tuple[str, str]) -> None:
         self.controller.remove_breakpoint((f'"{cmd[1]}"', cmd[2]))
+
+    def search(self, text: str) -> None:
+        '''Highlight text that matches the provided text in the current widget.'''
+        if self.tabs.currentWidget() is not None:
+            self.tabs.currentWidget().search(text)
+
+    def select_next(self) -> None:
+        '''Move cursor to next highlighted text.'''
+        if self.tabs.currentWidget() is not None:
+            self.tabs.currentWidget().select_next()
 
     def launch_vt100(self) -> None:
         if self.vt100:
