@@ -109,8 +109,4 @@ if __name__ == '__main__':
             inter.out(f'\nInstruction count: {inter.instruction_count}')
 
     except Exception as e:
-        if hasattr(e, 'message'):
-            print(type(e).__name__ + ": " + e.message, file=sys.stderr)
-
-        else:
-            print(type(e).__name__ + ": " + str(e), file=sys.stderr)
+        print(f"{type(e).__name__}: {str(e)}", file=sys.stderr)

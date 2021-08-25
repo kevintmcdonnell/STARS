@@ -128,6 +128,10 @@ class Memory:
         # Returns (0 ~ 255) if unsigned
         if not admin:
             check_bounds(int(addr))
+        if type(addr) is str:
+            addr = int(addr)
+        if addr < 0:
+            addr += 2**32
 
         if str(addr) in self.data.keys():
             acc = self.data[str(addr)]
@@ -155,7 +159,7 @@ class Memory:
     def getWord(self, addr: int) -> int:
         if addr % 4 != 0:
             raise ex.MemoryAlignmentError(f"{utility.format_hex(addr)} is not word aligned.")
-
+        
         acc = 0  # Result
 
         for i in reversed(range(4)):  # Little Endian: Go from MSB to LSB

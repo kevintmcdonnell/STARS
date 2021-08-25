@@ -78,7 +78,7 @@ class MipsParser(Parser):
         if type(p.instr) is PseudoInstr:
             for i in range(len(p.instr.instrs)):
                 p.instr.instrs[i].filetag = p.filetag
-                p.instr.instrs[i].original_text = p.instr.original()
+                p.instr.instrs[i].original_text = p.instr.operation
                 p.instr.instrs[i].is_from_pseudoinstr = True
 
         else:
@@ -182,7 +182,7 @@ class MipsParser(Parser):
 
     @_('CONVERT_F F_REG F_REG')
     def iType(self, p):
-        return Convert(p.CONVERT_F[-1], p.CONVERT_F[-3], p.F_REG0, p.F_REG1)
+        return Convert(p.CONVERT_F, p.F_REG0, p.F_REG1)
 
     @_('BRANCH_F LABEL', 'BRANCH_F NUMBER LABEL', 'BRANCH_F NUMBER COMMA LABEL')
     def branch(self, p):
@@ -193,11 +193,11 @@ class MipsParser(Parser):
 
     @_('MOVE_BTWN_F REG F_REG')
     def iType(self, p):
-        return MoveFloat(p.MOVE_BTWN_F, p.REG, p.F_REG)
+        return MoveFloat(p.MOVE_BTWN_F, [p.REG, p.F_REG])
 
     @_('MOVE_F F_REG F_REG REG')
     def rType(self, p):
-        return MoveFloat(p.MOVE_F, p.F_REG0, p.F_REG1, p.REG)
+        return MoveFloat(p.MOVE_F, [p.F_REG0, p.F_REG1, p.REG])
 
     @_('MOVE_COND_F F_REG F_REG', 'MOVE_COND_F F_REG F_REG NUMBER')
     def iType(self, p):
@@ -408,14 +408,14 @@ class MipsParser(Parser):
 
         return result
 
-    @_('label ASCIIZ STRING', 'label WORD nums', 'label BYTE chars', 'label ASCII STRING', 'label SPACE nums',
-       'label HALF nums',
-       'label FLOAT floats', 'label DOUBLE floats',
+    @_('LABEL COLON ASCIIZ STRING', 'LABEL COLON WORD nums', 'LABEL COLON BYTE chars', 'LABEL COLON ASCII STRING', 'LABEL SPACE nums',
+       'LABEL COLON HALF nums',
+       'LABEL COLON FLOAT floats', 'LABEL COLON DOUBLE floats',
        'ASCIIZ STRING', 'WORD nums', 'BYTE chars', 'ASCII STRING', 'SPACE nums', 'HALF nums',
        'FLOAT floats', 'DOUBLE floats', 'EQV', 'ALIGN NUMBER')
     def declaration(self, p):
-        if 'label' in p._namemap:
-            return [Declaration(p.label, p[1], p[2])]
+        if 'LABEL' in p._namemap:
+            return [Declaration(p.LABEL, p[2], p[3])]
 
         elif len(p) > 1:  # Not eqv
             return [Declaration(None, p[0], p[1])]

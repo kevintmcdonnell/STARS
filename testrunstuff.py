@@ -15,11 +15,7 @@ if __name__ == "__main__":
             inter.interpret()
 
         except Exception as e:
-            if hasattr(e, 'message'):
-                sys.stderr.write(type(e).__name__ + ": " + e.message)
-                continue
-            else:
-                sys.stderr.write(type(e).__name__ + ": " + str(e))
-                continue
+            sys.stderr.write(f"{type(e).__name__}: {str(e)}")
+            continue
 
     sys.stderr.close()

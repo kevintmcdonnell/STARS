@@ -14,87 +14,44 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-
-class InvalidImmediate(Exception):
+class MessageException(Exception):
     def __init__(self, message: str):
         self.message = message
 
+    def __str__(self):
+        return f"{self.message}\n"
 
-class MemoryOutOfBounds(Exception):
-    def __init__(self, message: str):
-        self.message = message
-
-
-class MemoryAlignmentError(Exception):
-    def __init__(self, message: str):
-        self.message = message
-
-
-class InvalidCharacter(Exception):
-    def __init__(self, message: str):
-        self.message = message
-
-
-class InvalidLabel(Exception):
-    def __init__(self, message: str):
-        self.message = message
-
-
-class InvalidSyscall(Exception):
-    def __init__(self, message: str):
-        self.message = message
-
-
-class InvalidRegister(Exception):
-    def __init__(self, message: str):
-        self.message = message
-
-
-class WritingToZeroRegister(Exception):
-    def __init__(self, message: str):
-        self.message = message
-
-
-class ArithmeticOverflow(Exception):
-    def __init__(self, message: str):
-        self.message = message
-
-
-class DivisionByZero(Exception):
-    def __init__(self, message: str):
-        self.message = message
-
-
-class InvalidInput(Exception):
-    def __init__(self, message: str):
-        self.message = message
-
-
-class InstrCountExceed(Exception):
-    def __init__(self, message: str):
-        self.message = message
-
-
-class BreakpointException(Exception):
-    def __init__(self, message: str):
-        self.message = message
-
-
-class FileAlreadyIncluded(Exception):
-    def __init__(self, message: str):
-        self.message = message
-
-
-class InvalidEQV(Exception):
-    def __init__(self, message: str):
-        self.message = message
-
-
-class InvalidArgument(Exception):
-    def __init__(self, message: str):
-        self.message = message
-
-
-class NoMainLabel(Exception):
-    def __init__(self, message: str):
-        self.message = message
+class InvalidImmediate(MessageException):
+    pass
+class MemoryOutOfBounds(MessageException):
+    pass
+class MemoryAlignmentError(MessageException):
+    pass
+class InvalidCharacter(MessageException):
+    pass
+class InvalidLabel(MessageException):
+    pass
+class InvalidSyscall(MessageException):
+    pass
+class InvalidRegister(MessageException):
+    pass
+class WritingToZeroRegister(MessageException):
+    pass
+class ArithmeticOverflow(MessageException):
+    pass
+class DivisionByZero(MessageException):
+    pass
+class InvalidInput(MessageException):
+    pass
+class InstrCountExceed(MessageException):
+    pass
+class BreakpointException(MessageException):
+    pass
+class FileAlreadyIncluded(MessageException):
+    pass
+class InvalidEQV(MessageException):
+    pass
+class InvalidArgument(MessageException):
+    pass
+class NoMainLabel(MessageException):
+    pass

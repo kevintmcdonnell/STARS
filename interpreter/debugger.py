@@ -75,7 +75,7 @@ def _print(cmd, interp):  # cmd = ['p', value, opts...]
         return True
 
     # Integer register
-    elif (cmd[1] in interp.reg or cmd[1] in interp.f_reg) and cmd[2] in ['i', 'u', 'x', 'b']:
+    elif (cmd[1] in interp.reg) and cmd[2] in ['i', 'u', 'x', 'b']:
         # Print contents of a register
         reg = cmd[1]
         base = cmd[2]
@@ -89,13 +89,13 @@ def _print(cmd, interp):  # cmd = ['p', value, opts...]
         return True
 
     # Floating point register
-    elif cmd[1] in interp.f_reg and cmd[2] in ['f', 'd']:
+    elif cmd[1] in interp.reg and cmd[2] in ['f', 'd']:
         # Print contents of a floating point register
         reg = cmd[1]
         base = cmd[2]
 
         if base == 'f':
-            print(f'{reg} {interp.get_reg_float(reg)}')
+            print(f'{reg} {interp.get_register(reg)}')
         else:
             try:
                 print(f'{reg} {interp.get_reg_double(reg)}')
@@ -255,7 +255,7 @@ class Debug:
     def __init__(self):
         self.stack = []
         self.continueFlag = False
-        self.breakpoints = []
+        self.breakpoints = set()
         self.handle = {'b': self.addBreakpoint,
                        'break': self.addBreakpoint,
                        'n': next,
@@ -317,10 +317,9 @@ class Debug:
     def debug(self, instr) -> bool:
         # Returns whether to break execution and ask for input to debugger.
         # If continueFlag is true, then don't break execution.
-        filename = instr.filetag.file_name
-        lineno = str(instr.filetag.line_no)
-
-        if settings['debug'] and (filename, lineno) in self.breakpoints:
+        current = instr.filetag.file_name, str(instr.filetag.line_no)
+        
+        if settings['debug'] and current in self.breakpoints:
             self.continueFlag = False
             return True
 
@@ -346,17 +345,21 @@ class Debug:
                 prev = MChange(interp.reg['hi'], interp.reg['lo'], prev_pc)
 
             else:
-                dest_reg = instr.regs[0]
+                dest_reg = instr.rd if type(instr) is RType else instr.rt
 
                 if is_float_single(op):
-                    prev = RegChange(dest_reg, interp.f_reg[dest_reg], prev_pc)
+                    prev = RegChange(dest_reg, interp.reg[dest_reg], prev_pc)
                 elif is_float_double(op):
-                    prev = RegChange(dest_reg, interp.f_reg[dest_reg], prev_pc, is_double=True)
+                    prev = RegChange(dest_reg, interp.reg[dest_reg], prev_pc, is_double=True)
                 else:
                     prev = RegChange(dest_reg, interp.reg[dest_reg], prev_pc)
 
-        elif type(instr) in {LoadImm, Move}:
-            prev = RegChange(instr.reg, interp.reg[instr.reg], prev_pc)
+        elif type(instr) is Move:
+            reg = instr.rd if 'f' in instr.operation else instr.rs
+            prev = RegChange(reg, interp.reg[reg], prev_pc)
+
+        elif type(instr) is LoadImm:
+            prev = RegChange(instr.rt, interp.reg[instr.rt], prev_pc)
 
         elif type(instr) is JType:
             op = instr.operation
@@ -374,15 +377,15 @@ class Debug:
             # Loads
             if op[0] == 'l':
                 if is_float_single(op):
-                    prev = RegChange(instr.reg, interp.f_reg[instr.reg], prev_pc)
+                    prev = RegChange(instr.rt, interp.reg[instr.rt], prev_pc)
                 elif is_float_double(op):
-                    prev = RegChange(instr.reg, interp.f_reg[instr.reg], prev_pc, is_double=True)
+                    prev = RegChange(instr.rt, interp.reg[instr.rt], prev_pc, is_double=True)
                 else:
-                    prev = RegChange(instr.reg, interp.reg[instr.reg], prev_pc)
+                    prev = RegChange(instr.rt, interp.reg[instr.rt], prev_pc)
 
             # Stores
             else:
-                addr = interp.reg[instr.addr] + instr.imm
+                addr = interp.reg[instr.rs] + instr.imm
 
                 if is_float_single(op):
                     prev = MemChange(addr, interp.mem.getFloat(addr), prev_pc, 'f')
@@ -396,28 +399,35 @@ class Debug:
                     prev = MemChange(addr, interp.mem.getByte(addr), prev_pc, 'b')
 
         elif type(instr) is Compare:
-            flag = instr.flag
+            flag = instr.imm
             prev = FlagChange(flag, interp.condition_flags[flag], prev_pc)
 
         elif type(instr) is Convert:
             dest_reg = instr.rs
 
             if instr.format_to == 'd':
-                prev = RegChange(dest_reg, interp.f_reg[dest_reg], prev_pc, is_double=True)
+                prev = RegChange(dest_reg, interp.reg[dest_reg], prev_pc, is_double=True)
             else:
-                prev = RegChange(dest_reg, interp.f_reg[dest_reg], prev_pc)
+                prev = RegChange(dest_reg, interp.reg[dest_reg], prev_pc)
 
-        elif type(instr) is MoveFloat or type(instr) is MoveCond:
+        elif type(instr) is MoveFloat:
             op = instr.operation
-
             if op == 'mtc1':
-                prev = RegChange(instr.rt, interp.f_reg[instr.rt], prev_pc)
+                prev = RegChange(instr.rt, interp.reg[instr.rt], prev_pc)
             elif op == 'mfc1':
                 prev = RegChange(instr.rs, interp.reg[instr.rs], prev_pc)
             elif is_float_single(op):
-                prev = RegChange(instr.rs, interp.f_reg[instr.rs], prev_pc)
+                prev = RegChange(instr.rd, interp.reg[instr.rd], prev_pc)
             else:
-                prev = RegChange(instr.rs, interp.f_reg[instr.rs], prev_pc, is_double=True)
+                prev = RegChange(instr.rd, interp.reg[instr.rd], prev_pc, is_double=True)
+
+        elif type(instr) is MoveCond:
+            if is_float_single(op):
+                prev = RegChange(instr.rt, interp.reg[instr.rt], prev_pc)
+            elif is_float_double(op):
+                prev = RegChange(instr.rt, interp.reg[instr.rt], prev_pc, is_double=True)
+            else:
+                prev = RegChange(instr.rt, interp.reg[instr.rt], prev_pc)
 
         else:  # branches, nops, jr, j
             prev = Change(prev_pc)
@@ -437,7 +447,7 @@ class Debug:
                     if prev.is_double:
                         interp.set_reg_double(prev.reg, prev.val)
                     else:
-                        interp.set_reg_float(prev.reg, prev.val)
+                        interp.set_register(prev.reg, prev.val)
 
                 else:
                     interp.reg[prev.reg] = prev.val
@@ -486,7 +496,7 @@ class Debug:
 
     def addBreakpoint(self, cmd: List[str], interp) -> bool:  # cmd = ['b', filename, lineno]
         if len(cmd) == 3 and str(cmd[2]).isdecimal():
-            self.breakpoints.append((f'"{cmd[1]}"', cmd[2]))  # filename, lineno
+            self.breakpoints.add((f'"{cmd[1]}"', cmd[2]))  # filename, lineno
             return True
 
         print_usage_text()

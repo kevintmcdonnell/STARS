@@ -1,6 +1,8 @@
 import re
 
-from constants import WORD_MASK
+from numpy import float32
+
+from constants import WORD_MASK, FLOAT_MIN, FLOAT_MAX
 
 '''
 https://github.com/sbustars/STARS
@@ -47,3 +49,23 @@ def handle_escapes(s: str) -> str:
     s = re.sub(r'\\\\', r'\\', s)
 
     return s
+
+
+def align_address(address: int, alignment: int):
+    '''Return the address padded to fit the alignment given.'''
+    mod = address % alignment
+    if mod != 0:
+        address += (alignment - mod)
+    return address
+
+
+def create_float32(data: float) -> float32:
+    '''Convert double precision float to single precision float.'''
+    if abs(data) < FLOAT_MIN:
+        return float32(0)
+    elif data > FLOAT_MAX:
+        return float32('inf')
+    elif data < -FLOAT_MAX:
+        return float32('-inf')
+    else:
+        return float32(data)
