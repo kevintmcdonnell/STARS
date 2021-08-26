@@ -6,7 +6,10 @@ This program is a MIPS Assembly simulator made for the purpose of education.
 
 To download the dependecies run `./startup.sh` or `pip install -r requirements.txt`.
 # How to run:
+####  Command Line:
 * `python sbumips.py [-a] [-h] [-d] [-g] [-n #] [-i] [-w] [-pa arg1, arg2, ...] filename`
+####  GUI (graphical user interface):
+* `python gui/mainwindow.py`
 
 # Positional arguments:
 * `filename`       Input MIPS Assembly file.
