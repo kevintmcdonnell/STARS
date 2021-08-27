@@ -1,17 +1,24 @@
-This program is a MIPS Assembly simulator made for the purpose of education.
+# The STARS Code Repository
+
+## Overview
+This repository hosts the public releases of STARS (Stony Brook Assembler and Run-time Simulator). STARS is a MIPS Assembly simulator made for the purpose of education.
+
 ## Dependencies
 * PySide2 (v5.14 or newer)
 * numpy (v1.19.3 or older for Windows)
-* opengl
 
-To download the dependecies run `./startup.sh` or `pip install -r requirements.txt`.
-# How to run:
-* `python sbumips.py [-a] [-h] [-d] [-g] [-n #] [-i] [-w] [-pa arg1, arg2, ...] filename`
+To download the dependecies execute: `./startup.sh` or `pip install -r requirements.txt`.
+# How to use:
+####  GUI (Graphical User Interface):
+The GUI can be launch by executing `python gui/mainwindow.py` in the root of this repository.
 
-# Positional arguments:
+####  Command Line:
+`python sbumips.py [-a] [-h] [-d] [-g] [-n #] [-i] [-w] [-pa arg1, arg2, ...] filename`
+
+##### Positional arguments:
 * `filename`       Input MIPS Assembly file.
 
-# optional arguments:
+##### Optional arguments:
 * `-a`, `--assemble`    Assemble program without running it
 * `-h`, `--help`     Shows help message and exits
 * `-d`, `--debug`    Enables debugging mode
